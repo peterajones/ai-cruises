@@ -138,6 +138,45 @@ Scrapers fail silently and destructively. These guard the specific ways.
 - **Ship caching.** Ship descriptions are reused between runs unless `--refresh-ships`
   is passed. A ship's blurb changes roughly never.
 
+## Empty states
+
+Three different situations produce "nothing here", and they want opposite tones.
+Conflating them is how a broken scraper gets mistaken for an empty ocean.
+
+| Situation | Audience | Tone |
+| --- | --- | --- |
+| Scraper parsed 0 rows | Operator, at the terminal | Alarming — something broke |
+| Search matched nothing | User, mid-search | Light |
+| Filter contained an unmappable term | User, mid-search | Helpful — name the term |
+
+**Scraper, 0 rows** — in scope here. Stays blunt, and never jokes:
+
+```text
+Parsed 0 sailings from listing page 1.
+This usually means the selectors broke or you hit a bot wall.
+HTML saved to data/debug/cruise-com-listing-2026-08-03T22-51-04.html
+Aborting without writing data/sailings.json.
+```
+
+**Search, no matches** — search-layer behaviour, specified here so it does not get
+invented ad hoc later. Adapts to whether the filter names a destination:
+
+```js
+// destination present → "No Alaska cruises matched — you've had enough sun anyway."
+// no destination      → "Nothing matched that search — you've had enough sun anyway."
+```
+
+**Search, unmappable term** — reads from the filter's own `unrecognised` field and
+names what it dropped, rather than silently ignoring it:
+
+> Found nothing. I understood *7 nights*, *balcony* and *under $1500* — but nothing
+> in the listings describes "**Michelin restaurant**", so I ignored it.
+
+The second and third are implemented with the search UI, not the scraper. They are
+recorded here because the third is the entire reason `unrecognised` exists, and a
+spec that builds the field without saying what it is for invites it being built and
+then never read.
+
 ## Testing
 
 `node --test`. No Jest — it would be a second dependency and the pure functions do
