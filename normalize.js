@@ -86,12 +86,21 @@ function pad(n) {
   return String(n).padStart(2, '0');
 }
 
-/** '$1,299' and '1299.00' both become 1299. Returns null if there is no number. */
+/** '$1,299' and '1299.00' both become 1299. Returns null if there is no number or multiple numbers. */
 function toNumber(raw) {
   if (raw === null || raw === undefined) return null;
-  const digits = String(raw).replace(/[^0-9.]/g, '');
-  if (digits === '') return null;
-  const n = Number(digits);
+  const text = String(raw);
+
+  // Find all formatted numbers (allowing commas as thousand separators)
+  // Matches: 1,299 / 1299.00 / 1299 / 1,299.99 etc.
+  const numbers = text.match(/\d+(?:,\d{3})*(?:\.\d+)?/g);
+  if (!numbers || numbers.length === 0) return null;
+
+  // Reject if multiple numbers detected (e.g., price ranges)
+  if (numbers.length > 1) return null;
+
+  // Remove commas and convert to number
+  const n = Number(numbers[0].replace(/,/g, ''));
   return Number.isFinite(n) ? n : null;
 }
 

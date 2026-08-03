@@ -85,3 +85,18 @@ test('a row missing a required field is dropped and recorded', () => {
   assert.equal(sailings.length, 0);
   assert.equal(unrecognised[0].field, 'row');
 });
+
+test('price ranges with multiple numbers are rejected as ambiguous', () => {
+  const row = { ...goodRow, price: '$1,299 - $1,499' };
+  const { sailings, unrecognised } = normalizeAll([row], { source: 'princess', line: 'Princess' });
+  assert.equal(sailings.length, 0);
+  assert.equal(unrecognised[0].field, 'row');
+});
+
+test('price with per-person and total notation is rejected', () => {
+  const row = { ...goodRow, price: '$1,299 pp / $2,598 total' };
+  const { sailings, unrecognised } = normalizeAll([row], { source: 'princess', line: 'Princess' });
+  assert.equal(sailings.length, 0);
+  assert.equal(unrecognised[0].field, 'row');
+});
+
