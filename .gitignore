@@ -1,0 +1,8 @@
+node_modules/
+
+# Scraper output — regenerate with `node scrape.js`
+data/sailings.json
+data/runs/
+data/debug/
+
+.DS_Store
