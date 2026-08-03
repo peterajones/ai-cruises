@@ -17,7 +17,7 @@ specify, so they get written as rules.
 
 | Decision | Choice | Why |
 |---|---|---|
-| Target | Cruise.com only in v1 | Aggregator, so one adapter covers 40+ lines. Seam built for more sites; adding one is a new file. |
+| Target | Princess and Royal Caribbean in v1 | Every reachable aggregator is bot-walled or disallows its listing endpoint (see Target selection). Lines' own sites serve their search paths and expose results as JSON. |
 | Fuzzy attributes | Store prose, infer nothing | Search over hard fields works immediately; inference later is a pass over stored data, not a re-scrape. |
 | Storage | `data/sailings.json`, manual re-run | Zero storage machinery, human-readable. Dated copies in `data/runs/` keep price history possible. |
 | Depth | Listing pages + one detail page per *ship* | "Vibe" is a property of the ship, not the sailing. ~40 extra loads instead of thousands. |
@@ -25,15 +25,41 @@ specify, so they get written as rules.
 
 Dependencies: `puppeteer`, and nothing else. Tests use `node --test`.
 
+## Target selection
+
+Measured 2026-08-03 with a plain `curl` using a desktop Chrome user agent:
+
+| Site | Result |
+| --- | --- |
+| Cruise.com | Imperva/Incapsula challenge page on `/` and `/search`; `robots.txt` returns an empty body |
+| CruiseDirect | HTTP 403 |
+| Cruises.com, Cruiseline.com | 212-byte challenge stubs |
+| Vacations To Go | 128 KB of server-rendered HTML, no wall — but listings come from `/fastdeal.cfm`, which its `robots.txt` disallows |
+| Princess | 24 KB SPA shell, no wall, `/cruise-search` not disallowed |
+| Royal Caribbean | Loads, no block on `/cruises`, Akamai present in the stack |
+
+Working around a bot wall is explicitly out of scope. It is a different project
+from this one, it breaks whenever the vendor retunes, and the entire design rests
+on parsing being boring and stable.
+
+Cruise lines' own sites cost breadth — one line's inventory per adapter rather than
+40 lines in one — and cost nothing architecturally, because the adapter seam already
+makes each additional source a new file. They also produce cleaner enumerations,
+since one line names its destinations consistently where aggregators mix conventions.
+
 ## Layout
 
 ```text
 ai-cruises/
   scrape.js          entry point:  node scrape.js [--limit N] [--site S] [--refresh-ships] [--dry-run]
   sites/
-    cruise-com.js    the only file that knows anything about a specific website
+    index.js         adapter registry
+    princess.js      the only files that know anything about a specific website
+    royal-caribbean.js
+  browser.js         puppeteer launch, polite delay, bot-wall detection
   normalize.js       raw site rows -> canonical Sailing shape
   values.js          derives the VALUES enumeration from scraped data
+  persist.js         atomic write, run snapshots, ship cache merge
   data/
     sailings.json    what the search server reads
     runs/            dated copies of previous runs
@@ -48,10 +74,11 @@ The load-bearing interface. An adapter knows one site and returns **site-shaped*
 objects; it does no canonicalizing.
 
 ```js
-export const name = 'cruise-com';
+export const name = 'princess';
+export const line = 'Princess';
 
-export async function fetchListingPages(page, { limit });  // -> raw HTML strings / JSON blobs
-export function parseListing(html);                        // -> RawSailing[]   (pure)
+export async function fetchListingPages(page, { limit });  // -> raw payload strings
+export function parseListing(payload);                     // -> RawSailing[]   (pure)
 export async function fetchShipPage(page, ship);           // -> raw HTML
 export function parseShip(html);                           // -> { line, description }  (pure)
 ```
@@ -71,8 +98,8 @@ the site already produces is far more stable than CSS selectors over its markup.
 {
   scrapedAt: '2026-08-03T22:40:00Z',
   sailings: [{
-    id: 'cruise-com:12345',        // site-prefixed, so IDs never collide across sites
-    source: 'cruise-com',
+    id: 'princess:12345',          // site-prefixed, so IDs never collide across sites
+    source: 'princess',
     url: 'https://…',
     line: 'Princess',
     ship: 'Sky Princess',
@@ -154,7 +181,7 @@ Conflating them is how a broken scraper gets mistaken for an empty ocean.
 ```text
 Parsed 0 sailings from listing page 1.
 This usually means the selectors broke or you hit a bot wall.
-HTML saved to data/debug/cruise-com-listing-2026-08-03T22-51-04.html
+Payload saved to data/debug/princess-listing-2026-08-03T22-51-04.json
 Aborting without writing data/sailings.json.
 ```
 
@@ -182,14 +209,15 @@ then never read.
 `node --test`. No Jest — it would be a second dependency and the pure functions do
 not need it.
 
-- `test/fixtures/cruise-com-listing.html` — one real saved page, committed.
-  `parseListing(fixture)` returns a known row count with a known first row.
+- `test/fixtures/princess-listing.json`, `test/fixtures/royal-caribbean-listing.json` —
+  real captured payloads, committed, one per adapter. `parseListing(fixture)` returns a
+  known row count and a first row matching a committed golden file.
 - `normalize.js` — table-driven: the three Eastern Caribbean spellings all map to
   `caribbean-east`; an unmapped value lands in `unrecognised` rather than vanishing.
 - `values.js` — derives the correct enumeration from a small hand-written sailing set.
 
 **Not tested: `fetchListingPages`.** It needs the live internet; a test for it would
-be testing Cruise.com's uptime. It gets a manual smoke command instead:
+be testing Princess's uptime. It gets a manual smoke command instead:
 `node scrape.js --limit 5 --dry-run` prints what it would write without touching
 `data/`.
 

@@ -6,3 +6,6 @@ data/runs/
 data/debug/
 
 .DS_Store
+
+# SDD scratch — see CLAUDE.md; delete when the work lands
+.superpowers/
