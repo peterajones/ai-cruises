@@ -138,6 +138,22 @@ test('skips a sailing whose stateroom tiers are all unpriced', () => {
   assert.equal(rows[0].price, 999.99);
 });
 
+test('returns an empty array instead of throwing when a sibling GraphQL operation lacks cruiseSearch', () => {
+  // Synthetic payload — one of the four batched GraphQL responses that hit
+  // cruises/graph on a real page load carries a completely different shape
+  // (e.g. a filter/facet query). parseListing must not crash a run when it
+  // is handed one of those by mistake; it should just yield no rows.
+  const siblingOperationPayload = JSON.stringify({
+    data: {
+      someOtherOperation: {
+        results: { facets: [] },
+      },
+    },
+  });
+
+  assert.deepEqual(parseListing(siblingOperationPayload), []);
+});
+
 test('the fixture survives normalizeAll with no dropped rows', () => {
   const rows = parseListing(payload);
   const { sailings, unrecognised } = normalizeAll(rows, { source: name, line });
