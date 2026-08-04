@@ -186,3 +186,159 @@ overhead, so the real gap between loads was well over a minute each time)
   "obvious" pricing route was off-limits by the site's own rules and the
   actual route (via a ship page's "View Cruises" link) took extra digging
   to find.
+
+# Royal Caribbean fixture capture — notes for Task 8 (discovery only)
+
+Captured 2026-08-04 with `tools/capture-fixture.js`. **No bot wall was seen on
+any of the 4 page loads.** `detectBotWall` never fired, and manual inspection
+of both HTML fixtures found no Akamai/Incapsula/PerimeterX/Cloudflare markers
+(the only "Access Denied" string in `royal-caribbean-ship.html` is inside an
+inert JS comment, `// fallback for IE11 Script Access Denied error`, not a
+real block page). `robots.txt` was fetched with a normal browser UA (curl,
+no evasion) and does **not** disallow `/cruises` or `/cruise-ships/`; only
+`/mycruises/`, `/booking/`, `/room-selection/`, `/find` — n/a here — and a
+handful of others are blocked.
+
+**Verdict: this site is flatter than Princess. A single capture yields rows
+that already carry all eight required fields — no join, no second endpoint,
+no separate pricing call.** The landing page's own GraphQL response
+(`/cruises/graph`) returns 10 fully-priced, fully-dated sailings on first
+load (of a stated `total: 930`), and every field the brief asked about is
+present on each row without any lookup table.
+
+## 1. The listing URL and the response that carries sailings
+
+- Listing page opened: `https://www.royalcaribbean.com/cruises` (no filters
+  applied — the unfiltered landing page already renders priced results, so
+  no destination/date-filtered search was needed).
+- This page fires a GraphQL POST to `https://www.royalcaribbean.com/cruises/graph`
+  (URL substring to match on: `cruises/graph`). Four responses hit that same
+  URL on one page load (different GraphQL operations batched from the same
+  page — likely search results, a filter/facet query, and two smaller
+  supporting calls); the one worth keeping is unambiguously the largest
+  (518062 bytes vs. 60465/23602/23602 for the others), matching the "largest
+  response" heuristic used for Princess too.
+- Saved verbatim as `test/fixtures/royal-caribbean-listing.json`.
+- Because it's a POST-driven GraphQL endpoint (no query string on
+  `response.url()`), I could not see or vary the request body — same
+  limitation Task 6 hit on Princess's pricing call. I did not need to: the
+  default landing-page query already returns priced, dated results.
+
+## 2. JSON path to the array of sailings
+
+`data.cruiseSearch.results.cruises` — a flat array, 10 items on this
+capture, alongside a sibling `data.cruiseSearch.results.total: 930` (the
+site paginates; this capture only has page 1).
+
+Each item is **one fully-formed sailing row**, not a template. Example
+(trimmed):
+
+```json
+{
+  "id": "WN04MIA-1040267344",
+  "productViewLink": "itinerary/4-night-bahamas-perfect-day-cruise-from-miami-on-wonder-WN4BH349?sailDate=2026-08-31&packageCode=WN4BH349&groupId=WN04MIA-1040267344&country=USA",
+  "lowestPriceSailing": {
+    "id": "WN4BH351_2026-08-31",
+    "sailDate": "2026-08-31",
+    "lowestStateroomClassPrice": {
+      "price": { "value": 448.03, "currency": { "code": "USD" } },
+      "stateroomClass": { "id": "INTERIOR", "content": { "code": "I" } }
+    }
+  },
+  "masterSailing": {
+    "itinerary": {
+      "totalNights": 4,
+      "sailingNights": 4,
+      "departurePort": { "code": "MIA", "name": "Miami", "region": "Florida" },
+      "destination": { "code": "BAHAM", "name": "Bahamas" },
+      "ship": {
+        "code": "WN",
+        "name": "Wonder of the Seas",
+        "stateroomClasses": [
+          { "id": "INTERIOR", "name": "Interior", "content": { "code": "I" } },
+          { "id": "OUTSIDE", "name": "Outside View", "content": { "code": "O" } },
+          { "id": "BALCONY", "name": "Balcony", "content": { "code": "B" } },
+          { "id": "DELUXE", "name": "Suite", "content": { "code": "D" } }
+        ]
+      }
+    }
+  }
+}
+```
+
+## 3. Field-by-field mapping (the eight fields the brief asked about)
+
+| Field | Status | Source |
+|---|---|---|
+| stable id | **FOUND** | `cruises[].id` (e.g. `"WN04MIA-1040267344"`) — a group id tying ship+port+itinerary together. A second, more per-departure-looking candidate also exists: `cruises[].lowestPriceSailing.id` (e.g. `"WN4BH351_2026-08-31"`, literally `packageCode_sailDate`). Both were unique across all 10 rows in this capture; did not verify long-term stability across repeat captures. |
+| ship name | **FOUND** | `cruises[].masterSailing.itinerary.ship.name` (e.g. `"Wonder of the Seas"`), with a short code at `.ship.code` (`"WN"`). |
+| departure port | **FOUND** | `cruises[].masterSailing.itinerary.departurePort.name` (e.g. `"Miami"`), code at `.departurePort.code` (`"MIA"`), region at `.departurePort.region` (`"Florida"`). |
+| destination label | **FOUND** | `cruises[].masterSailing.itinerary.destination.name` (e.g. `"Bahamas"`, `"Caribbean"`), code at `.destination.code` (`"BAHAM"`). |
+| departure date | **FOUND** | `cruises[].lowestPriceSailing.sailDate`, already `YYYY-MM-DD` (e.g. `"2026-08-31"`) — no reformatting needed, unlike Princess's bare `YYYYMMDD`. Also duplicated at `.lowestPriceSailing.startDate`. |
+| nights | **FOUND** | `cruises[].masterSailing.itinerary.totalNights` (integer, e.g. `4`), duplicated at sibling `.sailingNights` — both agreed on every row checked. |
+| cabin tier label | **FOUND** | `cruises[].lowestPriceSailing.lowestStateroomClassPrice.stateroomClass.id` (e.g. `"INTERIOR"`) — a stable enum-like id (`INTERIOR`/`OUTSIDE`/`BALCONY`/`DELUXE` seen). Display name is one hop away: match that id against `masterSailing.itinerary.ship.stateroomClasses[].id` to get `.name` (e.g. `"Interior"`) and a single-letter `.content.code` (`"I"`). This is the *cheapest* cabin tier only (`lowestStateroomClassPrice`) — same "cheapest wins" shape the brief expects, not a full per-cabin price list. |
+| price | **FOUND** | `cruises[].lowestPriceSailing.lowestStateroomClassPrice.price.value` (e.g. `448.03`), with currency at sibling `.price.currency.code` (`"USD"`). Also carries `originalAmount`, `netAmount`, `discountAmount`, `taxesAndFeesAmount`, `areTaxesAndFeesIncluded` if a richer price breakdown is ever wanted — `value` is the one to use for a straight "the price" field. |
+
+**All eight fields live on one object, one response, one page load.** Verified
+across all 10 rows in the fixture: every row has a unique `id`, unique
+`lowestPriceSailing.id`, non-null ship/port/destination names, a
+`YYYY-MM-DD` `sailDate`, an integer nights value, a cabin tier id+name, and a
+priced `value`+`currency.code`. No row was missing any field. This is the
+direct opposite of the Princess finding — there is no catalog/pricing split
+here to reverse-engineer.
+
+## 4. Second route checked: rendered DOM
+
+Per the brief, I also captured the same `/cruises` URL with `--html` after
+results rendered (`test/fixtures/royal-caribbean-listing.html`, 1.89MB) to
+confirm the site's own front end performs no cross-page join a JSON-only
+capture would miss. It doesn't need to here (the JSON already has
+everything), but for completeness: the rendered cards (class
+`RefinedCruiseCard-styles__RefinedCruiseCardBase-...`) do carry ship name,
+price (`448.03` appears literally in the DOM) and nights (child class
+`RefinedCruiseCardTotalNights-...`) directly in card markup — "Wonder of the
+Seas" appears 8 times in the rendered HTML. Both routes are viable; the JSON
+route is far more structured and was used for the saved fixture.
+
+## 5. Ship page
+
+- Requested `https://www.royalcaribbean.com/cruise-ships/wonder-of-the-seas`
+  with `--html`. Resolved directly (no redirect), title `"Wonder of the Seas
+  | Cruise Ships | Royal Caribbean Cruises"`. Saved as
+  `test/fixtures/royal-caribbean-ship.html` (1.1MB).
+- Two `<script type="application/ld+json">` blocks exist but only carry
+  review/rating schema.org data, no prose description.
+- Real prose description lives in a `.introCopy`-headed section: the
+  paragraph immediately following `<span class="introCopy">...</span></h2>`,
+  specifically inside `<p><span class="text-darker-gray"><span
+  class="p">...</span></span></p>` (e.g. "From endless onboard thrills to
+  gourmet globetrotting and top-notch shows, Wonder of the Seas® surprises
+  with thrills and wow-worthy experiences at every turn..."). A shorter
+  one-line blurb is also available at `<meta name="description">`.
+
+## Capture log (4 page loads total, all sequential, ≥1.5s apart — each
+`node` invocation includes the same 8s `politeDelay` plus puppeteer
+launch/navigate overhead used for Princess, so real spacing was well over a
+minute)
+
+1. `--list` on `/cruises` — 72 JSON responses, no bot-wall warning.
+2. `--match cruises/graph --out royal-caribbean-listing.json` on `/cruises`.
+3. `--html` on `/cruise-ships/wonder-of-the-seas` → `royal-caribbean-ship.html`.
+4. `--html` on `/cruises` (DOM cross-check) → `royal-caribbean-listing.html`.
+
+## Concerns for a future implementation task
+
+- **Pagination unknown.** `total: 930` but only 10 rows came back on the
+  unfiltered landing load; the GraphQL request is a POST with a body this
+  tool can't see, so the page/offset/filter parameters needed to page
+  through the remaining 920 are not captured here.
+- **`id` vs `lowestPriceSailing.id` as the externalId.** Both look plausible
+  and both were unique in this 10-row sample, but I only have one snapshot —
+  did not verify either is stable if the same sailing is captured twice (a
+  real concern, since `id` looks derived from ship+port+groupId rather than
+  literally containing the sail date, while `lowestPriceSailing.id` does
+  encode the date and reads more like a true per-departure key).
+- **Cheapest-cabin-only.** Like Princess, this response gives the *lowest*
+  price across cabin tiers, not a full per-tier price table — fine for the
+  brief's "a cabin tier label" + "a price" requirement, but worth noting if
+  a future task wants all four tiers priced.
