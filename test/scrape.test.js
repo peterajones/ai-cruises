@@ -26,7 +26,10 @@ test('adaptersFor rejects an unknown site rather than silently scraping nothing'
 });
 
 test('flags have sensible defaults', () => {
-  assert.deepEqual(parseFlags([]), { limit: 200, sites: [], refreshShips: false, dryRun: false });
+  // Infinity, not a number: any fixed default silently caps the real dataset.
+  assert.deepEqual(parseFlags([]), {
+    limit: Infinity, sites: [], refreshShips: false, dryRun: false,
+  });
 });
 
 test('flags parse', () => {

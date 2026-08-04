@@ -16,7 +16,10 @@ import { adaptersFor } from './sites/index.js';
 const DATA_DIR = new URL('./data/', import.meta.url).pathname;
 
 export function parseFlags(argv) {
-  const flags = { limit: 200, sites: [], refreshShips: false, dryRun: false };
+  // No cap by default. A fixed default silently shaped the production dataset:
+  // 200 against a 204-row payload dropped four real sailings on every plain run,
+  // and reported "200 sailings" as though that were what the site returned.
+  const flags = { limit: Infinity, sites: [], refreshShips: false, dryRun: false };
 
   for (let i = 0; i < argv.length; i += 1) {
     if (argv[i] === '--limit') flags.limit = Number(argv[i + 1]);
@@ -60,6 +63,11 @@ async function main() {
         line: adapter.line,
       });
       const sailings = normalized.slice(0, flags.limit);
+      if (sailings.length < normalized.length) {
+        console.log(
+          `${adapter.name}: --limit ${flags.limit} truncated ${normalized.length} sailings to ${sailings.length}`,
+        );
+      }
       allSailings.push(...sailings);
       allMisses.push(...unrecognised);
       console.log(`${adapter.name}: ${sailings.length} sailings`);
