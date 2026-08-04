@@ -89,9 +89,6 @@ const RESULTS_MATCH = 'cruises/graph';
  */
 const SAILINGS_MARKER = '"cruiseSearch"';
 
-/** Upper bound on "load more" interactions, so a bad/missing selector can't loop forever. */
-const MAX_PAGINATION_CLICKS = 5;
-
 /**
  * @param {string} ship
  * @returns {string} absolute ship page URL
@@ -105,32 +102,19 @@ export function shipUrl(ship) {
 }
 
 /**
- * Finds a visible "load more"-style control on the page, if one exists.
- * Generic text match rather than a guessed class/testid selector, since
- * NOTES.md's discovery pass never captured this control's markup.
  * @param {import('puppeteer').Page} page
- * @returns {Promise<import('puppeteer').ElementHandle|null>}
- */
-async function findLoadMoreControl(page) {
-  const candidates = await page.$$('button, a[role="button"], [role="button"]');
-  for (const el of candidates) {
-    const text = await el.evaluate((node) => node.textContent ?? '').catch(() => '');
-    if (!/load more|show more|view more|see more/i.test(text)) continue;
-    const visible = await el.isIntersectingViewport().catch(() => false);
-    if (visible) return el;
-  }
-  return null;
-}
-
-/**
- * @param {import('puppeteer').Page} page
- * @param {{limit: number}} options
+ * @param {{limit: number}} options - `limit` is accepted for interface parity with the
+ *   registry/CLI but currently unused: a single landing-page load already returns
+ *   ~204 sailings, comfortably above what any caller needs, so no pagination is
+ *   attempted. If pagination is ever required, the correct route is discovering
+ *   the GraphQL request's parameters (page/offset/filter body) — not clicking
+ *   blindly at the DOM of a site fronted by Akamai.
  * @returns {Promise<string[]>} raw JSON payload TEXT of the sailings-bearing responses only
  */
 export async function fetchListingPages(page, { limit }) {
   const rawPayloads = [];
 
-  page.on('response', async (response) => {
+  const onResponse = async (response) => {
     if (!response.url().includes(RESULTS_MATCH)) return;
     if (!(response.headers()['content-type'] ?? '').includes('json')) return;
     try {
@@ -138,28 +122,20 @@ export async function fetchListingPages(page, { limit }) {
     } catch {
       // Body no longer available (page navigated on); a later load may produce another.
     }
-  });
+  };
+  page.on('response', onResponse);
 
-  await page.goto(SEARCH_URL, { waitUntil: 'networkidle2', timeout: 60_000 });
-  await politeDelay();
-
-  const wall = detectBotWall(await page.content());
-  if (wall) throw new BotWallError(wall, SEARCH_URL);
-
-  const sailingsPayloads = () => rawPayloads.filter((p) => p.includes(SAILINGS_MARKER));
-  const sailingsCount = () => sailingsPayloads().reduce((sum, p) => sum + parseListing(p).length, 0);
-
-  // Pagination is optional (NOTES.md: mechanism unknown, landing load alone
-  // comfortably exceeds downstream needs). Only bother clicking if a visible
-  // "load more" control exists and we're still short of the limit.
-  for (let clicks = 0; clicks < MAX_PAGINATION_CLICKS && sailingsCount() < limit; clicks++) {
-    const more = await findLoadMoreControl(page);
-    if (!more) break;
-    await more.click();
+  try {
+    await page.goto(SEARCH_URL, { waitUntil: 'networkidle2', timeout: 60_000 });
     await politeDelay();
-  }
 
-  return sailingsPayloads();
+    const wall = detectBotWall(await page.content());
+    if (wall) throw new BotWallError(wall, SEARCH_URL);
+
+    return rawPayloads.filter((p) => p.includes(SAILINGS_MARKER));
+  } finally {
+    page.off('response', onResponse);
+  }
 }
 
 /**
