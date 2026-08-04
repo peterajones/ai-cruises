@@ -15,6 +15,11 @@ test('cabin synonyms canonicalize', () => {
   assert.equal(canonicalCabin('Outside'), 'oceanview');
   assert.equal(canonicalCabin('Verandah'), 'balcony');
   assert.equal(canonicalCabin('Mini-Suite'), 'suite');
+  // Royal Caribbean's GraphQL API names its top stateroom tier "DELUXE"; the
+  // fixture's own stateroomClasses metadata (test/fixtures/royal-caribbean-listing.json)
+  // gives every DELUXE entry a human-facing name of "Suite" and amenities text
+  // ("Live the 'suite' life", superCategory "Royal Suite Class"/"Suites").
+  assert.equal(canonicalCabin('DELUXE'), 'suite');
 });
 
 test('unknown values return null rather than guessing', () => {

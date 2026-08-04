@@ -34,7 +34,7 @@ const CABINS = {
   interior: ['interior', 'inside', 'interior stateroom', 'inside stateroom', 'inside cabin'],
   oceanview: ['oceanview', 'ocean view', 'outside', 'outside stateroom', 'sea view', 'obstructed oceanview'],
   balcony: ['balcony', 'verandah', 'veranda', 'balcony stateroom', 'deluxe balcony'],
-  suite: ['suite', 'mini suite', 'minisuite', 'junior suite', 'owners suite', 'penthouse'],
+  suite: ['suite', 'mini suite', 'minisuite', 'junior suite', 'owners suite', 'penthouse', 'deluxe'],
 };
 
 /** Fold punctuation and case away so 'Caribbean - Eastern' and 'E. Caribbean' compare. */
