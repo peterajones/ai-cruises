@@ -22,6 +22,25 @@ test('cabin synonyms canonicalize', () => {
   assert.equal(canonicalCabin('DELUXE'), 'suite');
 });
 
+test('Celebrity\'s tier and region labels map', () => {
+  // Evidence: Celebrity's own metadata names AQUA "Aquaclass" and DELUXE "The
+  // Retreat" (its suite class); both were surfaced by the unrecognised list.
+  assert.equal(canonicalCabin('AQUA'), 'balcony');
+  assert.equal(canonicalCabin('Aquaclass'), 'balcony');
+  assert.equal(canonicalCabin('DELUXE'), 'suite');
+  assert.equal(canonicalDestination('Europe'), 'europe');
+});
+
+test('a coarse source label is not refined into a guess', () => {
+  // Celebrity says "Europe" for Greek isles and Norwegian fjords alike, so it
+  // must not resolve to a specific sea.
+  assert.equal(canonicalDestination('Europe'), 'europe');
+  assert.notEqual(canonicalDestination('Europe'), 'mediterranean');
+  // Sources that ARE specific keep their precision.
+  assert.equal(canonicalDestination('Norwegian Fjords'), 'northern-europe');
+  assert.equal(canonicalDestination('Eastern Mediterranean'), 'mediterranean-east');
+});
+
 test('unknown values return null rather than guessing', () => {
   assert.equal(canonicalDestination('Panama Canal - Partial Transit'), null);
   assert.equal(canonicalCabin('Igloo'), null);

@@ -18,6 +18,11 @@ const DESTINATIONS = {
   'mediterranean-east': ['eastern mediterranean', 'mediterranean eastern', 'e mediterranean'],
   'mediterranean': ['mediterranean', 'med'],
   'northern-europe': ['northern europe', 'norway', 'norwegian fjords', 'baltic', 'scandinavia'],
+  // Celebrity labels every European sailing "Europe" — Greek isles and Norwegian
+  // fjords alike. Keep the source's granularity rather than inferring a sea from
+  // the ports: guessing "mediterranean" would be right for some and wrong for the
+  // rest, and a wrong label is worse than a coarse one.
+  'europe': ['europe'],
   'british-isles': ['british isles', 'ireland britain'],
   'transatlantic': ['transatlantic', 'trans atlantic', 'repositioning transatlantic'],
   'panama-canal': ['panama canal', 'panama canal full transit'],
@@ -33,7 +38,11 @@ const DESTINATIONS = {
 const CABINS = {
   interior: ['interior', 'inside', 'interior stateroom', 'inside stateroom', 'inside cabin'],
   oceanview: ['oceanview', 'ocean view', 'outside', 'outside stateroom', 'sea view', 'obstructed oceanview'],
-  balcony: ['balcony', 'verandah', 'veranda', 'balcony stateroom', 'deluxe balcony'],
+  // 'aqua' is Celebrity's AquaClass: a veranda stateroom sold as a spa tier. It
+  // belongs with balcony because it HAS a balcony — excluding it from a balcony
+  // search would be a visibly wrong answer. The spa distinction is not something
+  // this dataset can express.
+  balcony: ['balcony', 'verandah', 'veranda', 'balcony stateroom', 'deluxe balcony', 'aqua', 'aquaclass'],
   suite: ['suite', 'mini suite', 'minisuite', 'junior suite', 'owners suite', 'penthouse', 'deluxe'],
 };
 
