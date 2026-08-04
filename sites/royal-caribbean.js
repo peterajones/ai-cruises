@@ -28,6 +28,21 @@ export function parseListing(payload) {
     const departurePort = it.departurePort.name;
     const destination = it.destination.name;
     const nights = it.sailingNights;
+    const itinerary = it.name ?? null;
+    // Image paths are site-relative; absolutise so a UI can use them directly.
+    const imagePath = it.media?.images?.[0]?.path;
+    const image = imagePath ? `${SITE_ORIGIN}${imagePath}` : null;
+    // Ports actually visited, in order, minus embarkation/disembarkation.
+    const ports = [
+      ...new Set(
+        (it.days ?? [])
+          .flatMap((d) => d.ports ?? [])
+          .filter((p) => p.activity !== 'EMBARK' && p.activity !== 'DEBARK')
+          .map((p) => p.port?.name)
+          // "Cruising" is how RC labels a sea day; it is not a port of call.
+          .filter((n) => n && n !== 'Cruising'),
+      ),
+    ];
 
     for (const s of c.sailings) {
       const priced = (s.stateroomClassPricing ?? []).filter((p) => p.price != null);
@@ -46,6 +61,9 @@ export function parseListing(payload) {
         cabin: cheapest.stateroomClass.id,
         price: cheapest.price.value,
         currency: cheapest.price.currency.code,
+        itinerary,
+        image,
+        ports,
       });
     }
   }
@@ -53,28 +71,56 @@ export function parseListing(payload) {
   return rows;
 }
 
-/**
- * @param {string} html - a ship page
- * @returns {{line: string, description: string}}
- */
-export function parseShip(html) {
-  // The "WHAT TO KNOW BEFORE YOU GO" section on a ship page carries a short
-  // <span class="introCopy"> tagline followed by the real prose description
-  // in the very next <p>. Grab that paragraph.
-  const block = html.match(/<span class="introCopy">.*?<\/h2>\s*<p>([\s\S]*?)<\/p>/);
-
-  const description = String(block?.[1] ?? '')
+/** Strip tags, decode the entities that actually appear, collapse whitespace. */
+function toPlainText(html) {
+  return String(html ?? '')
     .replace(/<[^>]+>/g, ' ')
     .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
     .replace(/&rsquo;/g, '’')
     .replace(/&lsquo;/g, '‘')
     .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&amp;/g, '&') // last, so &amp;#39; decodes correctly
     .replace(/\s+/g, ' ')
     .trim();
+}
 
-  return { line, description };
+/**
+ * Two sources, tried in order of quality.
+ *
+ * The first version anchored on a bare `<span class="introCopy">` followed by a
+ * bare `<p>`, and silently returned '' whenever either tag carried an attribute —
+ * which was three of six real ships (Icon has `style="letter-spacing: 0px;"` and
+ * `<p class="paragraph ...">`). Both patterns now tolerate attributes, and
+ * og:description is a floor: shorter, but present on every ship page. An empty
+ * return means BOTH failed, and scrape.js treats that as a failure rather than
+ * caching it.
+ *
+ * @param {string} html - a ship page
+ * @returns {{line: string, description: string, source: string|null}}
+ */
+export function parseShip(html) {
+  // Preferred: the "WHAT TO KNOW BEFORE YOU GO" tagline's following paragraph —
+  // 100-600 characters of real prose about the ship.
+  const intro = html.match(
+    /<span[^>]*class="[^"]*\bintroCopy\b[^"]*"[^>]*>[\s\S]*?<\/h2>\s*<p[^>]*>([\s\S]*?)<\/p>/i,
+  );
+  const introText = toPlainText(intro?.[1]);
+  if (introText.length >= 80) {
+    return { line, description: introText, source: 'introCopy' };
+  }
+
+  // Floor: the social/SEO description. Always present, ~140 characters.
+  const meta = html.match(
+    /<meta[^>]*(?:property="og:description"|name="description")[^>]*content="([^"]*)"/i,
+  );
+  const metaText = toPlainText(meta?.[1]);
+  if (metaText.length > 0) {
+    return { line, description: metaText, source: 'meta' };
+  }
+
+  return { line, description: '', source: null };
 }
 
 const SEARCH_URL = 'https://www.royalcaribbean.com/cruises';

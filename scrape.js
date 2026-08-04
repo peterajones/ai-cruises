@@ -85,10 +85,21 @@ async function main() {
   }
 
   const existing = (await loadExisting(DATA_DIR)) ?? { ships: {} };
+
+  // Drop cached entries that carry no description before anything reads them.
+  // mergeShips lets `existing` win when not refreshing, so a previously-failed
+  // entry would otherwise overwrite a good fresh one and never heal.
+  const cachedShips = Object.fromEntries(
+    Object.entries(existing.ships ?? {}).filter(([, entry]) => entry?.description),
+  );
+
   const wantedShips = [...new Set(allSailings.map((s) => s.ship))];
+  // Filter on the description, not on key presence. A cached entry with an empty
+  // description is a previous failure, and keying on presence alone meant those
+  // ships were never retried — the failure became permanent.
   const needed = flags.refreshShips
     ? wantedShips
-    : wantedShips.filter((ship) => !existing.ships?.[ship]);
+    : wantedShips.filter((ship) => !cachedShips[ship]);
 
   for (const ship of needed) {
     const adapter = adapters.find((a) => allSailings.some((s) => s.ship === ship && s.source === a.name));
@@ -97,7 +108,16 @@ async function main() {
     const page = await newPage(browser);
     try {
       const html = await adapter.fetchShipPage(page, ship);
-      freshShips[ship] = { ...adapter.parseShip(html), url: adapter.shipUrl(ship) };
+      const parsed = adapter.parseShip(html);
+
+      // An empty description is a parse failure wearing a success costume. Record
+      // it and do NOT cache it, so the next run retries instead of inheriting it.
+      if (!parsed.description) {
+        console.error(`ship "${ship}": fetched ${html.length} bytes but parsed no description`);
+        failures.push(`ship "${ship}": no description parsed`);
+      } else {
+        freshShips[ship] = { ...parsed, url: adapter.shipUrl(ship) };
+      }
     } catch (err) {
       // A failed ship page must not kill the run — the sailing is still good.
       console.error(`ship "${ship}": ${err.message}`);
@@ -112,7 +132,7 @@ async function main() {
   const result = {
     scrapedAt: new Date().toISOString(),
     sailings: allSailings,
-    ships: mergeShips(existing.ships ?? {}, freshShips, { refresh: flags.refreshShips }),
+    ships: mergeShips(cachedShips, freshShips, { refresh: flags.refreshShips }),
     values: deriveValues(allSailings),
     unrecognised: allMisses,
   };

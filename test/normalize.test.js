@@ -64,6 +64,9 @@ test('a good row becomes a fully canonical Sailing', () => {
     cabin: 'balcony',
     price: 1299,
     currency: 'USD',
+    itinerary: null,
+    image: null,
+    ports: [],
   });
 });
 

@@ -137,6 +137,11 @@ export function normalizeAll(rawRows, { source, line }) {
       cabin: null,
       price: toNumber(row.price),
       currency: row.currency ?? 'USD',
+      // Presentation-only fields. Never required, never canonicalized, never
+      // filtered on — they exist so a UI can render a card without a second fetch.
+      itinerary: row.itinerary ?? null,
+      image: row.image ?? null,
+      ports: Array.isArray(row.ports) ? row.ports : [],
     };
 
     if (row.destination) {
