@@ -55,10 +55,11 @@ async function main() {
       // Zero rows means something broke. Never let it become an empty file.
       assertNonEmpty(rows, `${adapter.name} listing`);
 
-      const { sailings, unrecognised } = normalizeAll(rows.slice(0, flags.limit), {
+      const { sailings: normalized, unrecognised } = normalizeAll(rows, {
         source: adapter.name,
         line: adapter.line,
       });
+      const sailings = normalized.slice(0, flags.limit);
       allSailings.push(...sailings);
       allMisses.push(...unrecognised);
       console.log(`${adapter.name}: ${sailings.length} sailings`);
@@ -120,9 +121,20 @@ async function main() {
     console.log(JSON.stringify({ ...result, sailings: result.sailings.slice(0, 3) }, null, 2));
     console.log(`\nDRY RUN — ${result.sailings.length} sailings, nothing written.`);
   } else {
-    assertNonEmpty(result.sailings, 'the whole run');
-    const path = await writeResult(DATA_DIR, result);
-    console.log(`\nWrote ${result.sailings.length} sailings to ${path}`);
+    try {
+      assertNonEmpty(result.sailings, 'the whole run');
+      const path = await writeResult(DATA_DIR, result);
+      console.log(`\nWrote ${result.sailings.length} sailings to ${path}`);
+    } catch (err) {
+      if (err instanceof EmptyResultError) {
+        console.error('\nParsed 0 sailings across every site.');
+        console.error('  Not writing data/sailings.json — the previous run is preserved.');
+        failures.push(`whole run: ${err.message}`);
+        process.exitCode = 1;
+      } else {
+        throw err;
+      }
+    }
   }
 
   if (result.unrecognised.length > 0) {
