@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cruise search</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --ink: #16202b;
+    --muted: #63707e;
+    --line: #e2e6ea;
+    --accent: #0b6d8f;
+    --accent-ink: #ffffff;
+    --chip: #eef2f5;
+    --warn-bg: #fff6e5;
+    --warn-line: #e8c384;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(16,32,43,.06), 0 8px 24px rgba(16,32,43,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1418; --panel: #161d23; --ink: #e8edf1; --muted: #9aa8b4;
+      --line: #26313a; --accent: #4bb3d4; --accent-ink: #06222d; --chip: #1e272f;
+      --warn-bg: #2c2415; --warn-line: #6b5426;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.5 ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  header {
+    position: sticky; top: 0; z-index: 10; background: var(--panel);
+    border-bottom: 1px solid var(--line); padding: 18px 24px;
+  }
+  .wrap { max-width: 1280px; margin: 0 auto; }
+  h1 { margin: 0 0 2px; font-size: 20px; letter-spacing: -.01em; }
+  .sub { color: var(--muted); font-size: 13px; }
+  form { display: flex; gap: 10px; margin-top: 14px; }
+  input[type=search] {
+    flex: 1; padding: 13px 16px; font-size: 16px; color: var(--ink);
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+  }
+  input[type=search]:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  button {
+    padding: 13px 22px; font-size: 15px; font-weight: 600; cursor: pointer;
+    background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 10px;
+  }
+  button:disabled { opacity: .55; cursor: progress; }
+  .examples { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .examples button {
+    background: var(--chip); color: var(--muted); font-weight: 500;
+    padding: 6px 12px; font-size: 13px; border-radius: 999px;
+  }
+  main { max-width: 1280px; margin: 0 auto; padding: 22px 24px 60px; }
+
+  .understood {
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px 18px; margin-bottom: 20px; box-shadow: var(--shadow);
+  }
+  .understood h2 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--muted); }
+  .understood p { margin: 0 0 10px; font-size: 15px; }
+  pre {
+    margin: 0; padding: 12px 14px; background: var(--bg); border: 1px solid var(--line);
+    border-radius: 10px; overflow-x: auto; font-size: 12.5px; line-height: 1.55;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted);
+  }
+  .warn {
+    background: var(--warn-bg); border: 1px solid var(--warn-line);
+    border-radius: 10px; padding: 10px 13px; margin-bottom: 10px; font-size: 14px;
+  }
+
+  .facets { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; margin-bottom: 20px; }
+  .facet label { display: block; font-size: 11px; text-transform: uppercase;
+    letter-spacing: .07em; color: var(--muted); margin-bottom: 5px; }
+  select, input[type=range] {
+    padding: 8px 10px; font-size: 14px; color: var(--ink);
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  }
+  input[type=range] { padding: 0; width: 170px; accent-color: var(--accent); }
+  .count { margin-left: auto; color: var(--muted); font-size: 14px; }
+
+  .grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(16,32,43,.1), 0 16px 40px rgba(16,32,43,.12); }
+  .thumb { position: relative; aspect-ratio: 16/10; background: var(--chip); }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .nights {
+    position: absolute; left: 12px; top: 12px; background: rgba(6,20,28,.82); color: #fff;
+    font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px;
+    backdrop-filter: blur(4px);
+  }
+  .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .title { font-size: 16px; font-weight: 650; line-height: 1.3; letter-spacing: -.01em; }
+  .meta { font-size: 13px; color: var(--muted); }
+  .ports { font-size: 12.5px; color: var(--muted); }
+  .foot { margin-top: auto; padding-top: 10px; border-top: 1px solid var(--line);
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .price { font-size: 21px; font-weight: 700; letter-spacing: -.02em; }
+  .price small { font-size: 12px; font-weight: 500; color: var(--muted); }
+  .cabin { font-size: 12px; color: var(--muted); text-transform: capitalize; }
+  a.book { color: var(--accent); font-size: 13px; font-weight: 600; text-decoration: none; }
+  a.book:hover { text-decoration: underline; }
+  .empty { text-align: center; padding: 70px 20px; color: var(--muted); font-size: 17px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Cruise search</h1>
+    <div class="sub" id="sub">Loading…</div>
+    <form id="form">
+      <input id="q" type="search" autocomplete="off"
+             placeholder="a 4-night Bahamas balcony under $700 leaving from Miami">
+      <button id="go" type="submit">Search</button>
+    </form>
+    <div class="examples" id="examples"></div>
+  </div>
+</header>
+
+<main>
+  <div id="understood" class="understood" hidden></div>
+
+  <div class="facets" id="facets"></div>
+
+  <div id="results" class="grid"></div>
+</main>
+
+<script type="module">
+const $ = (s) => document.querySelector(s);
+
+// Everything rendered below comes from somewhere untrusted: ship names, itinerary
+// titles and port names are scraped off a third-party site, and the filter is
+// generated by a language model. Build DOM nodes and set textContent rather than
+// interpolating into innerHTML — an apostrophe in a port name would be a bug, and
+// a crafted string would be an XSS hole.
+const el = (tag, props = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (v == null) continue;
+    if (k === 'class') n.className = v;
+    else if (k === 'text') n.textContent = v;
+    else n.setAttribute(k, v);
+  }
+  for (const kid of kids.flat()) if (kid != null) n.append(kid);
+  return n;
+};
+
+/** Only http(s) may reach an href or src — blocks javascript: and data: URLs. */
+const safeUrl = (u) => (typeof u === 'string' && /^https?:\/\//i.test(u) ? u : null);
+const state = { all: [], subset: null, message: null, values: {}, facets: {} };
+
+const EXAMPLES = [
+  'a 4-night Bahamas cruise with a balcony under $700',
+  'something cheap out of Fort Lauderdale',
+  'a week in the Caribbean on the Icon of the Seas',
+  'an adults-only ship with a Michelin restaurant',
+];
+
+const money = (n) => '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+const prettyDate = (iso) =>
+  new Date(iso + 'T00:00:00').toLocaleDateString('en-US',
+    { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+const titleCase = (s) => String(s).split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
+
+async function boot() {
+  const res = await fetch('/api/dataset');
+  const data = await res.json();
+  if (!res.ok) { $('#sub').textContent = data.error; return; }
+
+  state.all = data.sailings;
+  state.values = data.values;
+  $('#sub').textContent =
+    `${data.sailings.length} sailings · ${data.values.line.length} line(s) · ` +
+    `scraped ${new Date(data.scrapedAt).toLocaleString()}`;
+
+  $('#examples').innerHTML = '';
+  for (const ex of EXAMPLES) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = ex;
+    b.onclick = () => { $('#q').value = ex; $('#form').requestSubmit(); };
+    $('#examples').append(b);
+  }
+
+  buildFacets();
+  render();
+}
+
+function buildFacets() {
+  const v = state.values;
+  const maxPrice = Math.ceil(Math.max(...state.all.map(s => s.price)) / 50) * 50;
+  const defs = [
+    ['destination', 'Destination', v.destination.map(d => [d, titleCase(d)])],
+    ['cabin', 'Cabin', v.cabin.map(c => [c, titleCase(c)])],
+    ['departurePort', 'Leaves from', v.departurePort.map(p => [p, p])],
+    ['nights', 'Nights', v.nights.map(n => [String(n), n + ' nights'])],
+    ['ship', 'Ship', [...new Set(state.all.map(s => s.ship))].sort().map(s => [s, s])],
+  ];
+
+  const host = $('#facets');
+  host.innerHTML = '';
+  for (const [key, label, opts] of defs) {
+    const wrap = document.createElement('div');
+    wrap.className = 'facet';
+    wrap.innerHTML = `<label for="f-${key}">${label}</label>`;
+    const sel = document.createElement('select');
+    sel.id = 'f-' + key;
+    sel.append(el('option', { value: '', text: 'Any' }));
+    for (const [val, text] of opts) sel.append(el('option', { value: val, text }));
+    sel.onchange = () => { state.facets[key] = sel.value || null; render(); };
+    wrap.append(sel);
+    host.append(wrap);
+  }
+
+  const priceWrap = document.createElement('div');
+  priceWrap.className = 'facet';
+  priceWrap.innerHTML = `<label for="f-price">Max price <span id="priceOut">${money(maxPrice)}</span></label>`;
+  const range = document.createElement('input');
+  range.type = 'range'; range.id = 'f-price';
+  range.min = 0; range.max = maxPrice; range.step = 25; range.value = maxPrice;
+  range.oninput = () => {
+    $('#priceOut').textContent = money(+range.value);
+    state.facets.maxPrice = +range.value >= maxPrice ? null : +range.value;
+    render();
+  };
+  priceWrap.append(range);
+  host.append(priceWrap);
+
+  const sortWrap = document.createElement('div');
+  sortWrap.className = 'facet';
+  sortWrap.innerHTML = `<label for="f-sort">Sort</label>`;
+  const sort = document.createElement('select');
+  sort.id = 'f-sort';
+  sort.innerHTML = `<option value="price">Cheapest first</option>
+                    <option value="date">Soonest first</option>
+                    <option value="nights">Longest first</option>`;
+  sort.onchange = () => { state.facets.sort = sort.value; render(); };
+  sortWrap.append(sort);
+  host.append(sortWrap);
+
+  const count = document.createElement('div');
+  count.className = 'count'; count.id = 'count';
+  host.append(count);
+}
+
+function applyFacets(list) {
+  const f = state.facets;
+  let out = list.filter(s =>
+    (!f.destination || s.destination === f.destination) &&
+    (!f.cabin || s.cabin === f.cabin) &&
+    (!f.departurePort || s.departurePort === f.departurePort) &&
+    (!f.nights || s.nights === +f.nights) &&
+    (!f.ship || s.ship === f.ship) &&
+    (f.maxPrice == null || s.price <= f.maxPrice));
+
+  const by = f.sort ?? 'price';
+  out = [...out].sort((a, b) =>
+    by === 'date' ? a.departureDate.localeCompare(b.departureDate)
+    : by === 'nights' ? b.nights - a.nights
+    : a.price - b.price);
+  return out;
+}
+
+function render() {
+  const base = state.subset ?? state.all;
+  const list = applyFacets(base);
+  const countEl = $('#count');
+  if (countEl) {
+    countEl.textContent = `${list.length} of ${base.length} shown`;
+  }
+
+  const host = $('#results');
+  host.textContent = '';
+
+  if (list.length === 0) {
+    const why = state.message ?? "Nothing matches those filters — you've had enough sun anyway.";
+    const box = el('div', { class: 'empty', text: why });
+    box.style.gridColumn = '1/-1';
+    host.append(box);
+    return;
+  }
+
+  for (const s of list) {
+    const thumb = el('div', { class: 'thumb' });
+    const img = safeUrl(s.image);
+    if (img) thumb.append(el('img', { loading: 'lazy', alt: '', src: img }));
+    thumb.append(el('span', { class: 'nights', text: `${s.nights} nights` }));
+
+    const price = el('div', { class: 'price', text: money(s.price) });
+    price.append(el('small', { text: ' pp' }));
+
+    const link = safeUrl(s.url);
+    const foot = el('div', { class: 'foot' },
+      el('div', {}, price, el('div', { class: 'cabin', text: s.cabin ?? 'cabin varies' })),
+      link ? el('a', { class: 'book', href: link, target: '_blank', rel: 'noopener', text: 'View ↗' }) : null);
+
+    host.append(el('article', { class: 'card' }, thumb,
+      el('div', { class: 'body' },
+        el('div', { class: 'title', text: s.itinerary ?? titleCase(s.destination ?? 'Cruise') }),
+        el('div', { class: 'meta', text: `${s.ship} · ${s.line}` }),
+        el('div', { class: 'meta', text: `${prettyDate(s.departureDate)} · from ${s.departurePort}` }),
+        s.ports?.length ? el('div', { class: 'ports', text: `Calls at ${s.ports.join(' · ')}` }) : null,
+        foot)));
+  }
+}
+
+$('#form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const q = $('#q').value.trim();
+  if (!q) return;
+
+  $('#go').disabled = true;
+  $('#go').textContent = 'Thinking…';
+  const box = $('#understood');
+  box.hidden = false;
+  box.textContent = '';
+  box.append(el('h2', { text: 'Working' }),
+             el('p', { text: 'Asking the model to turn that into a filter…' }));
+
+  try {
+    const res = await fetch('/api/search', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ q }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      box.textContent = '';
+      box.append(el('h2', { text: 'Problem' }), el('p', { text: data.error }));
+      if (data.raw) box.append(el('pre', { text: data.raw }));
+      return;
+    }
+
+    const unrec = (data.filter.unrecognised ?? []).filter(Boolean);
+    box.textContent = '';
+    box.append(el('h2', { text: 'Understood as' }));
+
+    if (unrec.length) {
+      const warn = el('div', { class: 'warn' }, 'Nothing in these listings describes ');
+      unrec.forEach((u, i) => {
+        if (i) warn.append(', ');
+        warn.append(el('strong', { text: `\u201C${u}\u201D` }));
+      });
+      warn.append(' — I ignored that part.');
+      box.append(warn);
+    }
+
+    const n = data.results.length;
+    const line = el('p', {}, `${data.understood || 'no constraints'} — `,
+      el('strong', { text: String(n) }),
+      ` match${n === 1 ? '' : 'es'}, in ${data.tookMs} ms.`);
+    box.append(line, el('pre', { text: JSON.stringify(data.filter, null, 2) }));
+
+    state.subset = data.results;
+    state.message = data.message;
+    render();
+  } catch (err) {
+    box.textContent = '';
+    box.append(el('h2', { text: 'Problem' }), el('p', { text: err.message }));
+  } finally {
+    $('#go').disabled = false;
+    $('#go').textContent = 'Search';
+  }
+});
+
+boot();
+</script>
+</body>
+</html>

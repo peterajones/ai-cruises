@@ -9,3 +9,4 @@ data/debug/
 
 # SDD scratch — see CLAUDE.md; delete when the work lands
 .superpowers/
+.env

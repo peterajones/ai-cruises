@@ -1,0 +1,25 @@
+{
+  "name": "ai-cruises",
+  "version": "1.0.0",
+  "description": "",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "node --test 'test/*.test.js'",
+    "scrape": "node scrape.js",
+    "serve": "node --env-file-if-exists=.env server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.115.0",
+    "puppeteer": "^25.4.0"
+  }
+}

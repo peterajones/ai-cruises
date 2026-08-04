@@ -6,33 +6,41 @@ filling in filter boxes.
 
 ## Architecture
 
+A scraper that extracts and normalizes cruise listings from Royal Caribbean, structured as
+fetch-then-parse stages:
+
 ```text
-free text ──▶ [ MODEL ] ──▶ structured filter ──▶ [ PLAIN JS ] ──▶ results
+browser ──fetch──▶ HTML/JSON ──parse──▶ RawSailing[] ──normalize──▶ Sailing[] ──persist──▶ JSON
 ```
 
-The model only *translates*. The filtering is ordinary conditionals with no AI in them.
+Each stage knows only its own inputs and outputs. Adapters live in `sites/`.
 
-Reference implementation: `~/Desktop/shoe-store` (four files, zero npm deps,
-`node server.js` → <http://localhost:3000>). Read it before designing anything here.
+- `sites/royal-caribbean.js` — fetch and parse the Royal Caribbean endpoint, return raw rows.
+- `normalize.js` — canonicalize destination/cabin labels via `DESTINATIONS` and `CABINS` mappings,
+  enforce required fields, flag unrecognised values.
+- `values.js` — derive the enumeration of every unique destination/cabin/port/nights/price
+  across the dataset.
+- `persist.js` — write atomically to `data/sailings.json` (write to temp file, move on success).
 
-- `brain.js` — the only file that calls a model. Ollama, `format: 'json'`,
-  temperature 0, system prompt that **enumerates every legal value** and says
-  "never invent a value outside these lists; use null if unsure." That enumeration is
-  what makes a 7B model reliable at this.
-- `inventory.js` — `searchInventory(filter)`, ~8 lines of conditionals. No model.
-- The UI prints the model's JSON filter on screen so the translation step is visible.
+**Rule of thumb:** if you can specify the rule, write the rule. Field validation, normalization,
+and enumeration are conditionals, not model calls. The model belongs only in the search layer
+(that piece is not in this scraper).
 
-**Rule of thumb:** if you can specify the rule, write the rule. Reach for a model only
-where the input space is unbounded, the criteria are genuinely fuzzy, or the output
-must be natural language.
+## Running it
 
-**Known gap to fix from the start:** in shoe-store, an unstockable request
-("anything in lime green") maps to all-nulls, which matches *everything*. The schema
-here needs an `unrecognised: []` field so the model can say "couldn't map that."
+```bash
+npm test                                  # unit tests, no network
+node scrape.js --limit 5 --dry-run        # smoke test, writes nothing
+node scrape.js                            # real run, writes data/sailings.json
+```
 
-**Open design question, undecided:** which cruise attributes get *scraped* as
-structured fields versus *inferred* by the model from listing prose. Amenities and
-"vibe" descriptions are the interesting middle ground.
+Fixtures in `test/fixtures/` are real captured payloads. When a site changes shape,
+re-capture with `node tools/capture-fixture.js` and update the golden first-row files.
+Synthetic test data belongs inline in test files, never in `test/fixtures/`.
+
+A scrape that yields zero parsed rows is treated as a failure and exits with code 1,
+leaving the previous `data/sailings.json` untouched — a broken selector cannot overwrite
+a good dataset.
 
 ## Environment
 
@@ -42,6 +50,24 @@ structured fields versus *inferred* by the model from listing prose. Amenities a
   `/api/chat` is POST-only; a 405 in the browser means it's running.
 - No `ANTHROPIC_API_KEY` and no `ant` CLI — anything needing a scripted Claude call
   requires setup first.
+
+## Status
+
+**Royal Caribbean:** Complete and working. A single GraphQL endpoint returns all 8 required
+fields (ship, port, destination, date, nights, cabin, price, id) on one object, one response.
+Real run yields 200 sailings: 6 ships (Wonder of the Seas, Allure of the Seas, Icon of the Seas,
+Jewel of the Seas, Freedom of the Seas, Oasis of the Seas), all with ship descriptions,
+destinations [Bahamas, Caribbean], cabins [balcony, interior, oceanview], nights [3,4,5,6,7,9],
+departure ports [Fort Lauderdale, Miami], prices $334.08–$2226.29.
+
+**Princess Cruises:** Attempted and abandoned. The sailings catalog and pricing data are two
+separate API endpoints. The catalog carries no departure date or price, only itinerary templates
+and ship×date combinations. Every parsed row from the catalog alone fails the required-field rule
+and yields zero sailings. Fixing this would require either reverse-engineering the pricing
+endpoint's POST body (unknown, no query string), or parsing the rendered search page instead of
+the API. **No `sites/princess.js` exists** — nothing was written. What survives is the captured
+evidence in `test/fixtures/princess-*.json` and the analysis in `test/fixtures/NOTES.md`, which
+is where a rework should start.
 
 ## Working style
 

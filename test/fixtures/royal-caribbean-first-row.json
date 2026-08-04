@@ -1,0 +1,18 @@
+{
+  "externalId": "WN4BH349_2026-08-10",
+  "url": "https://www.royalcaribbean.com/booking/landing?groupId=WN04MIA-1040267344&sailDate=2026-08-10&shipCode=WN&packageCode=WN4BH349&destinationCode=BAHAM&selectedCurrencyCode=USD&country=USA",
+  "ship": "Wonder of the Seas",
+  "departurePort": "Miami",
+  "destination": "Bahamas",
+  "departureDate": "2026-08-10",
+  "nights": 4,
+  "cabin": "INTERIOR",
+  "price": 598.16,
+  "currency": "USD",
+  "itinerary": "Perfect Day CocoCay & Bahamas",
+  "image": "https://www.royalcaribbean.com/content/dam/royal/ports-and-destinations/destinations/perfect-day/arrivals-plaza-perfect-day-at-cococay-aerial-view.jpg",
+  "ports": [
+    "Perfect Day CocoCay",
+    "Nassau"
+  ]
+}
