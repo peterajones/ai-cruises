@@ -342,3 +342,29 @@ minute)
   price across cabin tiers, not a full per-tier price table — fine for the
   brief's "a cabin tier label" + "a price" requirement, but worth noting if
   a future task wants all four tiers priced.
+
+## Verified run (2026-08-04)
+
+End-to-end verification from Task 11.
+
+**Commands and results:**
+
+- `npm test`: 48 tests, 48 pass, 0 fail
+- `node scrape.js --limit 5 --dry-run`: 5 sailings printed, no write
+- `node scrape.js`: 200 sailings written to data/sailings.json
+- Dry run / real run success criteria: all pass
+  - sailings: 200 (≥40) ✓
+  - incomplete sailings: 0 ✓
+  - empty enumerations: none ✓
+  - ships without description: 0 ✓
+  - unrecognised values: 0 ✓
+- Guard test (break RESULTS_MATCH): exit code 1, clean operator messages, debug snapshot written, `data/sailings.json` byte-identical before and after ✓
+
+**Dataset summary:**
+
+- 6 ships: Wonder of the Seas, Allure of the Seas, Icon of the Seas, Jewel of the Seas, Freedom of the Seas, Oasis of the Seas — all with descriptions
+- Destinations: [Bahamas, Caribbean]
+- Cabins: [balcony, interior, oceanview]
+- Nights: [3, 4, 5, 6, 7, 9]
+- Departure ports: [Fort Lauderdale, Miami]
+- Price range: $334.08–$2226.29
