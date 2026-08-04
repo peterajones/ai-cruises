@@ -21,12 +21,22 @@ test('catches a Cloudflare interstitial', () => {
   assert.match(detectBotWall(CLOUDFLARE), /cloudflare|just a moment/i);
 });
 
-test('catches a suspiciously tiny body', () => {
-  assert.match(detectBotWall('<html><body>Access Denied</body></html>'), /denied|too small/i);
+test('catches a suspiciously tiny body with no signature', () => {
+  assert.match(detectBotWall('<html><body>hi</body></html>'), /too small/i);
 });
 
 test('a real page is not a bot wall', () => {
   assert.equal(detectBotWall(REAL_PAGE), null);
+});
+
+test('a large page with "Access Denied" in body but not title is not a bot wall', () => {
+  const largeBody = `<html><head><title>Find a Cruise</title></head><body>
+<div class="results">${'<div class="sailing">Access Denied in ad</div>'.repeat(60)}</div></body></html>`;
+  assert.equal(detectBotWall(largeBody), null);
+});
+
+test('a small page with "Access Denied" in title is caught', () => {
+  assert.match(detectBotWall('<html><head><title>Access Denied</title></head><body>error</body></html>'), /access denied/i);
 });
 
 test('the user agent is a plausible desktop Chrome', () => {
