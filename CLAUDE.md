@@ -65,8 +65,9 @@ separate API endpoints. The catalog carries no departure date or price, only iti
 and ship×date combinations. Every parsed row from the catalog alone fails the required-field rule
 and yields zero sailings. Fixing this would require either reverse-engineering the pricing
 endpoint's POST body (unknown, no query string), or parsing the rendered search page instead of
-the API — both out of scope for a network-only scraper. The site is still under `sites/` as a
-reference for the rejection logic.
+the API. **No `sites/princess.js` exists** — nothing was written. What survives is the captured
+evidence in `test/fixtures/princess-*.json` and the analysis in `test/fixtures/NOTES.md`, which
+is where a rework should start.
 
 ## Working style
 
