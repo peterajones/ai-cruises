@@ -43,7 +43,10 @@ export async function writeResult(dataDir, result) {
   await rename(temp, target);
 
   const stamp = result.scrapedAt.replace(/:/g, '-');
-  await writeFile(join(dataDir, 'runs', `${stamp}.json`), json, 'utf8');
+  const runTarget = join(dataDir, 'runs', `${stamp}.json`);
+  const runTemp = `${runTarget}.tmp`;
+  await writeFile(runTemp, json, 'utf8');
+  await rename(runTemp, runTarget);
 
   return target;
 }

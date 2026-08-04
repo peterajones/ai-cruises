@@ -38,6 +38,13 @@ test('writeResult leaves no temp file behind', async () => {
   assert.ok(!files.some((f) => f.endsWith('.tmp')), `temp file left: ${files.join(', ')}`);
 });
 
+test('writeResult leaves no temp file behind in runs/', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'cruise-'));
+  await writeResult(dir, sampleResult());
+  const runs = await readdir(join(dir, 'runs'));
+  assert.ok(!runs.some((f) => f.endsWith('.tmp')), `temp file left in runs/: ${runs.join(', ')}`);
+});
+
 test('loadExisting returns null when there is nothing yet', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'cruise-'));
   assert.equal(await loadExisting(dir), null);
