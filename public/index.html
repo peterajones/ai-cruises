@@ -74,6 +74,19 @@
     border-radius: 10px; padding: 10px 13px; margin-bottom: 10px; font-size: 14px;
   }
 
+  .years { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .yearchip {
+    background: var(--panel); color: var(--ink); border: 1px solid var(--line);
+    padding: 8px 14px; font-size: 14px; font-weight: 600; border-radius: 999px;
+  }
+  .yearchip:hover { border-color: var(--accent); }
+  .yearchip.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .yearcount {
+    display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px;
+    background: var(--chip); color: var(--muted); font-size: 12px; font-weight: 600;
+  }
+  .yearchip.on .yearcount { background: rgba(255,255,255,.22); color: inherit; }
+
   .facets { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; margin-bottom: 20px; }
   .facet label { display: block; font-size: 11px; text-transform: uppercase;
     letter-spacing: .07em; color: var(--muted); margin-bottom: 5px; }
@@ -128,6 +141,8 @@
 
 <main>
   <div id="understood" class="understood" hidden></div>
+
+  <div id="years"></div>
 
   <div class="facets" id="facets"></div>
 
@@ -190,9 +205,60 @@ async function boot() {
     $('#examples').append(b);
   }
 
+  buildYearChips();
   buildFacets();
   render();
 }
+
+/**
+ * Year chips, derived from the data — never a hardcoded list.
+ *
+ * The same voyage repeats weekly across a ~20-month window, so a year is the
+ * natural first cut: it turns 320 near-identical rows into "which season am I
+ * shopping for". Defaults to the current year, falling back to the earliest year
+ * with sailings — otherwise running this in a year the dataset does not cover
+ * would open on an empty page.
+ */
+function buildYearChips() {
+  const counts = new Map();
+  for (const s of state.all) {
+    const y = s.departureDate.slice(0, 4);
+    counts.set(y, (counts.get(y) ?? 0) + 1);
+  }
+  const years = [...counts.keys()].sort();
+  if (years.length === 0) return;
+
+  const thisYear = String(new Date().getFullYear());
+  state.facets.year = counts.has(thisYear) ? thisYear : years[0];
+
+  const host = el('div', { class: 'years' });
+  const chips = [];
+
+  const chip = (value, label, count) => {
+    const b = el('button', { type: 'button', class: 'yearchip', text: `${label} ` });
+    b.append(el('span', { class: 'yearcount', text: String(count) }));
+    b.onclick = () => {
+      state.facets.year = value;
+      for (const c of chips) c.el.classList.toggle('on', c.value === value);
+      render();
+    };
+    chips.push({ el: b, value });
+    host.append(b);
+    return b;
+  };
+
+  chip(null, 'All', state.all.length);
+  for (const y of years) chip(y, y, counts.get(y));
+
+  syncYearChips = () => {
+    for (const c of chips) c.el.classList.toggle('on', c.value === state.facets.year);
+  };
+  syncYearChips();
+
+  $('#years').replaceChildren(host);
+}
+
+let syncYearChips = () => {};
 
 function buildFacets() {
   const v = state.values;
@@ -259,6 +325,7 @@ function applyFacets(list) {
     (!f.departurePort || s.departurePort === f.departurePort) &&
     (!f.nights || s.nights === +f.nights) &&
     (!f.ship || s.ship === f.ship) &&
+    (!f.year || s.departureDate.startsWith(f.year)) &&
     (f.maxPrice == null || s.price <= f.maxPrice));
 
   const by = f.sort ?? 'price';
@@ -359,6 +426,14 @@ $('#form').addEventListener('submit', async (e) => {
       el('strong', { text: String(n) }),
       ` match${n === 1 ? '' : 'es'}, in ${data.tookMs} ms.`);
     box.append(line, el('pre', { text: JSON.stringify(data.filter, null, 2) }));
+
+    // A year chip and a dated search are two answers to the same question. If the
+    // request named dates ("in 2027", "next spring"), that is the more specific
+    // intent — clear the chip rather than silently intersecting them to zero.
+    if (data.filter.dateFrom || data.filter.dateTo) {
+      state.facets.year = null;
+      syncYearChips();
+    }
 
     state.subset = data.results;
     state.message = data.message;
