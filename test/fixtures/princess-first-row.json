@@ -1,0 +1,21 @@
+{
+  "externalId": "M634_2026-12-09",
+  "url": "https://www.princess.com/itinerary-details/?voyageCode=M634",
+  "ship": "Diamond Princess",
+  "departurePort": "Singapore",
+  "destination": "Vietnam",
+  "departureDate": "2026-12-09",
+  "nights": 10,
+  "cabin": "Interior",
+  "price": 1142,
+  "currency": "CAD",
+  "itinerary": "10-Day Vietnam with Halong Bay",
+  "image": "https://www.princess.com/static/images/global/itinerary/details/OSR10A.jpg",
+  "ports": [
+    "Singapore",
+    "Ho Chi Minh City (Phu My), Vietnam",
+    "Cam Ranh (Nha Trang), Vietnam",
+    "Halong Bay/Hanoi (Cai Lan), Vietnam",
+    "Da Nang/Hue (Chan May),Vietnam"
+  ]
+}
