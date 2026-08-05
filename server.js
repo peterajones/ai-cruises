@@ -12,7 +12,7 @@ import { extname, join } from 'node:path';
 import { understand } from './brain.js';
 import {
   searchSailings, emptyMessage, describeFilter, hasNoConstraints, applyPriceDirection,
-  currencyConflict,
+  currencyNote,
 } from './search.js';
 
 const PORT = 3030;
@@ -128,26 +128,28 @@ const server = createServer(async (req, res) => {
       // lie dressed as an answer — return nothing and say why instead.
       const understoodNothing = hasNoConstraints(filter);
 
-      // Apply every non-price constraint first, then check whether a price filter
-      // would straddle currencies. Narrowing to one line resolves it on its own,
-      // so the guard must judge the candidates, not the whole dataset.
-      const withoutPrice = { ...filter, minPrice: null, maxPrice: null };
+      const results = understoodNothing ? [] : searchSailings(dataset.sailings, filter);
+
+      // A price filter spanning currencies is imprecise, not invalid. Say so
+      // alongside the results rather than withholding them — this is a tool for
+      // finding interesting cruises, and an approximate list beats an error.
+      //
+      // Judge the CANDIDATES the price filter was applied to, not the survivors.
+      // Checking the survivors gets it exactly backwards: if the comparison wrongly
+      // excluded every CAD sailing, what is left is uniformly USD and the notice
+      // goes quiet at the one moment it matters.
       const candidates = understoodNothing
         ? []
-        : searchSailings(dataset.sailings, withoutPrice);
-      const conflict = currencyConflict(candidates, filter);
-
-      const results = understoodNothing || conflict
-        ? []
-        : searchSailings(dataset.sailings, filter);
+        : searchSailings(dataset.sailings, { ...filter, minPrice: null, maxPrice: null });
+      const currency = currencyNote(candidates, filter);
 
       return json(res, 200, {
         filter,
         results,
         understood: describeFilter(filter),
         understoodNothing,
-        message: conflict ? conflict.message : (results.length === 0 ? emptyMessage(filter) : null),
-        currencyConflict: conflict?.currencies ?? null,
+        message: results.length === 0 ? emptyMessage(filter) : null,
+        notice: currency?.note ?? null,
         tookMs: Date.now() - started,
       });
     }

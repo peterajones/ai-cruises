@@ -425,7 +425,13 @@ $('#form').addEventListener('submit', async (e) => {
     const line = el('p', {}, `${data.understood || 'no constraints'} — `,
       el('strong', { text: String(n) }),
       ` match${n === 1 ? '' : 'es'}, in ${data.tookMs} ms.`);
-    box.append(line, el('pre', { text: JSON.stringify(data.filter, null, 2) }));
+    box.append(line);
+
+    // Shown, not enforced: prices span currencies and the filter compares them
+    // as-is. Worth saying, not worth withholding the results over.
+    if (data.notice) box.append(el('div', { class: 'warn', text: data.notice }));
+
+    box.append(el('pre', { text: JSON.stringify(data.filter, null, 2) }));
 
     // A year chip and a dated search are two answers to the same question. If the
     // request named dates ("in 2027", "next spring"), that is the more specific

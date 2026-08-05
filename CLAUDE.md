@@ -4,6 +4,12 @@ A cruise-listing scraper plus a natural-language search layer: describe the trip
 want in plain English (price, destination, dates, cabin type, amenities) instead of
 filling in filter boxes.
 
+**What this is for:** a launching pad for finding interesting cruises — not a booking
+system. Prices are indicative, not authoritative. That distinction decides design
+arguments: prefer showing an approximate answer with a caveat over withholding it for
+precision the app never claimed. The cross-currency price filter is the worked example —
+it was built as a hard block, and softened to a notice once the purpose was clear.
+
 ## Architecture
 
 A scraper that extracts and normalizes cruise listings from several cruise lines, structured

@@ -95,24 +95,26 @@ export function applyPriceDirection(question, filter = {}) {
 }
 
 /**
- * Detects a price filter that would compare across currencies.
+ * Flags a price filter that spans currencies — as a notice, not a refusal.
  *
- * The dataset spans USD (Royal Caribbean, Celebrity) and CAD (Princess), and
- * `searchSailings` compares `s.price <= filter.maxPrice` as bare numbers. Left
- * alone, "under $800" returns Princess sailings at CAD 780 (about USD 575)
- * alongside USD ones, and excludes CAD 1,050 (about USD 775) while including
- * USD 790. Every number looks plausible, which is exactly what makes it
- * dangerous — no test and no eyeball catches it.
+ * The dataset mixes USD (Royal Caribbean, Celebrity) and CAD (Princess), and
+ * `searchSailings` compares bare numbers, so "under $800" treats CAD 780 as if
+ * it were USD 780 (really about USD 575). That is genuinely imprecise.
  *
- * Rather than invent an exchange rate, the search refuses the comparison and
- * says why. Returns null when there is nothing to worry about: no price filter,
- * or every candidate priced in one currency.
+ * It is not, however, worth blocking. This app is a launching pad for finding
+ * interesting cruises, not a booking system: prices are indicative, and a
+ * roughly-under-$800 list is useful while an error message is not. So the search
+ * runs and the result carries a note. Being open about the fuzziness costs
+ * nothing; withholding the answer costs the whole point of the feature.
  *
- * @param {object[]} sailings - the candidates a price filter would apply to
+ * Returns null when there is nothing to say: no price filter, or every candidate
+ * priced in one currency.
+ *
+ * @param {object[]} sailings - the candidates a price filter applies to
  * @param {object} filter
- * @returns {{currencies: string[], message: string}|null}
+ * @returns {{currencies: string[], note: string}|null}
  */
-export function currencyConflict(sailings, filter = {}) {
+export function currencyNote(sailings, filter = {}) {
   const constrainsPrice = filter.minPrice != null || filter.maxPrice != null;
   if (!constrainsPrice) return null;
 
@@ -121,14 +123,11 @@ export function currencyConflict(sailings, filter = {}) {
 
   const counts = currencies
     .map((c) => `${sailings.filter((s) => s.currency === c).length} in ${c}`)
-    .join(' and ');
+    .join(', ');
 
   return {
     currencies,
-    message:
-      `These cruises are priced in ${currencies.join(' and ')} (${counts}), and this ` +
-      'search compares the amounts directly — so the result would be wrong. Narrow to ' +
-      'one cruise line, or drop the price from your request.',
+    note: `Heads up: these are priced in ${currencies.join(' and ')} (${counts}), and the price filter compares the numbers as-is. Treat the cut-off as approximate.`,
   };
 }
 

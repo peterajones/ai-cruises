@@ -4,7 +4,7 @@ import {
   searchSailings,
   hasNoConstraints,
   applyPriceDirection,
-  currencyConflict,
+  currencyNote,
   describeFilter,
   emptyMessage,
 } from '../search.js';
@@ -136,30 +136,43 @@ const mixed = [
   { id: 'pr:1', line: 'Princess Cruises', price: 780, currency: 'CAD', cabin: 'balcony' },
 ];
 
-test('a price filter over mixed currencies is refused, not answered', () => {
-  const conflict = currencyConflict(mixed, { maxPrice: 800 });
-  assert.ok(conflict, 'should refuse to compare USD against CAD');
-  assert.deepEqual(conflict.currencies, ['CAD', 'USD']);
-  assert.match(conflict.message, /CAD and USD/);
-  assert.match(conflict.message, /2 in USD/);
+test('a price filter over mixed currencies is noted, not blocked', () => {
+  // Prices here are indicative, not a booking contract. The search still runs;
+  // the caller is told the cut-off is approximate.
+  const note = currencyNote(mixed, { maxPrice: 800 });
+  assert.ok(note, 'should flag USD mixed with CAD');
+  assert.deepEqual(note.currencies, ['CAD', 'USD']);
+  assert.match(note.note, /CAD and USD/);
+  assert.match(note.note, /approximate/i);
 });
 
 test('minPrice triggers the guard too, not just maxPrice', () => {
-  assert.ok(currencyConflict(mixed, { minPrice: 500 }));
+  assert.ok(currencyNote(mixed, { minPrice: 500 }));
 });
 
 test('no price filter means no conflict, however mixed the data', () => {
-  assert.equal(currencyConflict(mixed, { cabin: 'balcony' }), null);
-  assert.equal(currencyConflict(mixed, {}), null);
+  assert.equal(currencyNote(mixed, { cabin: 'balcony' }), null);
+  assert.equal(currencyNote(mixed, {}), null);
 });
 
 test('narrowing to one currency resolves it', () => {
   const usdOnly = mixed.filter((s) => s.currency === 'USD');
-  assert.equal(currencyConflict(usdOnly, { maxPrice: 800 }), null);
+  assert.equal(currencyNote(usdOnly, { maxPrice: 800 }), null);
   const cadOnly = mixed.filter((s) => s.currency === 'CAD');
-  assert.equal(currencyConflict(cadOnly, { maxPrice: 800 }), null);
+  assert.equal(currencyNote(cadOnly, { maxPrice: 800 }), null);
 });
 
 test('an empty candidate set is not a conflict', () => {
-  assert.equal(currencyConflict([], { maxPrice: 800 }), null);
+  assert.equal(currencyNote([], { maxPrice: 800 }), null);
+});
+
+test('the note reflects the candidates, not the survivors', () => {
+  // The whole point: if the naive comparison wrongly drops every CAD sailing, the
+  // surviving list is uniformly USD. Judging survivors would go silent exactly
+  // when the caller most needs telling.
+  const survivors = mixed.filter((s) => s.currency === 'USD' && s.price <= 800);
+  assert.equal(currencyNote(survivors, { maxPrice: 800 }), null,
+    'survivors alone look single-currency — this is the trap');
+  assert.ok(currencyNote(mixed, { maxPrice: 800 }),
+    'candidates reveal the mix, which is why the server passes those');
 });
