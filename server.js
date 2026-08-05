@@ -7,7 +7,7 @@
  * brain.js (the model) and then search.js (ordinary conditionals).
  */
 import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 import { understand } from './brain.js';
 import {
@@ -26,19 +26,38 @@ const MIME = {
 };
 
 let dataset;
+let loadedMtime = 0;
 
+/**
+ * Reloads when data/sailings.json changes on disk.
+ *
+ * The first version read the file once at startup, so a re-scrape while the
+ * server was running left it serving stale data indefinitely — which is how
+ * broken image URLs survived being fixed. Cheap to check: one stat per request.
+ */
 async function loadDataset() {
+  let mtime;
   try {
-    const parsed = JSON.parse(await readFile(DATA_FILE, 'utf8'));
-    // `ship` is not in the scraper's derived enumeration, but the model needs it
-    // to answer "on the Icon of the Seas". Derive it here from the same data so
-    // it still cannot drift.
-    parsed.values.ship = [...new Set(parsed.sailings.map((s) => s.ship))].sort();
-    return parsed;
+    mtime = (await stat(DATA_FILE)).mtimeMs;
   } catch (err) {
     if (err.code === 'ENOENT') return null;
     throw err;
   }
+
+  if (dataset && mtime === loadedMtime) return dataset;
+
+  const parsed = JSON.parse(await readFile(DATA_FILE, 'utf8'));
+  // `ship` is not in the scraper's derived enumeration, but the model needs it
+  // to answer "on the Icon of the Seas". Derive it here from the same data so
+  // it still cannot drift.
+  parsed.values.ship = [...new Set(parsed.sailings.map((s) => s.ship))].sort();
+
+  if (loadedMtime !== 0) {
+    console.log(`data/sailings.json changed — reloaded ${parsed.sailings.length} sailings`);
+  }
+  loadedMtime = mtime;
+  dataset = parsed;
+  return dataset;
 }
 
 function json(res, status, body) {
@@ -65,6 +84,7 @@ const server = createServer(async (req, res) => {
 
     // What the page needs on load: the facets, and the whole dataset to render.
     if (req.method === 'GET' && req.url === '/api/dataset') {
+      dataset = await loadDataset();
       if (!dataset) {
         return json(res, 503, {
           error: 'No data yet. Run `node scrape.js` first, then reload this page.',
@@ -79,6 +99,7 @@ const server = createServer(async (req, res) => {
     }
 
     if (req.method === 'POST' && req.url === '/api/search') {
+      dataset = await loadDataset();
       if (!dataset) {
         return json(res, 503, { error: 'No data yet. Run `node scrape.js` first.' });
       }

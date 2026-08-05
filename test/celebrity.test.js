@@ -58,6 +58,22 @@ test('every URL points at celebritycruises.com, not royalcaribbean.com', () => {
   assert.equal(shipUrl('Celebrity Beyond'), `${ORIGIN}/cruise-ships/celebrity-beyond`);
 });
 
+// The origin assertion above passed while every image 404'd: Celebrity's payload
+// returns "/celebrity/new-images/..." but the asset lives at
+// "/content/dam/celebrity/new-images/...". A right-origin, wrong-path URL is
+// still a broken image, so assert the full shape rather than just the host.
+test('image URLs carry the /content/dam asset root', () => {
+  const images = parseListing(payload).map((r) => r.image).filter(Boolean);
+  assert.ok(images.length > 0, 'expected at least one image');
+  for (const image of images) {
+    assert.ok(
+      image.startsWith(`${ORIGIN}/content/dam/`),
+      `image URL would 404 — missing asset root: ${image}`,
+    );
+    assert.ok(!image.includes('/content/dam/content/dam/'), `asset root applied twice: ${image}`);
+  }
+});
+
 test('picks the cheapest priced tier, not the first', () => {
   // Verified against the raw fixture: cruise 0 / sailing 0 offers
   // INTERIOR 949.94, OUTSIDE 999.94, BALCONY 999.94, CONCIERGE 1199.94.

@@ -7,10 +7,10 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { launch, newPage } from './browser.js';
-import { BotWallError, EmptyResultError } from './errors.js';
+import { BotWallError, ConflictingDuplicateError, EmptyResultError } from './errors.js';
 import { normalizeAll } from './normalize.js';
 import { deriveValues } from './values.js';
-import { assertNonEmpty, loadExisting, mergeShips, writeResult } from './persist.js';
+import { assertNonEmpty, dedupeById, loadExisting, mergeShips, writeResult } from './persist.js';
 import { adaptersFor } from './sites/index.js';
 
 const DATA_DIR = new URL('./data/', import.meta.url).pathname;
@@ -62,10 +62,18 @@ async function main() {
         source: adapter.name,
         line: adapter.line,
       });
-      const sailings = normalized.slice(0, flags.limit);
-      if (sailings.length < normalized.length) {
+      // Several GraphQL operations hit the same endpoint on one page load and
+      // more than one can carry the same sailings. Dedupe before the limit, or
+      // --limit N would spend its budget on repeats.
+      const { sailings: unique, duplicates } = dedupeById(normalized);
+      if (duplicates > 0) {
+        console.log(`${adapter.name}: dropped ${duplicates} duplicate sailings`);
+      }
+
+      const sailings = unique.slice(0, flags.limit);
+      if (sailings.length < unique.length) {
         console.log(
-          `${adapter.name}: --limit ${flags.limit} truncated ${normalized.length} sailings to ${sailings.length}`,
+          `${adapter.name}: --limit ${flags.limit} truncated ${unique.length} sailings to ${sailings.length}`,
         );
       }
       allSailings.push(...sailings);
@@ -78,6 +86,9 @@ async function main() {
         const path = await snapshotFailure(await page.content(), `${adapter.name}-wall`);
         console.error(`${adapter.name}: BOT WALL — ${err.reason}.`);
         console.error(`  This is a block, not a parse failure. Body saved to ${path}`);
+      } else if (err instanceof ConflictingDuplicateError) {
+        console.error(`${adapter.name}: ${err.message}`);
+        console.error('  Not writing data/sailings.json — the previous run is preserved.');
       } else if (err instanceof EmptyResultError) {
         const path = await snapshotFailure(await page.content(), `${adapter.name}-empty`);
         console.error(`${adapter.name}: parsed 0 sailings.`);

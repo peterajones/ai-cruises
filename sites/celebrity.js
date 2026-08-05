@@ -22,6 +22,9 @@ export const line = 'Celebrity Cruises';
 
 const SITE_ORIGIN = 'https://www.celebritycruises.com';
 
+/** Celebrity's media paths omit this; the assets 404 without it. */
+const ASSET_ROOT = '/content/dam';
+
 /**
  * @param {string} payload - raw JSON text captured from the cruises/graph search response
  * @returns {object[]} RawSailing rows, one per priced sailing
@@ -40,9 +43,14 @@ export function parseListing(payload) {
     const destination = it.destination.name;
     const nights = it.sailingNights;
     const itinerary = it.name ?? null;
-    // Image paths are site-relative; absolutise so a UI can use them directly.
+    // Image paths are site-relative AND lack the asset-root prefix that Royal
+    // Caribbean's already carry: Celebrity returns "/celebrity/new-images/..."
+    // where the file actually lives at "/content/dam/celebrity/new-images/...".
+    // Verified against the live site — without the prefix every image 404s.
     const imagePath = it.media?.images?.[0]?.path;
-    const image = imagePath ? `${SITE_ORIGIN}${imagePath}` : null;
+    const image = imagePath
+      ? `${SITE_ORIGIN}${imagePath.startsWith(ASSET_ROOT) ? '' : ASSET_ROOT}${imagePath}`
+      : null;
     // Ports actually visited, in order, minus embarkation/disembarkation.
     const ports = [
       ...new Set(
