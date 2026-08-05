@@ -6,8 +6,8 @@ filling in filter boxes.
 
 ## Architecture
 
-A scraper that extracts and normalizes cruise listings from Royal Caribbean, structured as
-fetch-then-parse stages:
+A scraper that extracts and normalizes cruise listings from several cruise lines, structured
+as fetch-then-parse stages:
 
 ```text
 browser ──fetch──▶ HTML/JSON ──parse──▶ RawSailing[] ──normalize──▶ Sailing[] ──persist──▶ JSON
@@ -15,7 +15,11 @@ browser ──fetch──▶ HTML/JSON ──parse──▶ RawSailing[] ──n
 
 Each stage knows only its own inputs and outputs. Adapters live in `sites/`.
 
-- `sites/royal-caribbean.js` — fetch and parse the Royal Caribbean endpoint, return raw rows.
+- `sites/royal-caribbean.js`, `sites/celebrity.js` — one file per site, each knowing only its
+  own site. Deliberately near-duplicates rather than a shared parser: when one site changes
+  shape, the other keeps running.
+- `search.js` / `brain.js` / `server.js` / `public/` — the search layer over the scraped data.
+  `brain.js` is the only file that calls a model.
 - `normalize.js` — canonicalize destination/cabin labels via `DESTINATIONS` and `CABINS` mappings,
   enforce required fields, flag unrecognised values.
 - `values.js` — derive the enumeration of every unique destination/cabin/port/nights/price
@@ -44,12 +48,14 @@ a good dataset.
 
 ## Environment
 
-- Node 22 — global `fetch`, so calling Ollama needs no dependencies.
+- Node 22. Dependencies: `puppeteer` (scraping) and `@anthropic-ai/sdk` (search). Nothing else.
 - Ollama at `http://localhost:11434`, `qwen2.5-coder:latest` (7B) is the default.
   `qwen2.5-coder:1.5b-base` is a *base* model — not for chat or tool roles.
   `/api/chat` is POST-only; a 405 in the browser means it's running.
-- No `ANTHROPIC_API_KEY` and no `ant` CLI — anything needing a scripted Claude call
-  requires setup first.
+- `ANTHROPIC_API_KEY` lives in `.env` (gitignored) and is loaded natively by
+  `node --env-file-if-exists=.env` — no `dotenv` dependency. `npm run serve` does this.
+  The search layer uses `claude-haiku-4-5` (~$0.002/query). No `ant` CLI installed.
+- Server runs on port 3030.
 
 ## Status
 
@@ -66,14 +72,29 @@ The two adapters are deliberately near-duplicates rather than a shared parser. W
 site changes its GraphQL shape, the other keeps running. The only thing a naive copy gets
 wrong is `SITE_ORIGIN` and Celebrity's `/content/dam` asset root, both pinned by tests.
 
-**Princess Cruises:** Attempted and abandoned. The sailings catalog and pricing data are two
-separate API endpoints. The catalog carries no departure date or price, only itinerary templates
-and ship×date combinations. Every parsed row from the catalog alone fails the required-field rule
-and yields zero sailings. Fixing this would require either reverse-engineering the pricing
-endpoint's POST body (unknown, no query string), or parsing the rendered search page instead of
-the API. **No `sites/princess.js` exists** — nothing was written. What survives is the captured
-evidence in `test/fixtures/princess-*.json` and the analysis in `test/fixtures/NOTES.md`, which
-is where a rework should start.
+**Princess Cruises:** Feasible, not yet built. An earlier note in this file said the catalog
+"carries no departure date" — **that was wrong**, and it stalled the work for a day. The dates
+are there, nested one level down at `products[].ships[].sailDates`: 1,015 itinerary templates
+expand to **1,980 real departures**.
+
+Two endpoints, joined on the itinerary id:
+
+- **Catalog** `resdb/p1.0/products` — itinerary id, `trades` (destination), `embkDbkPortIds`,
+  `cruiseDuration` (nights), and `ships[].sailDates`. No price, no cabin.
+- **Pricing** `caps/pc/pricing/v1/cruises` — price and cabin metas, keyed by the same
+  itinerary id. All 116 captured ids join cleanly; each carries exactly one cruise, matching
+  exactly one sail date for that ship, so the join is unambiguous.
+
+The pricing call is a POST with an unseen body, but it does not need to be forged: navigating
+to `https://www.princess.com/cruise-search/results/?ship=<CODE>` triggers it, verified for
+two ships. 17 ships means 17 page loads — small and polite.
+
+Three reference tables (`princess-ships-ref.json`, `-ports-ref.json`, `-trades-ref.json`)
+resolve ids to names; Princess returns codes where Royal Caribbean returns names, so this
+adapter needs a lookup step the other two do not. Dates are `YYYYMMDD` and need converting.
+
+A joined row proved out end to end: Diamond Princess, Singapore round trip, 2026-12-09,
+10 nights, Asia, $3,245 USD.
 
 ## Open questions
 
