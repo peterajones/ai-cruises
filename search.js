@@ -94,6 +94,44 @@ export function applyPriceDirection(question, filter = {}) {
   return out;
 }
 
+/**
+ * Detects a price filter that would compare across currencies.
+ *
+ * The dataset spans USD (Royal Caribbean, Celebrity) and CAD (Princess), and
+ * `searchSailings` compares `s.price <= filter.maxPrice` as bare numbers. Left
+ * alone, "under $800" returns Princess sailings at CAD 780 (about USD 575)
+ * alongside USD ones, and excludes CAD 1,050 (about USD 775) while including
+ * USD 790. Every number looks plausible, which is exactly what makes it
+ * dangerous — no test and no eyeball catches it.
+ *
+ * Rather than invent an exchange rate, the search refuses the comparison and
+ * says why. Returns null when there is nothing to worry about: no price filter,
+ * or every candidate priced in one currency.
+ *
+ * @param {object[]} sailings - the candidates a price filter would apply to
+ * @param {object} filter
+ * @returns {{currencies: string[], message: string}|null}
+ */
+export function currencyConflict(sailings, filter = {}) {
+  const constrainsPrice = filter.minPrice != null || filter.maxPrice != null;
+  if (!constrainsPrice) return null;
+
+  const currencies = [...new Set(sailings.map((s) => s.currency).filter(Boolean))].sort();
+  if (currencies.length < 2) return null;
+
+  const counts = currencies
+    .map((c) => `${sailings.filter((s) => s.currency === c).length} in ${c}`)
+    .join(' and ');
+
+  return {
+    currencies,
+    message:
+      `These cruises are priced in ${currencies.join(' and ')} (${counts}), and this ` +
+      'search compares the amounts directly — so the result would be wrong. Narrow to ' +
+      'one cruise line, or drop the price from your request.',
+  };
+}
+
 /** The keys that actually constrain a search. `unrecognised` is not one of them. */
 const CONSTRAINTS = [
   'line', 'ship', 'destination', 'departurePort', 'cabin',

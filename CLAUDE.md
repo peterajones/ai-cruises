@@ -59,42 +59,35 @@ a good dataset.
 
 ## Status
 
-**Royal Caribbean and Celebrity Cruises:** Both complete and working. Each has a single
-GraphQL endpoint returning all 8 required fields on one object. A real run yields ~320
-sailings across 11 ships, all with descriptions; destinations [alaska, bahamas, caribbean,
-europe], cabins [balcony, interior, oceanview, suite], nights [3–9], departure ports
-[Barcelona, Fort Lauderdale, Miami, Seattle], prices ~$305–$20,135.
+**Three lines working:** Royal Caribbean (203), Celebrity (118), Princess (188) — 509
+sailings, 11 ships with descriptions, prices $295–$9,411 USD and $314–$3,459 CAD.
 
-Counts drift a little between runs — the sites return slightly different result sets per
-load. That is normal; `dedupeById` confirms every sailing is unique.
+Royal Caribbean and Celebrity read a JSON API. **Princess parses the rendered results
+page**, because its API cannot produce a dated price: the catalog carries dates without
+prices, the pricing endpoint carries prices with no date field at all, and for ~9% of
+itineraries one price maps to several sail dates. The rendered card carries both.
 
-The two adapters are deliberately near-duplicates rather than a shared parser. When one
-site changes its GraphQL shape, the other keeps running. The only thing a naive copy gets
-wrong is `SITE_ORIGIN` and Celebrity's `/content/dam` asset root, both pinned by tests.
+Adapters are deliberately independent files, never a shared base. When one site changes
+shape, the others keep running.
 
-**Princess Cruises:** Feasible, not yet built. An earlier note in this file said the catalog
-"carries no departure date" — **that was wrong**, and it stalled the work for a day. The dates
-are there, nested one level down at `products[].ships[].sailDates`: 1,015 itinerary templates
-expand to **1,980 real departures**.
+**Princess quirks worth knowing:**
 
-Two endpoints, joined on the itinerary id:
+- **Prices are CAD.** `?currency=USD` and the `/en-us/` path were both tried and ignored —
+  the site geolocates. Stored honestly; nothing is converted.
+- **No ship descriptions.** `/ships/<slug>` 404s for most of the fleet and returns HTTP 200
+  with the *wrong ship* for others — `/ships/discovery-princess` serves Diamond Princess's
+  page. `parseShip` returns nothing rather than something unverifiable.
+- **Destination comes from the itinerary title**, not port countries. Port countries read a
+  Caribbean cruise leaving Fort Lauderdale as "Florida" — true, and useless. `normalize.js`
+  has `findDestination()`, which finds a known region inside a phrase, longest alias winning
+  so "Eastern Caribbean" beats a bare "Caribbean".
+- **Only ~15 of 20 cards per page are sailings**; the rest are promo tiles with no date.
 
-- **Catalog** `resdb/p1.0/products` — itinerary id, `trades` (destination), `embkDbkPortIds`,
-  `cruiseDuration` (nights), and `ships[].sailDates`. No price, no cabin.
-- **Pricing** `caps/pc/pricing/v1/cruises` — price and cabin metas, keyed by the same
-  itinerary id. All 116 captured ids join cleanly; each carries exactly one cruise, matching
-  exactly one sail date for that ship, so the join is unambiguous.
-
-The pricing call is a POST with an unseen body, but it does not need to be forged: navigating
-to `https://www.princess.com/cruise-search/results/?ship=<CODE>` triggers it, verified for
-two ships. 17 ships means 17 page loads — small and polite.
-
-Three reference tables (`princess-ships-ref.json`, `-ports-ref.json`, `-trades-ref.json`)
-resolve ids to names; Princess returns codes where Royal Caribbean returns names, so this
-adapter needs a lookup step the other two do not. Dates are `YYYYMMDD` and need converting.
-
-A joined row proved out end to end: Diamond Princess, Singapore round trip, 2026-12-09,
-10 nights, Asia, $3,245 USD.
+**Cross-currency price searches are refused, not answered.** `search.js` compares bare
+numbers, so "under $800" across USD and CAD would be silently wrong — every number looks
+plausible. `currencyConflict()` detects it and returns an explanation instead of results.
+Narrowing to one cruise line resolves it, because the guard judges the candidates rather
+than the whole dataset.
 
 ## Open questions
 

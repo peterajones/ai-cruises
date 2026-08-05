@@ -12,6 +12,7 @@ import { extname, join } from 'node:path';
 import { understand } from './brain.js';
 import {
   searchSailings, emptyMessage, describeFilter, hasNoConstraints, applyPriceDirection,
+  currencyConflict,
 } from './search.js';
 
 const PORT = 3030;
@@ -126,14 +127,27 @@ const server = createServer(async (req, res) => {
       // also reported things it could not express, that "match everything" is a
       // lie dressed as an answer — return nothing and say why instead.
       const understoodNothing = hasNoConstraints(filter);
-      const results = understoodNothing ? [] : searchSailings(dataset.sailings, filter);
+
+      // Apply every non-price constraint first, then check whether a price filter
+      // would straddle currencies. Narrowing to one line resolves it on its own,
+      // so the guard must judge the candidates, not the whole dataset.
+      const withoutPrice = { ...filter, minPrice: null, maxPrice: null };
+      const candidates = understoodNothing
+        ? []
+        : searchSailings(dataset.sailings, withoutPrice);
+      const conflict = currencyConflict(candidates, filter);
+
+      const results = understoodNothing || conflict
+        ? []
+        : searchSailings(dataset.sailings, filter);
 
       return json(res, 200, {
         filter,
         results,
         understood: describeFilter(filter),
         understoodNothing,
-        message: results.length === 0 ? emptyMessage(filter) : null,
+        message: conflict ? conflict.message : (results.length === 0 ? emptyMessage(filter) : null),
+        currencyConflict: conflict?.currencies ?? null,
         tookMs: Date.now() - started,
       });
     }

@@ -4,6 +4,7 @@ import {
   searchSailings,
   hasNoConstraints,
   applyPriceDirection,
+  currencyConflict,
   describeFilter,
   emptyMessage,
 } from '../search.js';
@@ -124,4 +125,41 @@ test('an unmappable request is named, not silently ignored', () => {
 test('an ordinary miss gets the light message', () => {
   assert.match(emptyMessage({ destination: 'alaska' }), /Alaska cruises matched/);
   assert.match(emptyMessage({}), /Nothing matched that search/);
+});
+
+// The dataset spans USD (Royal Caribbean, Celebrity) and CAD (Princess), and
+// searchSailings compares bare numbers. Without this guard, "under $800" silently
+// mixes the two — every number looks plausible, so nothing catches it.
+const mixed = [
+  { id: 'rc:1', line: 'Royal Caribbean', price: 700, currency: 'USD', cabin: 'balcony' },
+  { id: 'ce:1', line: 'Celebrity Cruises', price: 900, currency: 'USD', cabin: 'balcony' },
+  { id: 'pr:1', line: 'Princess Cruises', price: 780, currency: 'CAD', cabin: 'balcony' },
+];
+
+test('a price filter over mixed currencies is refused, not answered', () => {
+  const conflict = currencyConflict(mixed, { maxPrice: 800 });
+  assert.ok(conflict, 'should refuse to compare USD against CAD');
+  assert.deepEqual(conflict.currencies, ['CAD', 'USD']);
+  assert.match(conflict.message, /CAD and USD/);
+  assert.match(conflict.message, /2 in USD/);
+});
+
+test('minPrice triggers the guard too, not just maxPrice', () => {
+  assert.ok(currencyConflict(mixed, { minPrice: 500 }));
+});
+
+test('no price filter means no conflict, however mixed the data', () => {
+  assert.equal(currencyConflict(mixed, { cabin: 'balcony' }), null);
+  assert.equal(currencyConflict(mixed, {}), null);
+});
+
+test('narrowing to one currency resolves it', () => {
+  const usdOnly = mixed.filter((s) => s.currency === 'USD');
+  assert.equal(currencyConflict(usdOnly, { maxPrice: 800 }), null);
+  const cadOnly = mixed.filter((s) => s.currency === 'CAD');
+  assert.equal(currencyConflict(cadOnly, { maxPrice: 800 }), null);
+});
+
+test('an empty candidate set is not a conflict', () => {
+  assert.equal(currencyConflict([], { maxPrice: 800 }), null);
 });
