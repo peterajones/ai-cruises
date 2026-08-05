@@ -1,7 +1,7 @@
 /**
  * Zero-dependency HTTP server for the cruise search.
  *
- *   node server.js   ->   http://localhost:3000
+ *   node server.js   ->   http://localhost:3030
  *
  * Serves the page, and one API endpoint that runs a plain-English query through
  * brain.js (the model) and then search.js (ordinary conditionals).
@@ -14,7 +14,7 @@ import {
   searchSailings, emptyMessage, describeFilter, hasNoConstraints, applyPriceDirection,
 } from './search.js';
 
-const PORT = 3000;
+const PORT = 3030;
 const PUBLIC_DIR = new URL('./public/', import.meta.url).pathname;
 const DATA_FILE = new URL('./data/sailings.json', import.meta.url).pathname;
 
@@ -157,6 +157,23 @@ const server = createServer(async (req, res) => {
 });
 
 dataset = await loadDataset();
+
+// The likeliest way to fail on startup is a server you already have running.
+// Node's default is an unhandled 'error' event: a 20-line stack trace whose
+// actual meaning — "it's already up" — is on line 8.
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use — the server is probably already running.`);
+    console.error(`  Open http://localhost:${PORT}, or stop the old one:`);
+    console.error(`    pkill -f "node --env-file-if-exists=.env server.js"`);
+    process.exit(1);
+  }
+  if (err.code === 'EACCES') {
+    console.error(`Not allowed to bind port ${PORT}. Ports below 1024 need root — pick a higher one.`);
+    process.exit(1);
+  }
+  throw err;
+});
 
 server.listen(PORT, () => {
   if (!dataset) {
