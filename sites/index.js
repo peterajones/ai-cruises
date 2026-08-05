@@ -1,10 +1,11 @@
 import * as royalCaribbean from './royal-caribbean.js';
+import * as celebrity from './celebrity.js';
 
-// Only royal-caribbean is registered. Princess was attempted and abandoned:
-// its API splits data across endpoints and carries no departure date
-// anywhere, so every row would be dropped by the required-field rule.
-// Reworking it is separate future work.
-export const ADAPTERS = [royalCaribbean];
+// Princess was attempted and abandoned: its API splits data across endpoints and
+// carries no departure date anywhere, so every row would be dropped by the
+// required-field rule. Reworking it means parsing the rendered search page —
+// separate future work, with the captured evidence in test/fixtures/.
+export const ADAPTERS = [royalCaribbean, celebrity];
 
 /**
  * @param {string[]} names - empty means all

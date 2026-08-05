@@ -26,6 +26,8 @@ test('Celebrity\'s tier and region labels map', () => {
   // Evidence: Celebrity's own metadata names AQUA "Aquaclass" and DELUXE "The
   // Retreat" (its suite class); both were surfaced by the unrecognised list.
   assert.equal(canonicalCabin('AQUA'), 'balcony');
+  assert.equal(canonicalCabin('CONCIERGE'), 'balcony');
+  assert.equal(canonicalCabin('Concierge Class'), 'balcony');
   assert.equal(canonicalCabin('Aquaclass'), 'balcony');
   assert.equal(canonicalCabin('DELUXE'), 'suite');
   assert.equal(canonicalDestination('Europe'), 'europe');

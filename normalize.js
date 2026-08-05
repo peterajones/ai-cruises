@@ -42,7 +42,18 @@ const CABINS = {
   // belongs with balcony because it HAS a balcony — excluding it from a balcony
   // search would be a visibly wrong answer. The spa distinction is not something
   // this dataset can express.
-  balcony: ['balcony', 'verandah', 'veranda', 'balcony stateroom', 'deluxe balcony', 'aqua', 'aquaclass'],
+  // 'aqua' (Celebrity's AquaClass) and 'concierge' (Concierge Class) are both
+  // veranda staterooms sold with extra service. They belong with balcony because
+  // they HAVE balconies — excluding them from a balcony search would be a
+  // visibly wrong answer, and the service tier is not something this dataset can
+  // express. Note CONCIERGE is priced above BALCONY on every sailing captured,
+  // so the cheapest-tier rule never selects it — it was found by enumerating all
+  // tiers in the fixture, not by the unrecognised list, which only ever sees the
+  // tier that wins.
+  balcony: [
+    'balcony', 'verandah', 'veranda', 'balcony stateroom', 'deluxe balcony',
+    'aqua', 'aquaclass', 'concierge', 'concierge class',
+  ],
   suite: ['suite', 'mini suite', 'minisuite', 'junior suite', 'owners suite', 'penthouse', 'deluxe'],
 };
 
