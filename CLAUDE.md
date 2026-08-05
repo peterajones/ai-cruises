@@ -95,6 +95,69 @@ plausible. `currencyConflict()` detects it and returns an explanation instead of
 Narrowing to one cruise line resolves it, because the guard judges the candidates rather
 than the whole dataset.
 
+## Next session: Holland America (adapter #4)
+
+**Everything needed to start is captured.** The evidence is
+`test/fixtures/holland-america-search.json` (2.4 MB, real) — read it before probing
+anything, and don't re-derive what is below.
+
+**Why this line:** Alaska is its specialty, and it is the best-shaped source found so
+far — a real search API, not a DOM scrape. Its first row is a Vancouver → Whittier
+Glacier Discovery sailing. The current dataset has only 29 Alaska sailings (Celebrity 19,
+Princess 10, Royal Caribbean none).
+
+**The endpoint** — one GET, no POST body to reverse-engineer:
+
+```
+https://www.hollandamerica.com/search/halcruisesearch
+  ?start=0&rows=20&country=ca&language=en
+  &fq=departDate:[NOW/DAY+1DAY TO *]
+  &fl=cruiseId,shipName,embarkPortName,disembarkPortName,departDate,duration,name,destinationIds,price_CAD_*,...
+```
+
+- `response.numFound` was **988** — roughly twice the entire current dataset.
+- `response.docs` is the row array, 20 per page. `start`/`rows` are real pagination, so
+  paging is a URL change rather than scroll-driving. Politeness still applies: sequential,
+  `politeDelay()` between pages, and stop at a sane cap rather than pulling all 988 blindly.
+- No bot wall across the probes made (HTTP 200, no Incapsula/Cloudflare/PerimeterX markers).
+
+**Verified row shape** (`response.docs[0]`):
+
+```json
+{
+  "cruiseId": "W656",
+  "shipName": "Westerdam#@#WE",
+  "embarkPortName": "Vancouver, B.C., CA#@#YVR",
+  "disembarkPortName": "Whittier, Alaska, US",
+  "departDate": "2026-08-16T00:00:00Z",
+  "duration": 7,
+  "name": "7-DAY GLACIER DISCOVERY NORTHBOUND",
+  "destinationIds": ["A"],
+  "price_CAD_IN_RESTRICTED_d": 1124
+}
+```
+
+**Three quirks to design for, all already visible:**
+
+1. **`#@#` packs two values into one string** — `"Westerdam#@#WE"` is name plus ship code,
+   `"Vancouver, B.C., CA#@#YVR"` is port plus code. Split on it; do not regex around it.
+2. **Price keys are dynamic**, with fare codes baked into the key name
+   (`price_CAD_IN_RESTRICTED_d`, `launch_price_CAD_HEP26HOB4A_d`). There is no fixed path
+   to read, so the adapter must scan keys by pattern. Cheapest-tier becomes "lowest
+   `price_CAD_*`", and note `launch_price_*` looks like a list price — the Princess "Was
+   vs Now" trap in a different costume, so establish which is which before trusting either.
+3. **`destinationIds` are codes** — `["A"]` for Alaska. A reference table will be needed,
+   same as Princess's trades/ports/ships lookups. Find where the site resolves them.
+
+**Also CAD** (`country=ca`). Matters far less now that mixed currencies are noted rather
+than blocked, but it is two of three lines in CAD, so it may be worth revisiting whether
+`country=us` is honoured on this endpoint — Princess ignored the equivalent.
+
+**Open questions to settle while planning:** how many of the 988 to take (a cap, or all of
+them at 20/page = 50 requests); whether Holland America publishes usable ship descriptions,
+given Princess's did not; and whether `destinationIds` resolve from a table on the page or
+need a second request.
+
 ## Open questions
 
 Noted, not decided. Don't act on these without asking.
