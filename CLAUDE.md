@@ -53,12 +53,18 @@ a good dataset.
 
 ## Status
 
-**Royal Caribbean:** Complete and working. A single GraphQL endpoint returns all 8 required
-fields (ship, port, destination, date, nights, cabin, price, id) on one object, one response.
-Real run yields 200 sailings: 6 ships (Wonder of the Seas, Allure of the Seas, Icon of the Seas,
-Jewel of the Seas, Freedom of the Seas, Oasis of the Seas), all with ship descriptions,
-destinations [Bahamas, Caribbean], cabins [balcony, interior, oceanview], nights [3,4,5,6,7,9],
-departure ports [Fort Lauderdale, Miami], prices $334.08–$2226.29.
+**Royal Caribbean and Celebrity Cruises:** Both complete and working. Each has a single
+GraphQL endpoint returning all 8 required fields on one object. A real run yields ~320
+sailings across 11 ships, all with descriptions; destinations [alaska, bahamas, caribbean,
+europe], cabins [balcony, interior, oceanview, suite], nights [3–9], departure ports
+[Barcelona, Fort Lauderdale, Miami, Seattle], prices ~$305–$20,135.
+
+Counts drift a little between runs — the sites return slightly different result sets per
+load. That is normal; `dedupeById` confirms every sailing is unique.
+
+The two adapters are deliberately near-duplicates rather than a shared parser. When one
+site changes its GraphQL shape, the other keeps running. The only thing a naive copy gets
+wrong is `SITE_ORIGIN` and Celebrity's `/content/dam` asset root, both pinned by tests.
 
 **Princess Cruises:** Attempted and abandoned. The sailings catalog and pricing data are two
 separate API endpoints. The catalog carries no departure date or price, only itinerary templates
@@ -68,6 +74,29 @@ endpoint's POST body (unknown, no query string), or parsing the rendered search 
 the API. **No `sites/princess.js` exists** — nothing was written. What survives is the captured
 evidence in `test/fixtures/princess-*.json` and the analysis in `test/fixtures/NOTES.md`, which
 is where a rework should start.
+
+## Open questions
+
+Noted, not decided. Don't act on these without asking.
+
+**Sticky year chips.** The year row scrolls out of view and is easy to lose. `position: fixed`
+is the wrong tool — it drops the row out of flow, so it needs a hand-maintained top offset
+*and* a compensating margin below, both of which re-break whenever the header changes.
+`position: sticky` with a `--header-h` variable set from a `ResizeObserver` on the header is
+the fix, ideally paired with hiding the example chips on scroll to reclaim the height.
+Deferred because it may not be a real problem — see the viewport note below.
+
+**Verify UI on a small viewport before judging it.** Peter works on a 27" Studio Display, where
+vertical space is abundant and scroll-loss is felt differently than on a laptop or phone. Any
+layout judgement made only at that size is suspect in both directions — problems can look worse
+than they are, and real small-screen problems stay invisible. Check at ~800×600 before calling
+a layout question settled.
+
+**Lazy loading.** Images already carry `loading="lazy"`, but the API ships all sailings in one
+response and the page builds every card up front. Fine at ~320, not at 2,000. The 13 distinct
+images are 900 KB–2.7 MB each (full 4K heroes rendered in ~290px cards). Celebrity's CDN honours
+`?imwidth=600` (1043 KB → 75 KB); Royal Caribbean's ignores it, and its own parameter was not
+found. Nothing is downloaded locally — image URLs are hotlinked.
 
 ## Working style
 
