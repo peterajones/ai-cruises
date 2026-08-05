@@ -4,7 +4,7 @@ import { parseFlags } from '../scrape.js';
 import { ADAPTERS, adaptersFor } from '../sites/index.js';
 
 test('the registered adapter is royal-caribbean', () => {
-  assert.deepEqual(ADAPTERS.map((a) => a.name), ['royal-caribbean', 'celebrity']);
+  assert.deepEqual(ADAPTERS.map((a) => a.name), ['royal-caribbean', 'celebrity', 'princess']);
 });
 
 test('every adapter satisfies the contract', () => {
@@ -17,7 +17,7 @@ test('every adapter satisfies the contract', () => {
 });
 
 test('adaptersFor selects by name and defaults to all', () => {
-  assert.deepEqual(adaptersFor([]).map((a) => a.name), ['royal-caribbean', 'celebrity']);
+  assert.deepEqual(adaptersFor([]).map((a) => a.name), ['royal-caribbean', 'celebrity', 'princess']);
   assert.deepEqual(adaptersFor(['royal-caribbean']).map((a) => a.name), ['royal-caribbean']);
 });
 

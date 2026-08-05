@@ -43,6 +43,18 @@ test('a coarse source label is not refined into a guess', () => {
   assert.equal(canonicalDestination('Eastern Mediterranean'), 'mediterranean-east');
 });
 
+test("Princess's port-derived countries map to a region", () => {
+  // Princess cards name ports, not regions, so the adapter derives a country and
+  // normalize maps it. These four were surfaced by the unrecognised list from the
+  // real fixture; the rest of the list is the same countries' neighbours.
+  assert.equal(canonicalDestination('Vietnam'), 'asia');
+  assert.equal(canonicalDestination('Malaysia'), 'asia');
+  assert.equal(canonicalDestination('Japan'), 'asia');
+  assert.equal(canonicalDestination('Singapore'), 'asia');
+  // Princess's cabin labels already matched the existing aliases.
+  assert.equal(canonicalCabin('Interior'), 'interior');
+});
+
 test('unknown values return null rather than guessing', () => {
   assert.equal(canonicalDestination('Panama Canal - Partial Transit'), null);
   assert.equal(canonicalCabin('Igloo'), null);
@@ -92,12 +104,15 @@ test('a good row becomes a fully canonical Sailing', () => {
 });
 
 test('an unmappable destination keeps the sailing and records the miss', () => {
-  const row = { ...goodRow, destination: 'Panama Canal - Partial Transit' };
+  // Note: "Panama Canal - Partial Transit" used to be the example here, but
+  // findDestination now resolves it correctly. A genuinely unmappable value is
+  // needed to exercise the miss path.
+  const row = { ...goodRow, destination: 'Sea of Tranquility' };
   const { sailings, unrecognised } = normalizeAll([row], { source: 'princess', line: 'Princess' });
   assert.equal(sailings.length, 1);
   assert.equal(sailings[0].destination, null);
   assert.deepEqual(unrecognised, [
-    { field: 'destination', raw: 'Panama Canal - Partial Transit', count: 1 },
+    { field: 'destination', raw: 'Sea of Tranquility', count: 1 },
   ]);
 });
 

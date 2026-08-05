@@ -8,11 +8,14 @@ const DESTINATIONS = {
   'caribbean-east': ['eastern caribbean', 'caribbean eastern', 'e caribbean', 'caribbean east'],
   'caribbean-west': ['western caribbean', 'caribbean western', 'w caribbean', 'caribbean west'],
   'caribbean-south': ['southern caribbean', 'caribbean southern', 's caribbean', 'caribbean south'],
-  'caribbean': ['caribbean'],
+  'caribbean': ['caribbean', 'turks caicos', 'turks and caicos', 'grand turk'],
   'bahamas': ['bahamas', 'bahamas florida'],
   'bermuda': ['bermuda'],
   'alaska': ['alaska', 'alaska inside passage', 'inside passage', 'alaska gulf'],
   'mexico': ['mexico', 'mexican riviera', 'baja mexico'],
+  // US/Canada west-coast sailings. Princess names these "Pacific Coastal" and
+  // "Pacific Wine Country"; no other line in the dataset sails them.
+  'pacific-coast': ['pacific coastal', 'pacific coast', 'pacific wine country', 'california coast'],
   'hawaii': ['hawaii', 'hawaiian islands'],
   'mediterranean-west': ['western mediterranean', 'mediterranean western', 'w mediterranean'],
   'mediterranean-east': ['eastern mediterranean', 'mediterranean eastern', 'e mediterranean'],
@@ -22,12 +25,19 @@ const DESTINATIONS = {
   // fjords alike. Keep the source's granularity rather than inferring a sea from
   // the ports: guessing "mediterranean" would be right for some and wrong for the
   // rest, and a wrong label is worse than a coarse one.
-  'europe': ['europe'],
+  // Coarse on purpose: Spain touches both the Atlantic and the Mediterranean, so
+  // "Spanish Passage" cannot be resolved to a specific sea without guessing.
+  'europe': ['europe', 'spain', 'spanish', 'spanish passage', 'portugal'],
   'british-isles': ['british isles', 'ireland britain'],
   'transatlantic': ['transatlantic', 'trans atlantic', 'repositioning transatlantic'],
   'panama-canal': ['panama canal', 'panama canal full transit'],
   'south-america': ['south america', 'south america antarctica'],
-  'asia': ['asia', 'southeast asia', 'japan', 'far east'],
+  // Princess names no region on its cards — only ports — so the adapter derives a
+  // country and these map it to a region. The list grows as new ports appear; the
+  // `unrecognised` output of a scrape is the to-do list. Countries are added only
+  // once seen in real data, never pre-emptively.
+  'asia': ['asia', 'southeast asia', 'japan', 'far east', 'vietnam', 'malaysia',
+    'singapore', 'thailand', 'south korea', 'taiwan', 'china', 'hong kong'],
   'australia-nz': ['australia new zealand', 'australia', 'new zealand', 'south pacific'],
   'antarctica': ['antarctica'],
   'canada-new-england': ['canada new england', 'new england canada', 'canada'],
@@ -73,6 +83,41 @@ function buildLookup(groups) {
 
 const DESTINATION_LOOKUP = buildLookup(DESTINATIONS);
 const CABIN_LOOKUP = buildLookup(CABINS);
+
+/**
+ * Finds a known destination inside a longer phrase.
+ *
+ * Royal Caribbean and Celebrity hand over a clean label ("Bahamas"). Princess
+ * names no region at all — only a title like "9-Day Eastern Caribbean With St.
+ * Thomas". Deriving the region from port countries gets this wrong in the most
+ * misleading way: a Caribbean cruise departing Fort Lauderdale reads as "Florida",
+ * which is where it leaves from, not where it goes.
+ *
+ * Longest alias wins, so "eastern caribbean" beats a bare "caribbean" in the same
+ * title. Returns null when nothing matches — never a guess.
+ *
+ * @param {string} phrase
+ * @returns {string|null}
+ */
+export function findDestination(phrase) {
+  const haystack = key(phrase);
+  if (!haystack) return null;
+
+  let best = null;
+  let bestLength = 0;
+
+  for (const [alias, canonical] of DESTINATION_LOOKUP) {
+    if (alias.length <= bestLength) continue;
+    // Word-boundary match, so "asia" does not fire inside "Australasia".
+    const re = new RegExp(`(^|\\s)${alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|\\s)`);
+    if (re.test(haystack)) {
+      best = canonical;
+      bestLength = alias.length;
+    }
+  }
+
+  return best;
+}
 
 export function canonicalDestination(raw) {
   return DESTINATION_LOOKUP.get(key(raw)) ?? null;
@@ -165,7 +210,10 @@ export function normalizeAll(rawRows, { source, line }) {
     };
 
     if (row.destination) {
-      sailing.destination = canonicalDestination(row.destination);
+      // Exact label first (Royal Caribbean, Celebrity); then look inside the
+      // phrase (Princess, whose only region signal is the itinerary title).
+      sailing.destination =
+        canonicalDestination(row.destination) ?? findDestination(row.destination);
       if (sailing.destination === null) miss('destination', String(row.destination));
     }
 

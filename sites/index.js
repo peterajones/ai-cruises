@@ -1,11 +1,12 @@
 import * as royalCaribbean from './royal-caribbean.js';
 import * as celebrity from './celebrity.js';
+import * as princess from './princess.js';
 
-// Princess was attempted and abandoned: its API splits data across endpoints and
-// carries no departure date anywhere, so every row would be dropped by the
-// required-field rule. Reworking it means parsing the rendered search page —
-// separate future work, with the captured evidence in test/fixtures/.
-export const ADAPTERS = [royalCaribbean, celebrity];
+// Royal Caribbean and Celebrity read a JSON API; Princess parses the rendered
+// results page, because its API cannot produce a dated price. Each adapter is a
+// standalone file on purpose — when one site changes shape, the others keep
+// running.
+export const ADAPTERS = [royalCaribbean, celebrity, princess];
 
 /**
  * @param {string[]} names - empty means all

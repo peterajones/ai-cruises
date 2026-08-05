@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { parseListing, name, line } from '../sites/princess.js';
+import { parseListing, parseShip, shipUrl, name, line } from '../sites/princess.js';
 import { normalizeAll } from '../normalize.js';
 
 const html = await readFile(new URL('./fixtures/princess-results.html', import.meta.url), 'utf8');
@@ -108,11 +108,15 @@ test('ports are separate entries, not one concatenated string', () => {
   assert.ok(row.ports.includes('Singapore'));
 });
 
-test('destination is the most-visited country, not the round-trip home port', () => {
-  // M634 sails Singapore -> four Vietnamese ports -> Singapore. Taking the first
-  // or last port would call this a Singapore cruise.
+test('destination is the itinerary title, for normalize.js to resolve', () => {
+  // Princess names no region on the card. Port countries were tried and are wrong
+  // in the most misleading way — a Caribbean cruise leaving Fort Lauderdale reads
+  // as "Florida". The title is the only real signal, so the adapter hands the whole
+  // title over and normalize.js finds the region inside it.
   const row = parseListing(html).find((r) => r.externalId === 'M634_2026-12-09');
-  assert.equal(row.destination, 'Vietnam');
+  assert.equal(row.destination, '10-Day Vietnam with Halong Bay');
+  const { sailings } = normalizeAll([row], { source: name, line });
+  assert.equal(sailings[0].destination, 'asia', 'normalize should find Vietnam in the title');
 });
 
 test('externalId uses the site voyage code, not a synthesised one', () => {
@@ -124,4 +128,20 @@ test('externalId uses the site voyage code, not a synthesised one', () => {
 
 test('an unrecognised page yields no rows rather than throwing', () => {
   assert.deepEqual(parseListing('<html><body>nothing here</body></html>'), []);
+});
+
+test('shipUrl slugifies to a princess.com path', () => {
+  assert.equal(shipUrl('Diamond Princess'), 'https://www.princess.com/ships/diamond-princess');
+  assert.equal(shipUrl('Sun Princess'), 'https://www.princess.com/ships/sun-princess');
+});
+
+test('parseShip supplies no description, deliberately', () => {
+  // /ships/<slug> 404s for most Princess ships and serves the WRONG ship for
+  // others — /ships/discovery-princess returns Diamond Princess's page. A wrong
+  // description looks fine and is never questioned; an absent one is reported by
+  // scrape.js as a per-ship failure. Absent is the honest answer here.
+  const got = parseShip('<html><head><meta name="description" content="anything"></head></html>');
+  assert.equal(got.line, 'Princess Cruises');
+  assert.equal(got.description, '');
+  assert.equal(got.source, null);
 });
