@@ -4,7 +4,7 @@
 
 **Goal:** Build `node scrape.js`, which collects cruise sailings from Princess and Royal Caribbean and writes `data/sailings.json` — the dataset the natural-language search reads.
 
-> **As built:** Royal Caribbean was delivered by this plan; Princess was not. Tasks 6–7 (Princess via its API) were **replaced** — the API cannot give a price and a date together — and Princess was added later by `2026-08-05-princess-adapter.md`, which reads the rendered results page. Tasks 8, 10 and 11 assume a Princess adapter already exists (the registry lists `princess`, the empty-result check breaks a Princess selector); they were carried out with Royal Caribbean alone.
+> **As built:** Both lines are complete, but Princess was finished by a later plan. Tasks 6–7 are marked done because `2026-08-05-princess-adapter.md` delivered Princess by reading the rendered results page — not by the API approach written here, which cannot give a price and a date together. Tasks 8, 10 and 11 assume a Princess adapter already exists (the registry lists `princess`, the empty-result check breaks a Princess selector); they were carried out with Royal Caribbean alone.
 
 **Architecture:** Each site gets an adapter that knows only that site and returns site-shaped rows. Adapters split `fetch*` (needs a browser) from `parse*` (pure string → objects) so the fiddly half is testable against committed fixtures with no network. A shared `normalize.js` canonicalizes rows into one `Sailing` shape, `values.js` derives the enumeration the search model's prompt needs, and `persist.js` writes atomically.
 
@@ -930,9 +930,9 @@ git commit -m "Add fixture capture tool and capture Princess fixtures"
 
 ---
 
-### Task 6: Princess parsing (replaced)
+### Task 6: Princess parsing (done)
 
-> **Replaced — not built.** This task planned to read Princess from its API, but the API cannot give a price and a date together: one endpoint has sail dates without prices, the other has prices without dates. The goal (Princess sailings in the dataset) was met by a later plan that reads the rendered results page instead, where each card shows both. See `2026-08-05-princess-adapter.md`.
+> **Done — via the 2026-08-05 plan.** Princess is complete: `sites/princess.js` supplies its sailings to the dataset. It was built by `2026-08-05-princess-adapter.md`, which reads the rendered results page, rather than by the API approach below — the API cannot give a price and a date together.
 
 **Files:**
 - Create: `sites/princess.js` (parse functions only — `fetch*` comes in Task 7)
@@ -948,7 +948,7 @@ git commit -m "Add fixture capture tool and capture Princess fixtures"
 
 `RawSailing` field names must match Task 1's list exactly, because `normalizeAll` reads them by name.
 
-- ~~**Step 1: Write the golden first row by hand**~~
+- [x] **Step 1: Write the golden first row by hand**
 
 Open `test/fixtures/princess-listing.json`, find the first sailing, and write what `parseListing` should produce for it into `test/fixtures/princess-first-row.json`. Use the real values from the fixture — this is the file that makes the test meaningful rather than circular:
 
@@ -967,7 +967,7 @@ Open `test/fixtures/princess-listing.json`, find the first sailing, and write wh
 }
 ```
 
-- ~~**Step 2: Write the failing test**~~
+- [x] **Step 2: Write the failing test**
 
 Create `test/princess.test.js`:
 
@@ -1027,12 +1027,12 @@ test('parses a description out of the ship page', () => {
 });
 ```
 
-- ~~**Step 3: Run the test to verify it fails**~~
+- [x] **Step 3: Run the test to verify it fails**
 
 Run: `npm test`
 Expected: FAIL — `Cannot find module '.../sites/princess.js'`
 
-- ~~**Step 4: Implement the parse functions**~~
+- [x] **Step 4: Implement the parse functions**
 
 Create `sites/princess.js`. Use the JSON path and field names recorded in `NOTES.md`. The shape below is the contract; the property lookups inside come from your fixture:
 
@@ -1088,12 +1088,12 @@ export function parseShip(html) {
 
 The comment markers above are the only places you write site-specific code. Everything else is fixed by the contract.
 
-- ~~**Step 5: Run the test to verify it passes**~~
+- [x] **Step 5: Run the test to verify it passes**
 
 Run: `npm test`
 Expected: PASS. If "the fixture survives normalizeAll" fails, the failure message lists exactly which rows were dropped and why — usually a date format `toIsoDate` does not yet handle, or a destination label missing from `normalize.js`. Add the alias or the format, and re-run.
 
-- ~~**Step 6: Commit**~~
+- [x] **Step 6: Commit**
 
 ```bash
 git add sites/princess.js test/princess.test.js test/fixtures/princess-first-row.json
@@ -1102,9 +1102,9 @@ git commit -m "Parse Princess sailings and ship descriptions"
 
 ---
 
-### Task 7: Princess fetching (replaced)
+### Task 7: Princess fetching (done)
 
-> **Replaced — not built.** This task planned to read Princess from its API, but the API cannot give a price and a date together: one endpoint has sail dates without prices, the other has prices without dates. The goal (Princess sailings in the dataset) was met by a later plan that reads the rendered results page instead, where each card shows both. See `2026-08-05-princess-adapter.md`.
+> **Done — via the 2026-08-05 plan.** Princess is complete: `sites/princess.js` supplies its sailings to the dataset. It was built by `2026-08-05-princess-adapter.md`, which reads the rendered results page, rather than by the API approach below — the API cannot give a price and a date together.
 
 **Files:**
 - Modify: `sites/princess.js` (add `fetchListingPages` and `fetchShipPage`)
@@ -1118,7 +1118,7 @@ git commit -m "Parse Princess sailings and ship descriptions"
 
 No unit test: this needs the live site, and a test for it would be testing Princess's uptime. It is verified by the smoke run in the final step.
 
-- ~~**Step 1: Add the fetch functions**~~
+- [x] **Step 1: Add the fetch functions**
 
 Append to `sites/princess.js`:
 
@@ -1190,7 +1190,7 @@ export async function fetchShipPage(page, ship) {
 }
 ```
 
-- ~~**Step 2: Verify against the live site**~~
+- [x] **Step 2: Verify against the live site**
 
 ```bash
 node -e "
@@ -1209,12 +1209,12 @@ import('./browser.js').then(async (b) => {
 
 Expected: at least one payload and a non-zero row count, with a first row that looks like the golden fixture.
 
-- ~~**Step 3: Run the full test suite**~~
+- [x] **Step 3: Run the full test suite**
 
 Run: `npm test`
 Expected: PASS — all previous tests still green.
 
-- ~~**Step 4: Commit**~~
+- [x] **Step 4: Commit**
 
 ```bash
 git add sites/princess.js
