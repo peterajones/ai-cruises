@@ -4,6 +4,8 @@
 
 **Goal:** Build `node scrape.js`, which collects cruise sailings from Princess and Royal Caribbean and writes `data/sailings.json` — the dataset the natural-language search reads.
 
+> **As built:** Royal Caribbean was delivered by this plan; Princess was not. Tasks 6–7 (Princess via its API) were **replaced** — the API cannot give a price and a date together — and Princess was added later by `2026-08-05-princess-adapter.md`, which reads the rendered results page. Tasks 8, 10 and 11 assume a Princess adapter already exists (the registry lists `princess`, the empty-result check breaks a Princess selector); they were carried out with Royal Caribbean alone.
+
 **Architecture:** Each site gets an adapter that knows only that site and returns site-shaped rows. Adapters split `fetch*` (needs a browser) from `parse*` (pure string → objects) so the fiddly half is testable against committed fixtures with no network. A shared `normalize.js` canonicalizes rows into one `Sailing` shape, `values.js` derives the enumeration the search model's prompt needs, and `persist.js` writes atomically.
 
 **Tech Stack:** Node 22 (ESM), Puppeteer, `node --test`. No other dependencies.
@@ -43,7 +45,7 @@
 
 **Drop rule (important, and later tasks depend on it):** a row missing any *required* field — `ship`, `departureDate`, `nights`, `price` — is dropped and recorded as a miss with `field: 'row'`. A row whose `destination` or `cabin` fails to canonicalize is **kept** with that field `null`, and the raw value recorded. Losing a sailing because one label was unfamiliar would be worse than storing it unlabelled.
 
-- [ ] **Step 1: Create the project scaffold**
+- [x] **Step 1: Create the project scaffold**
 
 ```bash
 cd ~/Desktop/ai-cruises
@@ -57,7 +59,7 @@ npm pkg delete main
 mkdir -p test/fixtures sites tools data
 ```
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 Create `test/normalize.test.js`:
 
@@ -151,12 +153,12 @@ test('a row missing a required field is dropped and recorded', () => {
 });
 ```
 
-- [ ] **Step 3: Run the test to verify it fails**
+- [x] **Step 3: Run the test to verify it fails**
 
 Run: `npm test`
 Expected: FAIL — `Cannot find module '.../normalize.js'`
 
-- [ ] **Step 4: Write the implementation**
+- [x] **Step 4: Write the implementation**
 
 Create `normalize.js`:
 
@@ -321,12 +323,12 @@ export function normalizeAll(rawRows, { source, line }) {
 }
 ```
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [x] **Step 5: Run the test to verify it passes**
 
 Run: `npm test`
 Expected: PASS, 8 tests
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add package.json normalize.js test/normalize.test.js
@@ -347,7 +349,7 @@ git commit -m "Add canonicalizing of raw site rows into Sailings"
 
 This is the file the whole search layer's reliability rests on. `brain.js` will enumerate these lists in its prompt; if they drift from the data, the model emits values matching nothing and searches fail silently. Deriving them makes drift impossible — which is why this is never hand-written.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/values.test.js`:
 
@@ -391,12 +393,12 @@ test('no sailings gives empty lists, not undefined', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npm test`
 Expected: FAIL — `Cannot find module '.../values.js'`
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Create `values.js`:
 
@@ -434,12 +436,12 @@ export function deriveValues(sailings) {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npm test`
 Expected: PASS, 12 tests total
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add values.js test/values.test.js
@@ -470,7 +472,7 @@ git commit -m "Derive the search value enumeration from scraped sailings"
 
 The Incapsula fixture below is a real response captured from `cruise.com` on 2026-08-03 — that site is not a target, but its challenge page is exactly the shape this must catch.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/browser.test.js`:
 
@@ -511,12 +513,12 @@ test('the user agent is a plausible desktop Chrome', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npm test`
 Expected: FAIL — `Cannot find module '.../browser.js'`
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Create `errors.js`:
 
@@ -594,7 +596,7 @@ export async function newPage(browser) {
 }
 ```
 
-- [ ] **Step 4: Install Puppeteer**
+- [x] **Step 4: Install Puppeteer**
 
 ```bash
 npm install puppeteer
@@ -602,12 +604,12 @@ npm install puppeteer
 
 Expected: downloads a bundled Chromium; takes a minute or two on first install.
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [x] **Step 5: Run the test to verify it passes**
 
 Run: `npm test`
 Expected: PASS, 17 tests total
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add errors.js browser.js test/browser.test.js package.json package-lock.json
@@ -630,7 +632,7 @@ git commit -m "Add bot-wall detection and polite browser helpers"
   - `mergeShips(existing: object, fresh: object, opts: { refresh: boolean }) => object`
   - `writeResult(dataDir: string, result: object) => Promise<string>` — returns the path written
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/persist.test.js`:
 
@@ -703,12 +705,12 @@ test('mergeShips with refresh prefers the fresh description', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npm test`
 Expected: FAIL — `Cannot find module '.../persist.js'`
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Create `persist.js`:
 
@@ -764,12 +766,12 @@ export async function writeResult(dataDir, result) {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npm test`
 Expected: PASS, 24 tests total
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add persist.js test/persist.test.js
@@ -794,7 +796,7 @@ This task is **discovery**, not TDD — its deliverable is captured evidence abo
 
 The tool is deliberately URL-driven rather than adapter-driven, so it works before any adapter exists.
 
-- [ ] **Step 1: Write the capture tool**
+- [x] **Step 1: Write the capture tool**
 
 Create `tools/capture-fixture.js`:
 
@@ -874,7 +876,7 @@ if (opts.list || !opts.out) {
 await browser.close();
 ```
 
-- [ ] **Step 2: Discover which response carries Princess sailings**
+- [x] **Step 2: Discover which response carries Princess sailings**
 
 ```bash
 node tools/capture-fixture.js --url "https://www.princess.com/en-us/cruise-search" --list
@@ -884,7 +886,7 @@ Expected: a list of JSON response URLs with sizes. The sailings payload is norma
 
 If the list is empty, the page is server-rendered — fall back to `--html` and parse the DOM in Task 6 instead.
 
-- [ ] **Step 3: Save the Princess listing fixture**
+- [x] **Step 3: Save the Princess listing fixture**
 
 ```bash
 node tools/capture-fixture.js \
@@ -899,7 +901,7 @@ Verify it contains sailings:
 node -e "const d=require('./test/fixtures/princess-listing.json'); console.log(Object.keys(d)); console.log(JSON.stringify(d).length, 'bytes')"
 ```
 
-- [ ] **Step 4: Save a Princess ship page fixture**
+- [x] **Step 4: Save a Princess ship page fixture**
 
 Pick any ship name that appears in the listing fixture, open its page on princess.com, and save the HTML:
 
@@ -909,7 +911,7 @@ node tools/capture-fixture.js \
   --html --out test/fixtures/princess-ship.html
 ```
 
-- [ ] **Step 5: Record what you found**
+- [x] **Step 5: Record what you found**
 
 Create `test/fixtures/NOTES.md` documenting, for Princess:
 
@@ -919,7 +921,7 @@ Create `test/fixtures/NOTES.md` documenting, for Princess:
 - how many sailings the fixture contains
 - the CSS selector on the ship page that holds the description prose
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tools/capture-fixture.js test/fixtures/
@@ -928,7 +930,9 @@ git commit -m "Add fixture capture tool and capture Princess fixtures"
 
 ---
 
-### Task 6: Princess parsing
+### Task 6: Princess parsing (replaced)
+
+> **Replaced — not built.** This task planned to read Princess from its API, but the API cannot give a price and a date together: one endpoint has sail dates without prices, the other has prices without dates. The goal (Princess sailings in the dataset) was met by a later plan that reads the rendered results page instead, where each card shows both. See `2026-08-05-princess-adapter.md`.
 
 **Files:**
 - Create: `sites/princess.js` (parse functions only — `fetch*` comes in Task 7)
@@ -944,7 +948,7 @@ git commit -m "Add fixture capture tool and capture Princess fixtures"
 
 `RawSailing` field names must match Task 1's list exactly, because `normalizeAll` reads them by name.
 
-- [ ] **Step 1: Write the golden first row by hand**
+- ~~**Step 1: Write the golden first row by hand**~~
 
 Open `test/fixtures/princess-listing.json`, find the first sailing, and write what `parseListing` should produce for it into `test/fixtures/princess-first-row.json`. Use the real values from the fixture — this is the file that makes the test meaningful rather than circular:
 
@@ -963,7 +967,7 @@ Open `test/fixtures/princess-listing.json`, find the first sailing, and write wh
 }
 ```
 
-- [ ] **Step 2: Write the failing test**
+- ~~**Step 2: Write the failing test**~~
 
 Create `test/princess.test.js`:
 
@@ -1023,12 +1027,12 @@ test('parses a description out of the ship page', () => {
 });
 ```
 
-- [ ] **Step 3: Run the test to verify it fails**
+- ~~**Step 3: Run the test to verify it fails**~~
 
 Run: `npm test`
 Expected: FAIL — `Cannot find module '.../sites/princess.js'`
 
-- [ ] **Step 4: Implement the parse functions**
+- ~~**Step 4: Implement the parse functions**~~
 
 Create `sites/princess.js`. Use the JSON path and field names recorded in `NOTES.md`. The shape below is the contract; the property lookups inside come from your fixture:
 
@@ -1084,12 +1088,12 @@ export function parseShip(html) {
 
 The comment markers above are the only places you write site-specific code. Everything else is fixed by the contract.
 
-- [ ] **Step 5: Run the test to verify it passes**
+- ~~**Step 5: Run the test to verify it passes**~~
 
 Run: `npm test`
 Expected: PASS. If "the fixture survives normalizeAll" fails, the failure message lists exactly which rows were dropped and why — usually a date format `toIsoDate` does not yet handle, or a destination label missing from `normalize.js`. Add the alias or the format, and re-run.
 
-- [ ] **Step 6: Commit**
+- ~~**Step 6: Commit**~~
 
 ```bash
 git add sites/princess.js test/princess.test.js test/fixtures/princess-first-row.json
@@ -1098,7 +1102,9 @@ git commit -m "Parse Princess sailings and ship descriptions"
 
 ---
 
-### Task 7: Princess fetching
+### Task 7: Princess fetching (replaced)
+
+> **Replaced — not built.** This task planned to read Princess from its API, but the API cannot give a price and a date together: one endpoint has sail dates without prices, the other has prices without dates. The goal (Princess sailings in the dataset) was met by a later plan that reads the rendered results page instead, where each card shows both. See `2026-08-05-princess-adapter.md`.
 
 **Files:**
 - Modify: `sites/princess.js` (add `fetchListingPages` and `fetchShipPage`)
@@ -1112,7 +1118,7 @@ git commit -m "Parse Princess sailings and ship descriptions"
 
 No unit test: this needs the live site, and a test for it would be testing Princess's uptime. It is verified by the smoke run in the final step.
 
-- [ ] **Step 1: Add the fetch functions**
+- ~~**Step 1: Add the fetch functions**~~
 
 Append to `sites/princess.js`:
 
@@ -1184,7 +1190,7 @@ export async function fetchShipPage(page, ship) {
 }
 ```
 
-- [ ] **Step 2: Verify against the live site**
+- ~~**Step 2: Verify against the live site**~~
 
 ```bash
 node -e "
@@ -1203,12 +1209,12 @@ import('./browser.js').then(async (b) => {
 
 Expected: at least one payload and a non-zero row count, with a first row that looks like the golden fixture.
 
-- [ ] **Step 3: Run the full test suite**
+- ~~**Step 3: Run the full test suite**~~
 
 Run: `npm test`
 Expected: PASS — all previous tests still green.
 
-- [ ] **Step 4: Commit**
+- ~~**Step 4: Commit**~~
 
 ```bash
 git add sites/princess.js
@@ -1233,7 +1239,7 @@ git commit -m "Fetch Princess listings and ship pages"
 
 This repeats Task 5 and Task 6 against a second site. That repetition is the point: it is what proves the adapter seam holds, and it is where a multi-site design normally breaks.
 
-- [ ] **Step 1: Discover the results response**
+- [x] **Step 1: Discover the results response**
 
 ```bash
 node tools/capture-fixture.js --url "https://www.royalcaribbean.com/cruises" --list
@@ -1241,7 +1247,7 @@ node tools/capture-fixture.js --url "https://www.royalcaribbean.com/cruises" --l
 
 Expected: a list of JSON response URLs with sizes. Note that Akamai is in this site's stack — if the output warns about a bot wall, record that in `NOTES.md` and report it rather than trying to evade it.
 
-- [ ] **Step 2: Save the fixtures**
+- [x] **Step 2: Save the fixtures**
 
 ```bash
 node tools/capture-fixture.js --url "https://www.royalcaribbean.com/cruises" \
@@ -1251,15 +1257,15 @@ node tools/capture-fixture.js --url "https://www.royalcaribbean.com/cruise-ships
   --html --out test/fixtures/royal-caribbean-ship.html
 ```
 
-- [ ] **Step 3: Add a Royal Caribbean section to NOTES.md**
+- [x] **Step 3: Add a Royal Caribbean section to NOTES.md**
 
 Record the same six items Task 5 Step 5 lists, for this site.
 
-- [ ] **Step 4: Write the golden first row**
+- [x] **Step 4: Write the golden first row**
 
 Create `test/fixtures/royal-caribbean-first-row.json` from the first sailing in the captured fixture, using the same ten keys as `princess-first-row.json`: `externalId`, `url`, `ship`, `departurePort`, `destination`, `departureDate`, `nights`, `cabin`, `price`, `currency`.
 
-- [ ] **Step 5: Write the failing test**
+- [x] **Step 5: Write the failing test**
 
 Create `test/royal-caribbean.test.js`:
 
@@ -1318,12 +1324,12 @@ test('parses a description out of the ship page', () => {
 });
 ```
 
-- [ ] **Step 6: Run the test to verify it fails**
+- [x] **Step 6: Run the test to verify it fails**
 
 Run: `npm test`
 Expected: FAIL — `Cannot find module '.../sites/royal-caribbean.js'`
 
-- [ ] **Step 7: Implement the parse functions**
+- [x] **Step 7: Implement the parse functions**
 
 Create `sites/royal-caribbean.js` with the same structure as `sites/princess.js`:
 
@@ -1375,12 +1381,12 @@ export function parseShip(html) {
 }
 ```
 
-- [ ] **Step 8: Run the test to verify it passes**
+- [x] **Step 8: Run the test to verify it passes**
 
 Run: `npm test`
 Expected: PASS. If Royal Caribbean uses destination or cabin labels `normalize.js` does not know, the `normalizeAll` test names them — add the aliases to `normalize.js` and re-run. **Adding aliases is the correct fix. Weakening the test is not.**
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add sites/royal-caribbean.js test/royal-caribbean.test.js test/fixtures/ normalize.js
@@ -1398,7 +1404,7 @@ git commit -m "Parse Royal Caribbean sailings and ship descriptions"
 - Consumes: `politeDelay`, `detectBotWall`, `BotWallError` from Task 3
 - Produces: `fetchListingPages(page, { limit }) => Promise<string[]>`, `fetchShipPage(page, ship) => Promise<string>`, `shipUrl(ship) => string` — identical signatures to Task 7
 
-- [ ] **Step 1: Add the fetch functions**
+- [x] **Step 1: Add the fetch functions**
 
 Append to `sites/royal-caribbean.js`, following the same structure as `sites/princess.js`:
 
@@ -1468,7 +1474,7 @@ export async function fetchShipPage(page, ship) {
 }
 ```
 
-- [ ] **Step 2: Verify against the live site**
+- [x] **Step 2: Verify against the live site**
 
 ```bash
 node -e "
@@ -1487,12 +1493,12 @@ import('./browser.js').then(async (b) => {
 
 Expected: at least one payload and a non-zero row count.
 
-- [ ] **Step 3: Run the full test suite**
+- [x] **Step 3: Run the full test suite**
 
 Run: `npm test`
 Expected: PASS
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add sites/royal-caribbean.js
@@ -1516,7 +1522,7 @@ git commit -m "Fetch Royal Caribbean listings and ship pages"
 
 `parseFlags` is pure and gets tests. The orchestration is verified by the end-to-end run in Task 11.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/scrape.test.js`:
 
@@ -1566,12 +1572,12 @@ test('--site can be repeated', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npm test`
 Expected: FAIL — `Cannot find module '.../sites/index.js'`
 
-- [ ] **Step 3: Write the registry**
+- [x] **Step 3: Write the registry**
 
 Create `sites/index.js`:
 
@@ -1600,7 +1606,7 @@ export function adaptersFor(names) {
 }
 ```
 
-- [ ] **Step 4: Write the CLI**
+- [x] **Step 4: Write the CLI**
 
 Create `scrape.js`:
 
@@ -1751,12 +1757,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 ```
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [x] **Step 5: Run the test to verify it passes**
 
 Run: `npm test`
 Expected: PASS
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add sites/index.js scrape.js test/scrape.test.js
@@ -1775,7 +1781,7 @@ git commit -m "Add the adapter registry and the scrape CLI"
 - Consumes: everything
 - Produces: a verified `data/sailings.json`
 
-- [ ] **Step 1: Dry run**
+- [x] **Step 1: Dry run**
 
 ```bash
 node scrape.js --limit 5 --dry-run
@@ -1783,7 +1789,7 @@ node scrape.js --limit 5 --dry-run
 
 Expected: three sample sailings printed, "DRY RUN — N sailings, nothing written", and no change to `data/`.
 
-- [ ] **Step 2: Real run**
+- [x] **Step 2: Real run**
 
 ```bash
 node scrape.js --limit 50
@@ -1791,7 +1797,7 @@ node scrape.js --limit 50
 
 Expected: per-site counts, then "Wrote N sailings to …/data/sailings.json".
 
-- [ ] **Step 3: Check the success criteria from the spec**
+- [x] **Step 3: Check the success criteria from the spec**
 
 ```bash
 node -e "
@@ -1811,7 +1817,7 @@ Expected: `sailings` at least 40, zero incomplete sailings, no empty enumeration
 
 If `unrecognised` is non-empty, add the missing aliases to `normalize.js`, re-run `npm test`, and scrape again. That list is the tool telling you exactly what it did not understand — working through it to empty is the last step of getting the data right.
 
-- [ ] **Step 4: Confirm the empty-result guard actually guards**
+- [x] **Step 4: Confirm the empty-result guard actually guards**
 
 Temporarily break a selector — in `sites/princess.js`, change `RESULTS_MATCH` to `'nothing-matches-this'` — and run:
 
@@ -1823,7 +1829,7 @@ Expected: a `Parsed 0 rows` error, exit code 1, and **`data/sailings.json` uncha
 
 This is the single most important behaviour in the whole scraper. Verify it deliberately rather than assuming it.
 
-- [ ] **Step 5: Document how to run it**
+- [x] **Step 5: Document how to run it**
 
 Add to `CLAUDE.md`:
 
@@ -1838,7 +1844,7 @@ Fixtures in `test/fixtures/` are real captured payloads. When a site changes sha
 re-capture with `node tools/capture-fixture.js` and update the golden first-row files.
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add CLAUDE.md test/fixtures/NOTES.md

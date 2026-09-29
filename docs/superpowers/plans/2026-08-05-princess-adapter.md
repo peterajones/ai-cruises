@@ -89,7 +89,7 @@ The itinerary title and ports sit on the enclosing `div.coveo-result-card`, e.g.
 | `url` | the card's detail `<a href>`, prefixed with `https://www.princess.com` if relative |
 | `image` | the card's `<img src>`, absolutised the same way |
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/princess.test.js`:
 
@@ -174,12 +174,12 @@ test('an unrecognised page yields no rows rather than throwing', () => {
 });
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `npm test`
 Expected: FAIL — `Cannot find module '.../sites/princess.js'`
 
-- [ ] **Step 3: Write the parser**
+- [x] **Step 3: Write the parser**
 
 Create `sites/princess.js`. No HTML parser is permitted, so split the document on the card
 boundary and regex within each card:
@@ -296,7 +296,7 @@ export function parseListing(html) {
 }
 ```
 
-- [ ] **Step 4: Run the tests and fix what the fixture disagrees with**
+- [x] **Step 4: Run the tests and fix what the fixture disagrees with**
 
 Run: `npm test`
 
@@ -313,7 +313,7 @@ Two failures are expected and are **not** reasons to weaken a test:
   Leave the adapter alone — Task 2 handles the mapping.
 - **`ports`** splitting may need adjusting; the separator in the fixture is authoritative.
 
-- [ ] **Step 5: Write the golden row and assert it**
+- [x] **Step 5: Write the golden row and assert it**
 
 Generate it from your own parser, then **open the fixture and confirm every value is
 really on the page** before committing:
@@ -340,7 +340,7 @@ test('the first row matches the hand-checked golden row', () => {
 });
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add sites/princess.js test/princess.test.js test/fixtures/princess-first-row.json test/fixtures/princess-results.html
@@ -363,7 +363,7 @@ Princess names regions and cabins differently from the other two lines. Every un
 value must be resolved from evidence on the page, never guessed — the same rule that
 settled Celebrity's `AQUA` and `CONCIERGE`.
 
-- [ ] **Step 1: Find out what actually needs mapping**
+- [x] **Step 1: Find out what actually needs mapping**
 
 ```bash
 node --input-type=module -e "
@@ -378,7 +378,7 @@ console.log('raw cabins      :', JSON.stringify([...new Set(rows.map(r=>r.cabin)
 "
 ```
 
-- [ ] **Step 2: Write failing tests for exactly the values that appeared**
+- [x] **Step 2: Write failing tests for exactly the values that appeared**
 
 Add to `test/normalize.test.js`, using the values Step 1 printed — not invented ones:
 
@@ -394,12 +394,12 @@ test("Princess's labels map", () => {
 });
 ```
 
-- [ ] **Step 3: Run to verify it fails**
+- [x] **Step 3: Run to verify it fails**
 
 Run: `npm test`
 Expected: FAIL on whichever mapping is genuinely missing.
 
-- [ ] **Step 4: Add the aliases with a comment recording the evidence**
+- [x] **Step 4: Add the aliases with a comment recording the evidence**
 
 In `normalize.js`, extend the existing lists. Example shape:
 
@@ -415,7 +415,7 @@ Rules:
 - If a value is genuinely ambiguous, leave it unmapped. An unrecognised value you can see
   beats a wrong mapping you cannot.
 
-- [ ] **Step 5: Verify nothing regressed and unrecognised is empty**
+- [x] **Step 5: Verify nothing regressed and unrecognised is empty**
 
 ```bash
 npm test
@@ -432,7 +432,7 @@ console.log('rows', rows.length, '-> sailings', sailings.length, '| unrecognised
 Expected: no dropped rows, `unrecognised` empty. Confirm the other two adapters still
 report `unrecognised: []` as well — the alias lists are shared.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add normalize.js test/normalize.test.js
@@ -454,7 +454,7 @@ git commit -m "Map Princess destination and cabin labels"
   - `fetchShipPage(page, ship) => Promise<string>`
   - `shipUrl(ship) => string`
 
-- [ ] **Step 1: Add the fetch half**
+- [x] **Step 1: Add the fetch half**
 
 Add these imports to the **top** of `sites/princess.js` (ESM hoists them, but putting
 imports mid-file is how you end up with two import blocks that drift apart):
@@ -549,7 +549,7 @@ export async function fetchShipPage(page, ship) {
 }
 ```
 
-- [ ] **Step 2: Add a test for the pure part**
+- [x] **Step 2: Add a test for the pure part**
 
 In `test/princess.test.js`, add `shipUrl` to the **existing** import from
 `../sites/princess.js` rather than writing a second import line, then add:
@@ -561,12 +561,12 @@ test('shipUrl slugifies to a princess.com path', () => {
 });
 ```
 
-- [ ] **Step 3: Run the suite**
+- [x] **Step 3: Run the suite**
 
 Run: `npm test`
 Expected: PASS. `fetchListingPages` is not unit-tested — it needs the live site.
 
-- [ ] **Step 4: Verify against the live site with a two-ship run**
+- [x] **Step 4: Verify against the live site with a two-ship run**
 
 ```bash
 node --input-type=module -e "
@@ -585,7 +585,7 @@ try {
 
 Expected: 2 pages, roughly 20 rows each, a first row that looks like the golden row.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add sites/princess.js test/princess.test.js
@@ -605,7 +605,7 @@ git commit -m "Fetch Princess results per ship, scrolling until the list stops g
 - Consumes: everything from Tasks 1–3
 - Produces: a three-line dataset
 
-- [ ] **Step 1: Register it**
+- [x] **Step 1: Register it**
 
 In `sites/index.js`:
 
@@ -615,7 +615,7 @@ import * as princess from './princess.js';
 export const ADAPTERS = [royalCaribbean, celebrity, princess];
 ```
 
-- [ ] **Step 2: Update the registry assertions**
+- [x] **Step 2: Update the registry assertions**
 
 In `test/scrape.test.js`, both places currently listing two adapters:
 
@@ -624,12 +624,12 @@ assert.deepEqual(ADAPTERS.map((a) => a.name), ['royal-caribbean', 'celebrity', '
 assert.deepEqual(adaptersFor([]).map((a) => a.name), ['royal-caribbean', 'celebrity', 'princess']);
 ```
 
-- [ ] **Step 3: Run the suite**
+- [x] **Step 3: Run the suite**
 
 Run: `npm test`
 Expected: PASS.
 
-- [ ] **Step 4: Smoke-test one Princess ship, then run the full scrape**
+- [x] **Step 4: Smoke-test one Princess ship, then run the full scrape**
 
 ```bash
 node scrape.js --site princess --limit 20
@@ -638,7 +638,7 @@ node scrape.js
 
 Expected: three per-line counts, then a total. Princess adds roughly 17 × 20 rows.
 
-- [ ] **Step 5: Confirm the dataset and surface the currency split**
+- [x] **Step 5: Confirm the dataset and surface the currency split**
 
 ```bash
 node -p "
@@ -661,13 +661,13 @@ USD. Report the currency split to Peter and let him choose — the options recor
 make the filter currency-aware, convert at normalize time, or guard `search.js` to refuse
 cross-currency comparison. Do not pick one unilaterally.
 
-- [ ] **Step 6: Update the docs**
+- [x] **Step 6: Update the docs**
 
 In `CLAUDE.md`, replace the Princess section under `## Status` with what was actually
 built: the DOM route and why (the API cannot produce a dated price), the CAD finding, the
 per-ship scroll fetch, and the live cross-currency issue in `search.js`.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add sites/index.js test/scrape.test.js CLAUDE.md
