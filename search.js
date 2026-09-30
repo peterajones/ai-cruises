@@ -35,6 +35,33 @@ export function searchSailings(sailings, filter = {}) {
   });
 }
 
+/**
+ * Sailings that have not yet left. One departing today is kept — it is still
+ * bookable on the morning of.
+ *
+ * Applied per request, not when the file loads: the server keeps a dataset until
+ * the file changes, so a filter baked in at load would go stale as days pass.
+ *
+ * @param {object[]} sailings
+ * @param {string} today - YYYY-MM-DD
+ * @returns {object[]}
+ */
+export function upcoming(sailings, today) {
+  return sailings.filter((s) => s.departureDate >= today);
+}
+
+/**
+ * The calendar date in local time, as YYYY-MM-DD. Not toISOString(), which is UTC
+ * and turns over to tomorrow during a North American evening.
+ *
+ * @param {Date} [date]
+ * @returns {string}
+ */
+export function localDate(date = new Date()) {
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 // A dollar amount preceded by "over" or "under" is a bounded, specifiable pattern —
 // so it is written as a rule rather than left to the model. qwen 7B gets the
 // direction wrong often enough to matter ("over $2,000" came back as maxPrice), and

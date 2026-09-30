@@ -7,6 +7,8 @@ import {
   currencyNote,
   describeFilter,
   emptyMessage,
+  upcoming,
+  localDate,
 } from '../search.js';
 
 const sailings = [
@@ -34,6 +36,23 @@ test('price and nights bounds are inclusive on both sides', () => {
 test('dates filter as ISO strings', () => {
   assert.equal(searchSailings(sailings, { dateFrom: '2026-10-01' }).length, 2);
   assert.equal(searchSailings(sailings, { dateTo: '2026-10-01' }).length, 1);
+});
+
+// A sailing that has left cannot be booked. The dataset only refreshes when
+// someone re-scrapes, so without this a paused project serves last month's cruises.
+test('departed sailings are dropped, and one leaving today is kept', () => {
+  const kept = upcoming(sailings, '2026-11-01').map((s) => s.departureDate);
+  assert.deepEqual(kept, ['2026-11-01', '2027-01-10']);
+  assert.equal(upcoming(sailings, '2026-09-07').length, 3);
+  assert.equal(upcoming(sailings, '2027-01-11').length, 0);
+});
+
+// toISOString() is UTC: at 8pm in Toronto it already says tomorrow, which would
+// hide a sailing that leaves today. The date has to be read in local time.
+test('localDate reads the calendar date in local time, not UTC', () => {
+  const evening = new Date(2026, 8, 29, 23, 30); // 29 Sep 2026, 11:30pm local
+  assert.equal(localDate(evening), '2026-09-29');
+  assert.equal(localDate(new Date(2026, 0, 5)), '2026-01-05'); // zero-padded
 });
 
 // The guard against shoe-store's known failure: an all-null filter matches

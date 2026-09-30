@@ -12,8 +12,9 @@ import { extname, join } from 'node:path';
 import { understand } from './brain.js';
 import {
   searchSailings, emptyMessage, describeFilter, hasNoConstraints, applyPriceDirection,
-  currencyNote,
+  currencyNote, upcoming, localDate,
 } from './search.js';
+import { deriveValues } from './values.js';
 
 const PORT = 3030;
 const PUBLIC_DIR = new URL('./public/', import.meta.url).pathname;
@@ -48,10 +49,6 @@ async function loadDataset() {
   if (dataset && mtime === loadedMtime) return dataset;
 
   const parsed = JSON.parse(await readFile(DATA_FILE, 'utf8'));
-  // `ship` is not in the scraper's derived enumeration, but the model needs it
-  // to answer "on the Icon of the Seas". Derive it here from the same data so
-  // it still cannot drift.
-  parsed.values.ship = [...new Set(parsed.sailings.map((s) => s.ship))].sort();
 
   if (loadedMtime !== 0) {
     console.log(`data/sailings.json changed — reloaded ${parsed.sailings.length} sailings`);
@@ -59,6 +56,21 @@ async function loadDataset() {
   loadedMtime = mtime;
   dataset = parsed;
   return dataset;
+}
+
+/**
+ * The dataset as of today: departed sailings removed, and the value lists
+ * re-derived from what is left, so the model is never offered a destination or
+ * port that only a departed sailing had. Built per request (see `upcoming`).
+ */
+function current(data) {
+  const sailings = upcoming(data.sailings, localDate());
+  const values = deriveValues(sailings);
+  // `ship` is not in the scraper's derived enumeration, but the model needs it
+  // to answer "on the Icon of the Seas". Derive it here from the same data so
+  // it still cannot drift.
+  values.ship = [...new Set(sailings.map((s) => s.ship))].sort();
+  return { ...data, sailings, values };
 }
 
 function json(res, status, body) {
@@ -91,11 +103,12 @@ const server = createServer(async (req, res) => {
           error: 'No data yet. Run `node scrape.js` first, then reload this page.',
         });
       }
+      const view = current(dataset);
       return json(res, 200, {
-        scrapedAt: dataset.scrapedAt,
-        values: dataset.values,
-        ships: dataset.ships,
-        sailings: dataset.sailings,
+        scrapedAt: view.scrapedAt,
+        values: view.values,
+        ships: view.ships,
+        sailings: view.sailings,
       });
     }
 
@@ -111,11 +124,12 @@ const server = createServer(async (req, res) => {
 
       if (!q || !q.trim()) return json(res, 400, { error: 'Ask for something.' });
 
+      const view = current(dataset);
       const started = Date.now();
       const { filter: modelFilter, raw, error } = await understand(
         q,
-        dataset.values,
-        dateRange(dataset.sailings),
+        view.values,
+        dateRange(view.sailings),
       );
 
       if (error) return json(res, 502, { error, raw });
@@ -128,7 +142,7 @@ const server = createServer(async (req, res) => {
       // lie dressed as an answer — return nothing and say why instead.
       const understoodNothing = hasNoConstraints(filter);
 
-      const results = understoodNothing ? [] : searchSailings(dataset.sailings, filter);
+      const results = understoodNothing ? [] : searchSailings(view.sailings, filter);
 
       // A price filter spanning currencies is imprecise, not invalid. Say so
       // alongside the results rather than withholding them — this is a tool for
@@ -140,7 +154,7 @@ const server = createServer(async (req, res) => {
       // goes quiet at the one moment it matters.
       const candidates = understoodNothing
         ? []
-        : searchSailings(dataset.sailings, { ...filter, minPrice: null, maxPrice: null });
+        : searchSailings(view.sailings, { ...filter, minPrice: null, maxPrice: null });
       const currency = currencyNote(candidates, filter);
 
       return json(res, 200, {
