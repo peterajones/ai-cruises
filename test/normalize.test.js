@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { canonicalDestination, canonicalCabin, toIsoDate, normalizeAll } from '../normalize.js';
+import { canonicalDestination, canonicalCabin, toIsoDate, normalizeAll, findDestination } from '../normalize.js';
 
 test('every spelling of Eastern Caribbean canonicalizes the same way', () => {
   for (const raw of ['Eastern Caribbean', 'Caribbean - Eastern', 'E. Caribbean', 'CARIBBEAN EAST']) {
@@ -53,6 +53,35 @@ test("Princess's port-derived countries map to a region", () => {
   assert.equal(canonicalDestination('Singapore'), 'asia');
   // Princess's cabin labels already matched the existing aliases.
   assert.equal(canonicalCabin('Interior'), 'interior');
+});
+
+// Every title below came back unrecognised from the 2026-09-29 scrape. Each
+// region was chosen from the sailing's actual ports, not the title's wording.
+test("Princess itinerary titles resolve to a region", () => {
+  const cases = {
+    '4-Day West Coast Getaway with San Diego': 'pacific-coast',
+    '5-Day West Coast Getaway with Santa Barbara': 'pacific-coast',
+    '11-Day Baja Peninsula & Sea of Cortez': 'mexico',
+    '9-Day Hokkaido Cherry Blossoms': 'asia',
+    '9-Day Coral Coast': 'australia-nz', // Perth to the Kimberley, not Fiji's Coral Coast
+    '4-Day Hunter Coast Seacation': 'australia-nz',
+    '4-Day Sapphire Coast Seacation': 'australia-nz',
+    '7-Day Queensland with Great Barrier Reef': 'australia-nz',
+    '14-Day Queensland & Papua New Guinea': 'australia-nz',
+    '10-Day Tasmania': 'australia-nz',
+    '12-Day Fiji': 'australia-nz', // sails from Sydney; the region already holds "south pacific"
+    '12-Day Pacific Crossing: Honolulu to British Columbia': 'hawaii',
+    '10-Day Pacific Crossing: British Columbia to Honolulu': 'hawaii',
+    '11-Day Irish Counties & Scottish Shores': 'british-isles',
+    '14-Day Search for the Northern Lights': 'northern-europe', // Norway, from Southampton
+    '10-Day European Capitals': 'europe', // coarse: the title alone cannot name a sea
+    '15-Day Canary Islands & Moroccan Passage': 'transatlantic', // Rome to Fort Lauderdale
+    '15-Day Cape Horn & Glaciers of Patagonia': 'south-america',
+    '18-Day Brazilian Adventure': 'south-america',
+  };
+  for (const [title, region] of Object.entries(cases)) {
+    assert.equal(findDestination(title), region, title);
+  }
 });
 
 test('unknown values return null rather than guessing', () => {

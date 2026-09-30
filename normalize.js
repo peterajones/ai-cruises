@@ -12,33 +12,46 @@ const DESTINATIONS = {
   'bahamas': ['bahamas', 'bahamas florida'],
   'bermuda': ['bermuda'],
   'alaska': ['alaska', 'alaska inside passage', 'inside passage', 'alaska gulf'],
-  'mexico': ['mexico', 'mexican riviera', 'baja mexico'],
+  'mexico': ['mexico', 'mexican riviera', 'baja mexico', 'baja peninsula', 'sea of cortez'],
   // US/Canada west-coast sailings. Princess names these "Pacific Coastal" and
   // "Pacific Wine Country"; no other line in the dataset sails them.
-  'pacific-coast': ['pacific coastal', 'pacific coast', 'pacific wine country', 'california coast'],
-  'hawaii': ['hawaii', 'hawaiian islands'],
+  // "West Coast Getaway" is kept whole: a bare "west coast" would also match an
+  // Australian or Tasmanian itinerary.
+  'pacific-coast': ['pacific coastal', 'pacific coast', 'pacific wine country', 'california coast',
+    'west coast getaway'],
+  // Princess's "Pacific Crossing" runs between Honolulu and British Columbia; a
+  // Hawaii shopper wants it. Keyed on the port, since a crossing could run elsewhere.
+  'hawaii': ['hawaii', 'hawaiian islands', 'honolulu'],
   'mediterranean-west': ['western mediterranean', 'mediterranean western', 'w mediterranean'],
   'mediterranean-east': ['eastern mediterranean', 'mediterranean eastern', 'e mediterranean'],
   'mediterranean': ['mediterranean', 'med'],
-  'northern-europe': ['northern europe', 'norway', 'norwegian fjords', 'baltic', 'scandinavia'],
+  'northern-europe': ['northern europe', 'norway', 'norwegian fjords', 'baltic', 'scandinavia',
+    'northern lights'],
   // Celebrity labels every European sailing "Europe" — Greek isles and Norwegian
   // fjords alike. Keep the source's granularity rather than inferring a sea from
   // the ports: guessing "mediterranean" would be right for some and wrong for the
   // rest, and a wrong label is worse than a coarse one.
   // Coarse on purpose: Spain touches both the Atlantic and the Mediterranean, so
   // "Spanish Passage" cannot be resolved to a specific sea without guessing.
-  'europe': ['europe', 'spain', 'spanish', 'spanish passage', 'portugal'],
-  'british-isles': ['british isles', 'ireland britain'],
-  'transatlantic': ['transatlantic', 'trans atlantic', 'repositioning transatlantic'],
+  // "European Capitals" is coarse for the same reason — its ports happen to be North
+  // Sea ones, but the title names no sea.
+  'europe': ['europe', 'spain', 'spanish', 'spanish passage', 'portugal', 'european capitals'],
+  'british-isles': ['british isles', 'ireland britain', 'irish counties', 'scottish shores'],
+  // "Moroccan Passage" sails Rome to Fort Lauderdale via Morocco and Tenerife. Princess
+  // uses "Passage" for repositioning voyages; the title never says "transatlantic".
+  'transatlantic': ['transatlantic', 'trans atlantic', 'repositioning transatlantic', 'moroccan passage'],
   'panama-canal': ['panama canal', 'panama canal full transit'],
-  'south-america': ['south america', 'south america antarctica'],
+  'south-america': ['south america', 'south america antarctica', 'brazil', 'brazilian', 'cape horn',
+    'patagonia'],
   // Princess names no region on its cards — only ports — so the adapter derives a
   // country and these map it to a region. The list grows as new ports appear; the
   // `unrecognised` output of a scrape is the to-do list. Countries are added only
   // once seen in real data, never pre-emptively.
   'asia': ['asia', 'southeast asia', 'japan', 'far east', 'vietnam', 'malaysia',
-    'singapore', 'thailand', 'south korea', 'taiwan', 'china', 'hong kong'],
-  'australia-nz': ['australia new zealand', 'australia', 'new zealand', 'south pacific'],
+    'singapore', 'thailand', 'south korea', 'taiwan', 'china', 'hong kong', 'hokkaido'],
+  // Princess titles its Australian sailings by coast or state, never "Australia".
+  'australia-nz': ['australia new zealand', 'australia', 'new zealand', 'south pacific', 'fiji',
+    'tasmania', 'queensland', 'great barrier reef', 'hunter coast', 'sapphire coast', 'coral coast'],
   'antarctica': ['antarctica'],
   'canada-new-england': ['canada new england', 'new england canada', 'canada'],
   'world': ['world cruise', 'grand voyage', 'world'],
