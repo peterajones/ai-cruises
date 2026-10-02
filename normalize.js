@@ -77,7 +77,12 @@ const CABINS = {
     'balcony', 'verandah', 'veranda', 'balcony stateroom', 'deluxe balcony',
     'aqua', 'aquaclass', 'concierge', 'concierge class',
   ],
-  suite: ['suite', 'mini suite', 'minisuite', 'junior suite', 'owners suite', 'penthouse', 'deluxe'],
+  // Holland America names each suite tier; a Vista Suite is its largest verandah
+  // category, sold as a suite.
+  suite: [
+    'suite', 'mini suite', 'minisuite', 'junior suite', 'owners suite', 'penthouse', 'deluxe',
+    'vista suite', 'neptune suite', 'pinnacle suite', 'signature suite',
+  ],
 };
 
 /** Fold punctuation and case away so 'Caribbean - Eastern' and 'E. Caribbean' compare. */
