@@ -44,3 +44,7 @@ test('tripType is enumerated, with sailings that lack it counted as cruises', ()
   ]);
   assert.deepEqual(values.tripType, ['cruise', 'cruisetour']);
 });
+
+test('an unrecognised tripType is not enumerated as a cruise', () => {
+  assert.deepEqual(deriveValues([{ ...sailings[0], tripType: null }]).tripType, []);
+});

@@ -24,8 +24,10 @@ export function searchSailings(sailings, filter = {}) {
     if (filter.destination && s.destination !== filter.destination) return false;
     if (filter.departurePort && s.departurePort !== filter.departurePort) return false;
     if (filter.cabin && s.cabin !== filter.cabin) return false;
-    // A sailing scraped before tripType existed is a plain cruise.
-    if (filter.tripType && (s.tripType ?? 'cruise') !== filter.tripType) return false;
+    // A sailing scraped before tripType existed (undefined) is a plain cruise. An
+    // unrecognised one (null, reported by normalize.js) is neither: not ??, which
+    // would turn it into a cruise.
+    if (filter.tripType && (s.tripType === undefined ? 'cruise' : s.tripType) !== filter.tripType) return false;
     if (filter.nights != null && s.nights !== filter.nights) return false;
     if (filter.minNights != null && s.nights < filter.minNights) return false;
     if (filter.maxNights != null && s.nights > filter.maxNights) return false;

@@ -183,10 +183,18 @@ export async function fetchListingPages(page, { limit }) {
 
     const wall = detectBotWall(body);
     if (wall) throw new BotWallError(wall, url);
+
+    // Only a complete page may end the loop. An error or a partial page that ended it
+    // quietly would write half the sailings and still exit 0.
+    if (response.status() >= 400) throw new Error(`HTTP ${response.status()} from ${url}`);
+    const data = JSON.parse(body);
+    if (!Array.isArray(data?.response?.docs)) throw new Error(`no response.docs in ${url}`);
+    if (data.responseHeader?.partialResults) {
+      throw new Error(`partial results (the query ran out of time) from ${url}`);
+    }
     payloads.push(body);
 
-    const got = JSON.parse(body)?.response?.docs?.length ?? 0;
-    if (got < PAGE_ROWS) break;
+    if (data.response.docs.length < PAGE_ROWS) break;
     await politeDelay();
   }
 

@@ -215,3 +215,12 @@ test('describeFilter names the trip type', () => {
   assert.equal(describeFilter({ tripType: 'cruisetour', destination: 'alaska' }), 'cruisetours and Alaska');
   assert.equal(describeFilter({ tripType: 'cruise' }), 'cruises only');
 });
+
+// normalize.js stores an unrecognised tripType as null and reports it. "Missing"
+// (old data) means cruise; "unrecognised" must not quietly become one.
+test('an unrecognised tripType matches neither trip type', () => {
+  const odd = [{ ...sailings[0], tripType: null }];
+  assert.equal(searchSailings(odd, { tripType: 'cruise' }).length, 0);
+  assert.equal(searchSailings(odd, { tripType: 'cruisetour' }).length, 0);
+  assert.equal(searchSailings(odd, {}).length, 1);
+});

@@ -327,7 +327,7 @@ function applyFacets(list) {
   let out = list.filter(s =>
     (!f.destination || s.destination === f.destination) &&
     (!f.cabin || s.cabin === f.cabin) &&
-    (!f.tripType || (s.tripType ?? 'cruise') === f.tripType) &&
+    (!f.tripType || (s.tripType === undefined ? 'cruise' : s.tripType) === f.tripType) &&
     (!f.departurePort || s.departurePort === f.departurePort) &&
     (!f.nights || s.nights === +f.nights) &&
     (!f.ship || s.ship === f.ship) &&

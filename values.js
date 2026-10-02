@@ -27,7 +27,8 @@ export function deriveValues(sailings) {
     cabin: uniqueSortedStrings(sailings.map((s) => s.cabin)),
     departurePort: uniqueSortedStrings(sailings.map((s) => s.departurePort)),
     nights: uniqueSortedNumbers(sailings.map((s) => s.nights)),
-    // A sailing scraped before tripType existed is a plain cruise.
-    tripType: uniqueSortedStrings(sailings.map((s) => s.tripType ?? 'cruise')),
+    // A sailing scraped before tripType existed is a plain cruise; an unrecognised
+    // one (null) is left out, like any other null.
+    tripType: uniqueSortedStrings(sailings.map((s) => (s.tripType === undefined ? 'cruise' : s.tripType))),
   };
 }

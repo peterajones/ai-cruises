@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import {
-  parseListing, parseShip, cheapestFare, unpack, searchUrl, name, line, shipDescriptions,
+  parseListing, parseShip, cheapestFare, unpack, searchUrl, fetchListingPages, name, line, shipDescriptions,
 } from '../sites/holland-america.js';
 import { normalizeAll } from '../normalize.js';
 
@@ -164,4 +164,28 @@ test('every USD Alaska row normalizes to Alaska, in USD, with a known trip type'
     assert.ok(['cruise', 'cruisetour'].includes(s.tripType), s.id);
   }
   assert.deepEqual(unrecognised.filter((u) => u.field !== 'row'), []);
+});
+
+// A page that fails partway through paging must fail the run, not end it quietly:
+// a silent stop would write half the sailings and exit 0.
+// Padded past the bot-wall check's 1,000-byte floor, so the new checks are what fire.
+const pad = (obj) => JSON.stringify({ ...obj, padding: 'x'.repeat(1200) });
+function fakePage(status, body) {
+  return { goto: async () => ({ status: () => status, text: async () => body }) };
+}
+
+test('an HTTP error page fails the fetch instead of ending it early', async () => {
+  await assert.rejects(
+    fetchListingPages(fakePage(503, pad({ error: { msg: 'down' } })), { limit: 40 }),
+    /HTTP 503/,
+  );
+});
+
+test('a body without response.docs fails the fetch', async () => {
+  await assert.rejects(fetchListingPages(fakePage(200, pad({ error: {} })), { limit: 40 }), /no response\.docs/);
+});
+
+test('a partial result (the query ran out of time) fails the fetch', async () => {
+  const body = pad({ responseHeader: { partialResults: true }, response: { docs: [] } });
+  await assert.rejects(fetchListingPages(fakePage(200, body), { limit: 40 }), /partial/);
 });
