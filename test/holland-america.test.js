@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import {
-  parseListing, parseShip, cheapestFlexible, unpack, searchUrl, name, line, shipDescriptions,
+  parseListing, parseShip, cheapestFare, unpack, searchUrl, name, line, shipDescriptions,
 } from '../sites/holland-america.js';
 import { normalizeAll } from '../normalize.js';
 
@@ -46,7 +46,7 @@ test('the first row reads as the captured sailing', () => {
     nights: 7,
     tripType: 'cruise',
     cabin: 'Inside',
-    price: 1799,
+    price: 1124,
     currency: 'CAD',
     itinerary: '7-DAY GLACIER DISCOVERY NORTHBOUND',
     image: null,
@@ -54,23 +54,36 @@ test('the first row reads as the captured sailing', () => {
   });
 });
 
-test('the price is the cheapest refundable fare, never a promo code or launch price', () => {
+// Prices are orientative, not for booking: take the price the site shows a visitor.
+// On 2026-10-02 the site showed CA$1,323 for D733 Inside — the RESTRICTED fare.
+test('the price is the cheapest public fare, never a promo code or launch price', () => {
   // Synthetic: every cheaper number on this row is one the rule must ignore.
   const doc = {
     price_USD_IN_FLEXIBLE_d: 1449,
-    price_USD_OV_FLEXIBLE_d: 1599,
-    price_USD_VN_FLEXIBLE_d: 0, // 0 means not available
-    price_USD_SS_FLEXIBLE_d: -1, // -1 means not available
-    price_USD_IN_RESTRICTED_d: 999, // non-refundable: not the chosen fare type
-    price_USD_HEP2614AK_d: 649, // promo code
-    price_USD_FLEXIBLE: 900, // a summary key without a cabin code
-    launch_price_USD_IN_FLEXIBLE_d: 500, // the "was" price
+    price_USD_IN_RESTRICTED_d: 959, // what the site shows
+    price_USD_IN_anonymous_d: 1449,
+    price_USD_OV_RESTRICTED_d: 0, // 0 means not available
+    price_USD_SS_RESTRICTED_d: -1, // -1 means not available
+    price_USD_HEP2614AK_d: 649, // promo code: a targeted offer, not shown to a visitor
+    price_USD_RESTRICTED_d: 900, // a summary key without a cabin code
+    launch_price_USD_IN_RESTRICTED_d: 500, // the "was" price
   };
-  assert.deepEqual(cheapestFlexible(doc), { price: 1449, currency: 'USD', cabinCode: 'IN' });
+  assert.deepEqual(cheapestFare(doc), { price: 959, currency: 'USD', cabinCode: 'IN' });
 });
 
-test('a sailing with no refundable fare has no price', () => {
-  assert.equal(cheapestFlexible({ price_USD_IN_RESTRICTED_d: 999 }), null);
+test('a sailing with only promo-code fares has no price', () => {
+  assert.equal(cheapestFare({ price_USD_HEP2614AK_d: 649 }), null);
+});
+
+test('USD is preferred, even when another currency has a smaller number', () => {
+  // Numbers in different currencies are not comparable; 900 CAD is not cheaper than 959 USD.
+  const doc = { price_CAD_IN_RESTRICTED_d: 900, price_USD_IN_RESTRICTED_d: 959 };
+  assert.deepEqual(cheapestFare(doc), { price: 959, currency: 'USD', cabinCode: 'IN' });
+});
+
+test('without a USD fare, any available currency is used rather than dropping the sailing', () => {
+  const doc = { price_CAD_IN_RESTRICTED_d: 1323, price_CAD_OV_FLEXIBLE_d: 2068 };
+  assert.deepEqual(cheapestFare(doc), { price: 1323, currency: 'CAD', cabinCode: 'IN' });
 });
 
 test('cruisetours are told apart from cruises, and an unknown type passes through', () => {
@@ -123,7 +136,9 @@ test('the search URL asks for Alaska, in USD, unsold, earliest first, 20 at a ti
   assert.deepEqual(p.getAll('fq'), [
     'departDate:[NOW/DAY+1DAY TO *]', 'destinationIds:A', 'soldOut:false',
   ]);
-  assert.match(p.get('fl'), /price_USD_\*/);
+  // Every currency's public fares, and nothing else priced: promo-code keys end in _d
+  // but not in a fare type, so these three patterns leave them out.
+  assert.match(p.get('fl'), /price_\*_RESTRICTED_d,price_\*_FLEXIBLE_d,price_\*_anonymous_d/);
   assert.doesNotMatch(p.get('fl'), /launch_price/);
 });
 

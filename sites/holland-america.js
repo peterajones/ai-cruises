@@ -29,7 +29,10 @@ const SORT = 'departDate asc,cruiseId asc,tourId asc';
 const FILTERS = ['departDate:[NOW/DAY+1DAY TO *]', 'destinationIds:A', 'soldOut:false'];
 const FIELDS = [
   'cruiseId', 'tourId', 'itineraryId', 'shipName', 'embarkPortName', 'departDate',
-  'duration', 'name', 'cruiseType', 'destinationIds', 'contentPath', 'meta', 'price_USD_*',
+  'duration', 'name', 'cruiseType', 'destinationIds', 'contentPath', 'meta',
+  // Every currency's public fares. Promo-code keys (price_USD_HEP2614AK_d) end in _d
+  // but not in a fare type, so these leave out ~600 of them per sailing.
+  'price_*_RESTRICTED_d', 'price_*_FLEXIBLE_d', 'price_*_anonymous_d',
 ].join(',');
 
 /**
@@ -58,28 +61,34 @@ export function unpack(packed) {
   return { value: value.trim() || null, code };
 }
 
-// price_<currency>_<two-letter cabin code>_FLEXIBLE_d. The pattern is the rule:
-// it excludes RESTRICTED and "anonymous" fares, every promo-code key
-// (price_USD_HEP2614AK_d), the cabinless summary keys (price_USD_FLEXIBLE), and
-// launch_price_*, which is the "was" price.
-const FLEXIBLE_PRICE = /^price_(USD|CAD)_([A-Z]{2})_FLEXIBLE_d$/;
+// price_<currency>_<two-letter cabin code>_<fare type>_d. The pattern is the rule:
+// it takes the public fares a visitor sees, and excludes every promo-code key
+// (price_USD_HEP2614AK_d — targeted offers), the cabinless summary keys
+// (price_USD_RESTRICTED_d), and launch_price_*, which is the "was" price.
+const PUBLIC_FARE = /^price_([A-Z]{3})_([A-Z]{2})_(?:RESTRICTED|FLEXIBLE|anonymous)_d$/;
 
 /**
- * The cheapest refundable fare on a sailing. -1 and 0 mean "not available".
+ * The cheapest public fare on a sailing — the price the site shows. Prices here are
+ * orientative, for inspiration rather than booking, so any fare type counts. -1 and
+ * 0 mean "not available".
+ *
+ * USD when the sailing has it; otherwise whatever currency it does have, rather than
+ * dropping the sailing. Numbers are only compared within one currency: 900 CAD is not
+ * cheaper than 959 USD.
  *
  * @param {object} doc - one row of response.docs
  * @returns {{price: number, currency: string, cabinCode: string}|null}
  */
-export function cheapestFlexible(doc) {
-  let best = null;
+export function cheapestFare(doc) {
+  const byCurrency = {};
   for (const [key, value] of Object.entries(doc)) {
-    const match = key.match(FLEXIBLE_PRICE);
+    const match = key.match(PUBLIC_FARE);
     if (!match || typeof value !== 'number' || value <= 0) continue;
-    if (!best || value < best.price) {
-      best = { price: value, currency: match[1], cabinCode: match[2] };
-    }
+    const [, currency, cabinCode] = match;
+    const best = byCurrency[currency];
+    if (!best || value < best.price) byCurrency[currency] = { price: value, currency, cabinCode };
   }
-  return best;
+  return byCurrency.USD ?? Object.values(byCurrency)[0] ?? null;
 }
 
 /** "Inside#@#WE_IN" -> { IN: 'Inside' }: the site's own name for each cabin code. */
@@ -126,7 +135,7 @@ export function parseListing(payload) {
   const rows = [];
 
   for (const doc of docs) {
-    const fare = cheapestFlexible(doc);
+    const fare = cheapestFare(doc);
     const labels = cabinLabels(doc.meta);
     const destinationCode = doc.destinationIds?.[0] ?? null;
 

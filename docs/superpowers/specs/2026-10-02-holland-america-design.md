@@ -19,8 +19,8 @@ silently compared with a plain cruise's.
 | Scope | Alaska only | Fills the gap that motivated this. Widening later is one filter change. |
 | Volume | Cap at **450** sailings, earliest first | Alaska alone is 859 dated sailings across April 2027 – September 2028, ~430 a season, because one cruise is sold as up to 8 cruisetour packages. 450 covers the 2027 season in ~23 requests. (The first draft said 300 "covers 2027"; the step 1 probe showed it stops mid-summer.) |
 | Cruisetours | Included by default, flagged, and searchable | Showing with a caveat beats withholding (see CLAUDE.md, "What this is for"). Hiding them would bury most of the line's Alaska variety. |
-| Price | Cheapest **refundable** (FLEXIBLE) fare | Peter's choice: the conservative figure. Note it differs from the other lines, which store their cheapest fare of any kind — so Holland America will read slightly high by comparison. This is deliberate, not a bug. |
-| Currency | USD (`country=us`) | Probed 2026-10-02: the endpoint honours it (7-day Alaska Explorer: USD 1,449 vs CAD 1,999). Unlike Princess, which ignored the equivalent. |
+| Price | Cheapest **public** fare of any type (RESTRICTED, FLEXIBLE or anonymous) — the price the site shows | Prices are orientative, for inspiration, not booking. *Revised 2026-10-02:* the draft chose the refundable fare, but the live check showed the site advertises only the non-refundable one (D733 Inside: CA$1,323 on the site = the API's RESTRICTED fare; refundable was CA$1,999, ~50% higher). Peter: take what's available. |
+| Currency | USD where present, otherwise any currency the sailing has | Every response carries every currency's fares (USD, CAD, AUD, GBP, EUR) whatever `country` says; the website geolocates and shows a Canadian visitor CAD. Prefer USD; never drop a sailing for lacking it. |
 | Ship descriptions | None: `shipDescriptions = false` | Step 1, 2026-10-02: `/en/us/cruise-ships/<name>` is a client-rendered shell with no description; the only server-rendered text is a deck-plans tab (`/westerdam/8`) describing deck plans, not the ship. |
 
 ## What the evidence shows
@@ -76,9 +76,10 @@ A new file, independent of the others, satisfying the existing adapter contract
     `facets.destinations` table, then canonicalized by `normalize.js` as usual.
   - `tripType`: `cruise` when `cruiseType` is empty, `cruisetour` for `LAND_FIRST` or
     `SEA_FIRST`.
-  - `price` and `cabin`: the lowest `price_<CUR>_<cabin>_FLEXIBLE_d` that is greater than
-    zero, over the standard cabin codes; `cabin` is that cabin's name from `meta`.
-    The currency is read from the key, so the CAD fixture and USD production both parse.
+  - `price` and `cabin`: the lowest `price_<CUR>_<cabin>_<RESTRICTED|FLEXIBLE|anonymous>_d`
+    greater than zero, over the two-letter cabin codes, in USD if present and otherwise in
+    whichever currency exists; `cabin` is that cabin's name from `meta`. The request's
+    `fl` asks for exactly those three patterns, which also keeps ~600 promo keys out.
   - `url`: site origin + `contentPath`. `image`: null.
 - **Cabin mapping** (in `normalize.js` `CABINS`, by the site's label): Inside → interior,
   Ocean View → oceanview, Verandah → balcony, Vista / Neptune / Pinnacle / Signature
@@ -113,14 +114,14 @@ A new file, independent of the others, satisfying the existing adapter contract
 Unit tests, test-first:
 
 - The adapter against a fixture: the golden first row, `#@#` splitting, destination
-  codes resolved from the facets, and the refundable-fare rule — including a row where a
+  codes resolved from the facets, and the public-fare rule — including a row where a
   promo-code or `launch_price` key is lower, to prove neither is read.
 - `normalize`: `tripType` defaults to `cruise`; an unknown value is reported.
 - `search`: the `tripType` filter.
 
 Live checks, because a green suite says nothing about whether the site agrees:
 
-1. **Price against the site.** For one sailing, the adapter's refundable interior price
+1. **Price against the site.** For one sailing, the adapter's interior price
    must match hollandamerica.com. If it does not, stop and find out why.
 2. **Small dry run** — `node scrape.js --site holland-america --limit 20 --dry-run`: Alaska
    rows, USD, a mix of cruises and cruisetours, no unrecognised values.
@@ -137,7 +138,7 @@ Each step is its own commit.
 4. Search: `search.js` and `brain.js`.
 5. The page.
 6. Live checks, then the full scrape.
-7. `CLAUDE.md`: status, the refundable-fare difference, and the Holland America quirks.
+7. `CLAUDE.md`: status, the price rule (cheapest public fare), and the Holland America quirks.
 
 ## Out of scope
 

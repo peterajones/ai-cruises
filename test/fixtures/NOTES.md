@@ -381,7 +381,7 @@ Spec: `docs/superpowers/specs/2026-10-02-holland-america-design.md`.
 https://www.hollandamerica.com/search/halcruisesearch?start=0&rows=20&country=us&language=en&sort=departDate+asc%2CcruiseId+asc%2CtourId+asc&fq=departDate%3A%5BNOW%2FDAY%2B1DAY+TO+*%5D&fq=destinationIds%3AA&fq=soldOut%3Afalse&fl=cruiseId%2CtourId%2CitineraryId%2CshipName%2CembarkPortName%2CdepartDate%2Cduration%2Cname%2CcruiseType%2CdestinationIds%2CcontentPath%2Cmeta%2Cprice_USD_*
 ```
 
-- `numFound` 859. 20 docs, 24 Apr – 9 May 2027, ascending; 11 cruises then 9 SEA_FIRST cruisetours.
+- First capture: `numFound` 859. 20 docs, 24 Apr – 9 May 2027, ascending; 11 cruises then 9 SEA_FIRST cruisetours.
 - The three-field sort was accepted (HTTP 200, order as requested).
 - First row: D733, Eurodam, Seattle, 2027-04-24, 7 nights, Inside USD 1,449 (lowest
   FLEXIBLE: OV 1,499, VN 1,949, SS 2,654, NS 3,514; -1 for LA, VS, PH). Same price as the
@@ -391,9 +391,12 @@ https://www.hollandamerica.com/search/halcruisesearch?start=0&rows=20&country=us
 
 ## Live checks
 
-- Price against the site: **pending Peter's check** of
-  https://www.hollandamerica.com/en/us/find-a-cruise/a7e07b/d733 — refundable Inside
-  fare should read USD 1,449.
+- Price against the site (Peter, 2026-10-02): D733 Inside shows **CA$1,323** — exactly the
+  API's `price_CAD_IN_RESTRICTED_d`. The site redirects a Canadian visitor to /en/ca and
+  shows CAD, and it shows no refundable fare at all. So the rule changed from "cheapest
+  refundable" to "cheapest public fare": D733 is stored as USD 959 (its RESTRICTED USD fare).
+- Recaptured the same day with `fl` = the three public fare patterns: 858 found, 120 price
+  keys across CAD/AUD/GBP/USD/EUR, no promo-code or launch_price keys, 174 KB (was 388 KB).
 - Dry run 2026-10-02: `node scrape.js --site holland-america --limit 40 --dry-run` → exit 0,
   40 sailings (2 requests), both trip types, destination `alaska` only, no duplicates, no
   unrecognised values.
