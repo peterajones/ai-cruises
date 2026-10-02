@@ -18,10 +18,11 @@ const SEARCH_URL = `${SITE_ORIGIN}/search/halcruisesearch`;
 const PAGE_ROWS = 20;
 
 /**
- * Alaska alone is ~859 dated sailings, ~430 a season. 450 covers the next season;
- * raise it here to take more.
+ * Enough for one full Alaska season. Measured 2026-10-02: the 2027 season is 715
+ * sailings (138 cruises, 577 cruisetours — each cruise is sold as up to 8 land
+ * packages), and the whole feed 858. A cap of 450 stopped at 25 July.
  */
-const CAP = 450;
+const CAP = 750;
 
 // cruiseId and tourId break ties within a date, so the order is the same on every
 // request and a page boundary never repeats or skips a sailing.
