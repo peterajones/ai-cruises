@@ -1,5 +1,7 @@
 # Princess Adapter Implementation Plan
 
+**Status:** COMPLETE
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add Princess Cruises as adapter #3, scraping the rendered search-results page for per-departure dates and prices.

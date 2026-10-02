@@ -1,5 +1,7 @@
 # Cruise Scraper Implementation Plan
 
+**Status:** COMPLETE
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build `node scrape.js`, which collects cruise sailings from Princess and Royal Caribbean and writes `data/sailings.json` — the dataset the natural-language search reads.
