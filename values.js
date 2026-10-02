@@ -18,7 +18,7 @@ function uniqueSortedNumbers(values) {
 /**
  * @param {object[]} sailings
  * @returns {{line: string[], destination: string[], cabin: string[],
- *            departurePort: string[], nights: number[]}}
+ *            departurePort: string[], nights: number[], tripType: string[]}}
  */
 export function deriveValues(sailings) {
   return {
@@ -27,5 +27,7 @@ export function deriveValues(sailings) {
     cabin: uniqueSortedStrings(sailings.map((s) => s.cabin)),
     departurePort: uniqueSortedStrings(sailings.map((s) => s.departurePort)),
     nights: uniqueSortedNumbers(sailings.map((s) => s.nights)),
+    // A sailing scraped before tripType existed is a plain cruise.
+    tripType: uniqueSortedStrings(sailings.map((s) => s.tripType ?? 'cruise')),
   };
 }

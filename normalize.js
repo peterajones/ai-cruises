@@ -184,6 +184,9 @@ function toNumber(raw) {
 
 const REQUIRED = ['ship', 'departureDate', 'nights', 'price'];
 
+/** A cruisetour is a cruise plus land days sold as one package (Holland America). */
+const TRIP_TYPES = ['cruise', 'cruisetour'];
+
 /**
  * @param {object[]} rawRows - site-shaped rows straight from an adapter
  * @param {{source: string, line: string}} opts
@@ -215,6 +218,8 @@ export function normalizeAll(rawRows, { source, line }) {
       cabin: null,
       price: toNumber(row.price),
       currency: row.currency ?? 'USD',
+      // Adapters that sell only plain cruises never set this, so absent means cruise.
+      tripType: row.tripType ?? 'cruise',
       // Presentation-only fields. Never required, never canonicalized, never
       // filtered on — they exist so a UI can render a card without a second fetch.
       itinerary: row.itinerary ?? null,
@@ -233,6 +238,11 @@ export function normalizeAll(rawRows, { source, line }) {
     if (row.cabin) {
       sailing.cabin = canonicalCabin(row.cabin);
       if (sailing.cabin === null) miss('cabin', String(row.cabin));
+    }
+
+    if (!TRIP_TYPES.includes(sailing.tripType)) {
+      miss('tripType', String(sailing.tripType));
+      sailing.tripType = null;
     }
 
     const missingField = REQUIRED.find((f) => sailing[f] === null || sailing[f] === '');

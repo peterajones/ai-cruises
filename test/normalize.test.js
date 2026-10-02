@@ -126,6 +126,7 @@ test('a good row becomes a fully canonical Sailing', () => {
     cabin: 'balcony',
     price: 1299,
     currency: 'USD',
+    tripType: 'cruise',
     itinerary: null,
     image: null,
     ports: [],
@@ -173,3 +174,24 @@ test('price with per-person and total notation is rejected', () => {
   assert.equal(unrecognised[0].field, 'row');
 });
 
+
+// tripType is how a cruisetour (cruise plus land days, sold as one package) is told
+// apart from a plain cruise. Adapters that sell only cruises never set it.
+test('tripType defaults to cruise when an adapter does not set it', () => {
+  const { sailings } = normalizeAll([goodRow], { source: 'princess', line: 'Princess' });
+  assert.equal(sailings[0].tripType, 'cruise');
+});
+
+test('a cruisetour keeps its tripType', () => {
+  const row = { ...goodRow, tripType: 'cruisetour' };
+  const { sailings } = normalizeAll([row], { source: 'holland-america', line: 'Holland America' });
+  assert.equal(sailings[0].tripType, 'cruisetour');
+});
+
+test('an unknown tripType is reported and the sailing is kept', () => {
+  const row = { ...goodRow, tripType: 'RIVER_FIRST' };
+  const { sailings, unrecognised } = normalizeAll([row], { source: 'holland-america', line: 'Holland America' });
+  assert.equal(sailings.length, 1);
+  assert.equal(sailings[0].tripType, null);
+  assert.deepEqual(unrecognised, [{ field: 'tripType', raw: 'RIVER_FIRST', count: 1 }]);
+});

@@ -32,6 +32,15 @@ test('nulls never reach the enumeration', () => {
 
 test('no sailings gives empty lists, not undefined', () => {
   assert.deepEqual(deriveValues([]), {
-    line: [], destination: [], cabin: [], departurePort: [], nights: [],
+    line: [], destination: [], cabin: [], departurePort: [], nights: [], tripType: [],
   });
+});
+
+test('tripType is enumerated, with sailings that lack it counted as cruises', () => {
+  const values = deriveValues([
+    { ...sailings[0], tripType: 'cruisetour' },
+    { ...sailings[1], tripType: 'cruise' },
+    sailings[2], // no tripType: scraped before the field existed
+  ]);
+  assert.deepEqual(values.tripType, ['cruise', 'cruisetour']);
 });
