@@ -14,6 +14,36 @@ export const name = 'holland-america';
 export const line = 'Holland America';
 
 const SITE_ORIGIN = 'https://www.hollandamerica.com';
+const SEARCH_URL = `${SITE_ORIGIN}/search/halcruisesearch`;
+const PAGE_ROWS = 20;
+
+/**
+ * Alaska alone is ~859 dated sailings, ~430 a season. 450 covers the next season;
+ * raise it here to take more.
+ */
+const CAP = 450;
+
+// cruiseId and tourId break ties within a date, so the order is the same on every
+// request and a page boundary never repeats or skips a sailing.
+const SORT = 'departDate asc,cruiseId asc,tourId asc';
+const FILTERS = ['departDate:[NOW/DAY+1DAY TO *]', 'destinationIds:A', 'soldOut:false'];
+const FIELDS = [
+  'cruiseId', 'tourId', 'itineraryId', 'shipName', 'embarkPortName', 'departDate',
+  'duration', 'name', 'cruiseType', 'destinationIds', 'contentPath', 'meta', 'price_USD_*',
+].join(',');
+
+/**
+ * @param {number} start - zero-based row offset
+ * @returns {string}
+ */
+export function searchUrl(start) {
+  const params = new URLSearchParams({
+    start: String(start), rows: String(PAGE_ROWS), country: 'us', language: 'en', sort: SORT,
+  });
+  for (const fq of FILTERS) params.append('fq', fq);
+  params.set('fl', FIELDS);
+  return `${SEARCH_URL}?${params}`;
+}
 
 /**
  * The API packs two values into one string: "Westerdam#@#WE" is a ship name and
@@ -123,6 +153,48 @@ export function parseListing(payload) {
   }
 
   return rows;
+}
+
+/**
+ * Pages through the search API until the cap, the limit, or a short page.
+ *
+ * @param {import('puppeteer').Page} page
+ * @param {{limit: number}} options - caps rows fetched, below CAP
+ * @returns {Promise<string[]>} raw JSON text, one per page
+ */
+export async function fetchListingPages(page, { limit }) {
+  const wanted = Math.min(CAP, Number.isFinite(limit) ? limit : CAP);
+  const payloads = [];
+
+  for (let start = 0; start < wanted; start += PAGE_ROWS) {
+    const url = searchUrl(start);
+    const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+    const body = await response.text();
+
+    const wall = detectBotWall(body);
+    if (wall) throw new BotWallError(wall, url);
+    payloads.push(body);
+
+    const got = JSON.parse(body)?.response?.docs?.length ?? 0;
+    if (got < PAGE_ROWS) break;
+    await politeDelay();
+  }
+
+  return payloads;
+}
+
+/**
+ * Never called by scrape.js (shipDescriptions is false); kept so the adapter
+ * satisfies the contract, and as the starting point if a usable page is found.
+ */
+export async function fetchShipPage(page, ship) {
+  const url = shipUrl(ship);
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  await politeDelay();
+  const html = await page.content();
+  const wall = detectBotWall(html);
+  if (wall) throw new BotWallError(wall, url);
+  return html;
 }
 
 /**

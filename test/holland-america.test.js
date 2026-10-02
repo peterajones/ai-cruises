@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import {
-  parseListing, parseShip, cheapestFlexible, unpack, name, line, shipDescriptions,
+  parseListing, parseShip, cheapestFlexible, unpack, searchUrl, name, line, shipDescriptions,
 } from '../sites/holland-america.js';
 import { normalizeAll } from '../normalize.js';
 
@@ -110,4 +110,43 @@ test('rows normalize: unpriced sailings are dropped, every cabin label is known'
   assert.equal(sailings[0].destination, 'alaska');
   assert.equal(sailings[0].cabin, 'interior');
   assert.equal(sailings[0].tripType, 'cruise');
+});
+
+test('the search URL asks for Alaska, in USD, unsold, earliest first, 20 at a time', () => {
+  const url = new URL(searchUrl(40));
+  const p = url.searchParams;
+  assert.equal(url.origin + url.pathname, 'https://www.hollandamerica.com/search/halcruisesearch');
+  assert.equal(p.get('start'), '40');
+  assert.equal(p.get('rows'), '20');
+  assert.equal(p.get('country'), 'us');
+  assert.equal(p.get('sort'), 'departDate asc,cruiseId asc,tourId asc');
+  assert.deepEqual(p.getAll('fq'), [
+    'departDate:[NOW/DAY+1DAY TO *]', 'destinationIds:A', 'soldOut:false',
+  ]);
+  assert.match(p.get('fl'), /price_USD_\*/);
+  assert.doesNotMatch(p.get('fl'), /launch_price/);
+});
+
+const usPayload = await readFile(
+  new URL('./fixtures/holland-america-alaska-us.json', import.meta.url), 'utf8',
+);
+const golden = JSON.parse(
+  await readFile(new URL('./fixtures/holland-america-first-row.json', import.meta.url), 'utf8'),
+);
+
+test('the USD Alaska capture matches its hand-checked first row', () => {
+  assert.deepEqual(parseListing(usPayload)[0], golden);
+});
+
+test('every USD Alaska row normalizes to Alaska, in USD, with a known trip type', () => {
+  const { sailings, unrecognised } = normalizeAll(parseListing(usPayload), {
+    source: 'holland-america', line: 'Holland America',
+  });
+  assert.ok(sailings.length > 0);
+  for (const s of sailings) {
+    assert.equal(s.destination, 'alaska', s.id);
+    assert.equal(s.currency, 'USD', s.id);
+    assert.ok(['cruise', 'cruisetour'].includes(s.tripType), s.id);
+  }
+  assert.deepEqual(unrecognised.filter((u) => u.field !== 'row'), []);
 });

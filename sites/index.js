@@ -1,12 +1,13 @@
 import * as royalCaribbean from './royal-caribbean.js';
 import * as celebrity from './celebrity.js';
 import * as princess from './princess.js';
+import * as hollandAmerica from './holland-america.js';
 
-// Royal Caribbean and Celebrity read a JSON API; Princess parses the rendered
-// results page, because its API cannot produce a dated price. Each adapter is a
-// standalone file on purpose — when one site changes shape, the others keep
-// running.
-export const ADAPTERS = [royalCaribbean, celebrity, princess];
+// Royal Caribbean, Celebrity and Holland America read a JSON API; Princess parses
+// the rendered results page, because its API cannot produce a dated price. Each
+// adapter is a standalone file on purpose — when one site changes shape, the
+// others keep running.
+export const ADAPTERS = [royalCaribbean, celebrity, princess, hollandAmerica];
 
 /**
  * @param {string[]} names - empty means all

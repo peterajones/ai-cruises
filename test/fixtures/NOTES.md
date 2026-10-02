@@ -368,3 +368,32 @@ End-to-end verification from Task 11.
 - Nights: [3, 4, 5, 6, 7, 9]
 - Departure ports: [Fort Lauderdale, Miami]
 - Price range: $334.08–$2226.29
+
+# Holland America
+
+Spec: `docs/superpowers/specs/2026-10-02-holland-america-design.md`.
+
+## Capture (2026-10-02)
+
+`test/fixtures/holland-america-alaska-us.json` — one response from `searchUrl(0)`:
+
+```
+https://www.hollandamerica.com/search/halcruisesearch?start=0&rows=20&country=us&language=en&sort=departDate+asc%2CcruiseId+asc%2CtourId+asc&fq=departDate%3A%5BNOW%2FDAY%2B1DAY+TO+*%5D&fq=destinationIds%3AA&fq=soldOut%3Afalse&fl=cruiseId%2CtourId%2CitineraryId%2CshipName%2CembarkPortName%2CdepartDate%2Cduration%2Cname%2CcruiseType%2CdestinationIds%2CcontentPath%2Cmeta%2Cprice_USD_*
+```
+
+- `numFound` 859. 20 docs, 24 Apr – 9 May 2027, ascending; 11 cruises then 9 SEA_FIRST cruisetours.
+- The three-field sort was accepted (HTTP 200, order as requested).
+- First row: D733, Eurodam, Seattle, 2027-04-24, 7 nights, Inside USD 1,449 (lowest
+  FLEXIBLE: OV 1,499, VN 1,949, SS 2,654, NS 3,514; -1 for LA, VS, PH). Same price as the
+  2026-10-02 probe of this sailing.
+- The older `holland-america-search.json` (2026-08-05, `country=ca`, all destinations)
+  stays: its tests prove the parser reads the currency from the key, not an assumption.
+
+## Live checks
+
+- Price against the site: **pending Peter's check** of
+  https://www.hollandamerica.com/en/us/find-a-cruise/a7e07b/d733 — refundable Inside
+  fare should read USD 1,449.
+- Dry run 2026-10-02: `node scrape.js --site holland-america --limit 40 --dry-run` → exit 0,
+  40 sailings (2 requests), both trip types, destination `alaska` only, no duplicates, no
+  unrecognised values.
