@@ -65,8 +65,14 @@ a good dataset.
 
 ## Status
 
-**Three lines working:** Royal Caribbean (203), Celebrity (118), Princess (188) — 509
-sailings, 11 ships with descriptions, prices $295–$9,411 USD and $314–$3,459 CAD.
+**Three lines working** (scraped 2026-09-30): Royal Caribbean (193), Celebrity (116),
+Princess (195) — 504 sailings, every one with a destination, 14 ships with descriptions,
+prices $298–$5,110 USD and $312–$3,854 CAD. 111 tests.
+
+**Departed sailings are hidden.** `upcoming()` in `search.js` drops anything that left
+before today (local time). The server applies it per request, not at load, so a running
+server never serves a cruise that has sailed. A re-scrape is still what brings in new
+sailings — the project sat for eight weeks once and 35 of 509 had departed.
 
 Royal Caribbean and Celebrity read a JSON API. **Princess parses the rendered results
 page**, because its API cannot produce a dated price: the catalog carries dates without
@@ -86,16 +92,27 @@ shape, the others keep running.
 - **Destination comes from the itinerary title**, not port countries. Port countries read a
   Caribbean cruise leaving Fort Lauderdale as "Florida" — true, and useless. `normalize.js`
   has `findDestination()`, which finds a known region inside a phrase, longest alias winning
-  so "Eastern Caribbean" beats a bare "Caribbean".
+  so "Eastern Caribbean" beats a bare "Caribbean". Titles often name a coast or state
+  instead of a region ("Tasmania", "Hunter Coast", "Sea of Cortez"); each alias was chosen
+  from the sailing's actual ports. New titles show up in a scrape's `unrecognised` list.
 - **Only ~15 of 20 cards per page are sailings**; the rest are promo tiles with no date.
+- **Every full scrape exits 1** because all 17 Princess ships report "no description
+  parsed". That is the quirk above, not a breakage — but it means exit code 1 currently
+  tells you nothing. Read the log. (Fixing this is on the to-do list below.)
+- **~9 sailings per scrape have no price** and are dropped — sold out or not yet priced.
 
-**Cross-currency price searches are refused, not answered.** `search.js` compares bare
-numbers, so "under $800" across USD and CAD would be silently wrong — every number looks
-plausible. `currencyConflict()` detects it and returns an explanation instead of results.
-Narrowing to one cruise line resolves it, because the guard judges the candidates rather
-than the whole dataset.
+**Cross-currency price searches get a notice, not a refusal.** `search.js` compares bare
+numbers, so "under $800" across USD and CAD is approximate. `currencyNote()` returns the
+results with a note saying so. It judges the candidates *before* the price filter — judging
+the survivors would go quiet exactly when the comparison wrongly excluded every CAD sailing.
 
-## Next session: Holland America (adapter #4)
+## To do, in order
+
+1. **Quiet the Princess description failures** so exit code 1 means a real problem again.
+   Small.
+2. **Holland America** — the next adapter, below. Bigger.
+
+## Holland America (adapter #4)
 
 **Everything needed to start is captured.** The evidence is
 `test/fixtures/holland-america-search.json` (2.4 MB, real) — read it before probing
@@ -103,8 +120,8 @@ anything, and don't re-derive what is below.
 
 **Why this line:** Alaska is its specialty, and it is the best-shaped source found so
 far — a real search API, not a DOM scrape. Its first row is a Vancouver → Whittier
-Glacier Discovery sailing. The current dataset has only 29 Alaska sailings (Celebrity 19,
-Princess 10, Royal Caribbean none).
+Glacier Discovery sailing. The current dataset has only 49 Alaska sailings (Celebrity 36,
+Princess 13, Royal Caribbean none).
 
 **The endpoint** — one GET, no POST body to reverse-engineer:
 
