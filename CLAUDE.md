@@ -67,7 +67,7 @@ a good dataset.
 
 **Three lines working** (scraped 2026-09-30): Royal Caribbean (193), Celebrity (116),
 Princess (195) — 504 sailings, every one with a destination, 14 ships with descriptions,
-prices $298–$5,110 USD and $312–$3,854 CAD. 111 tests.
+prices $298–$5,110 USD and $312–$3,854 CAD. 112 tests.
 
 **Departed sailings are hidden.** `upcoming()` in `search.js` drops anything that left
 before today (local time). The server applies it per request, not at load, so a running
@@ -96,9 +96,10 @@ shape, the others keep running.
   instead of a region ("Tasmania", "Hunter Coast", "Sea of Cortez"); each alias was chosen
   from the sailing's actual ports. New titles show up in a scrape's `unrecognised` list.
 - **Only ~15 of 20 cards per page are sailings**; the rest are promo tiles with no date.
-- **Every full scrape exits 1** because all 17 Princess ships report "no description
-  parsed". That is the quirk above, not a breakage — but it means exit code 1 currently
-  tells you nothing. Read the log. (Fixing this is on the to-do list below.)
+- **Ship pages are not fetched at all.** The adapter exports `shipDescriptions = false`,
+  and `scrape.js` skips ship pages for any adapter that says so. Before this, every full
+  scrape fetched 17 pages only to report 17 "failures" and exit 1 — so exit 1 meant
+  nothing. **Exit 1 now means something really failed.**
 - **~9 sailings per scrape have no price** and are dropped — sold out or not yet priced.
 
 **Cross-currency price searches get a notice, not a refusal.** `search.js` compares bare
@@ -106,11 +107,9 @@ numbers, so "under $800" across USD and CAD is approximate. `currencyNote()` ret
 results with a note saying so. It judges the candidates *before* the price filter — judging
 the survivors would go quiet exactly when the comparison wrongly excluded every CAD sailing.
 
-## To do, in order
+## To do
 
-1. **Quiet the Princess description failures** so exit code 1 means a real problem again.
-   Small.
-2. **Holland America** — the next adapter, below. Bigger.
+**Holland America** — the next adapter, below.
 
 ## Holland America (adapter #4)
 

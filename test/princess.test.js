@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { parseListing, parseShip, shipUrl, name, line } from '../sites/princess.js';
+import { parseListing, parseShip, shipUrl, name, line, shipDescriptions } from '../sites/princess.js';
 import { normalizeAll } from '../normalize.js';
 
 const html = await readFile(new URL('./fixtures/princess-results.html', import.meta.url), 'utf8');
@@ -138,10 +138,15 @@ test('shipUrl slugifies to a princess.com path', () => {
 test('parseShip supplies no description, deliberately', () => {
   // /ships/<slug> 404s for most Princess ships and serves the WRONG ship for
   // others — /ships/discovery-princess returns Diamond Princess's page. A wrong
-  // description looks fine and is never questioned; an absent one is reported by
-  // scrape.js as a per-ship failure. Absent is the honest answer here.
+  // description looks fine and is never questioned. Absent is the honest answer here.
   const got = parseShip('<html><head><meta name="description" content="anything"></head></html>');
   assert.equal(got.line, 'Princess Cruises');
   assert.equal(got.description, '');
   assert.equal(got.source, null);
+});
+
+test('the adapter declares it supplies no ship descriptions', () => {
+  // scrape.js reads this and skips Princess ship pages entirely. Without it, every
+  // full scrape reported 17 per-ship "failures" and exited 1, so exit 1 meant nothing.
+  assert.equal(shipDescriptions, false);
 });

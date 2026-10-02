@@ -123,6 +123,9 @@ async function main() {
   for (const ship of needed) {
     const adapter = adapters.find((a) => allSailings.some((s) => s.ship === ship && s.source === a.name));
     if (!adapter) continue;
+    // An adapter that declares it has no ship descriptions is not asked for them.
+    // Fetching anyway only produces a "failure" that is really a known gap.
+    if (adapter.shipDescriptions === false) continue;
 
     const page = await newPage(browser);
     try {

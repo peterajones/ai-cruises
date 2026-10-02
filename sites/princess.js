@@ -239,10 +239,17 @@ export async function fetchShipPage(page, ship) {
  * unverifiable.
  *
  * If a correct URL pattern is found later, restore the og:description read used
- * by the Royal Caribbean adapter.
+ * by the Royal Caribbean adapter, and set `shipDescriptions` back to true.
  *
  * @returns {{line: string, description: string, source: null}}
  */
 export function parseShip() {
   return { line, description: '', source: null };
 }
+
+/**
+ * Tells scrape.js not to fetch ship pages at all, for the reason above. Without it,
+ * every full scrape fetched 17 pages only to report 17 "failures" and exit 1 — so
+ * exit 1 stopped meaning anything.
+ */
+export const shipDescriptions = false;
