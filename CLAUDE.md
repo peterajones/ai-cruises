@@ -21,9 +21,10 @@ browser ──fetch──▶ HTML/JSON ──parse──▶ RawSailing[] ──n
 
 Each stage knows only its own inputs and outputs. Adapters live in `sites/`.
 
-- `sites/royal-caribbean.js`, `sites/celebrity.js` — one file per site, each knowing only its
-  own site. Deliberately near-duplicates rather than a shared parser: when one site changes
-  shape, the other keeps running.
+- `sites/royal-caribbean.js`, `sites/celebrity.js`, `sites/princess.js`,
+  `sites/holland-america.js` — one file per site, each knowing only its own site.
+  Deliberately near-duplicates rather than a shared parser: when one site changes shape,
+  the others keep running.
 - `search.js` / `brain.js` / `server.js` / `public/` — the search layer over the scraped data.
   `brain.js` is the only file that calls a model.
 - `normalize.js` — canonicalize destination/cabin labels via `DESTINATIONS` and `CABINS` mappings,
@@ -65,16 +66,24 @@ a good dataset.
 
 ## Status
 
-**Three lines working** (scraped 2026-09-30): Royal Caribbean (193), Celebrity (116),
-Princess (195) — 504 sailings, every one with a destination, 14 ships with descriptions,
-prices $298–$5,110 USD and $312–$3,854 CAD. 112 tests.
+**Four lines working** (scraped 2026-10-02): Royal Caribbean (190), Celebrity (119),
+Princess (192), Holland America (760) — 1,261 sailings, every one with a destination and a
+trip type, 14 ships with descriptions, prices $289–$8,446 USD and $347–$3,451 CAD. Alaska:
+809 sailings (Holland America 760, Celebrity 36, Princess 13). 137 tests.
+
+**Cruisetours are a trip type.** Every sailing has `tripType`: `"cruise"` or
+`"cruisetour"` (a cruise plus land days, sold as one package — only Holland America has
+them). `normalize.js` defaults it to `"cruise"`, so adapters that sell only cruises never
+set it. Search returns both unless asked; "Denali", "land tour" or "cruisetour" narrow to
+cruisetours, "cruise only" excludes them. Cards are labelled "Cruisetour · includes land
+days", because a cruisetour's `nights` is the whole package, land included.
 
 **Departed sailings are hidden.** `upcoming()` in `search.js` drops anything that left
 before today (local time). The server applies it per request, not at load, so a running
 server never serves a cruise that has sailed. A re-scrape is still what brings in new
 sailings — the project sat for eight weeks once and 35 of 509 had departed.
 
-Royal Caribbean and Celebrity read a JSON API. **Princess parses the rendered results
+Royal Caribbean, Celebrity and Holland America read a JSON API. **Princess parses the rendered results
 page**, because its API cannot produce a dated price: the catalog carries dates without
 prices, the pricing endpoint carries prices with no date field at all, and for ~9% of
 itineraries one price maps to several sail dates. The rendered card carries both.
@@ -102,6 +111,24 @@ shape, the others keep running.
   nothing. **Exit 1 now means something really failed.**
 - **~9 sailings per scrape have no price** and are dropped — sold out or not yet priced.
 
+**Holland America quirks worth knowing** (spec: `docs/superpowers/specs/2026-10-02-holland-america-design.md`):
+
+- **Alaska only, capped at 750** — enough for one full season. The 2027 season is 715
+  sailings, 577 of them cruisetours: one cruise is sold as up to 8 land packages, each its
+  own sailing with its own price and page. ~38 polite requests per scrape.
+- **Sailing ID is `cruiseId` + `tourId`.** `cruiseId` alone merges those packages.
+- **Price is the cheapest public fare** (`RESTRICTED`, `FLEXIBLE` or `anonymous`) — the
+  price the site shows. Checked live: D733 Inside reads CA$1,323 on the site, the API's
+  RESTRICTED fare. Promo-code fares (`HEP26…`) and `launch_price_*` (the "was" price) are
+  never read; the request's `fl` leaves them out.
+- **Every response carries every currency** (USD, CAD, AUD, GBP, EUR) whatever `country`
+  says. USD is used when present, any other currency otherwise. The *website* geolocates:
+  a Canadian visitor is redirected to `/en/ca` and sees CAD.
+- **`#@#` packs a value and a code** (`"Westerdam#@#WE"`); `unpack()` splits it.
+- **Destination codes resolve from `facets.destinations`** in the same response.
+- **No ship descriptions** (`shipDescriptions = false`): ship pages are client-rendered
+  shells. **No images** either — the API has no image field.
+
 **Cross-currency price searches get a notice, not a refusal.** `search.js` compares bare
 numbers, so "under $800" across USD and CAD is approximate. `currencyNote()` returns the
 results with a note saying so. It judges the candidates *before* the price filter — judging
@@ -109,70 +136,8 @@ the survivors would go quiet exactly when the comparison wrongly excluded every 
 
 ## To do
 
-**Holland America** — the next adapter, below.
-
-## Holland America (adapter #4)
-
-**Everything needed to start is captured.** The evidence is
-`test/fixtures/holland-america-search.json` (2.4 MB, real) — read it before probing
-anything, and don't re-derive what is below.
-
-**Why this line:** Alaska is its specialty, and it is the best-shaped source found so
-far — a real search API, not a DOM scrape. Its first row is a Vancouver → Whittier
-Glacier Discovery sailing. The current dataset has only 49 Alaska sailings (Celebrity 36,
-Princess 13, Royal Caribbean none).
-
-**The endpoint** — one GET, no POST body to reverse-engineer:
-
-```
-https://www.hollandamerica.com/search/halcruisesearch
-  ?start=0&rows=20&country=ca&language=en
-  &fq=departDate:[NOW/DAY+1DAY TO *]
-  &fl=cruiseId,shipName,embarkPortName,disembarkPortName,departDate,duration,name,destinationIds,price_CAD_*,...
-```
-
-- `response.numFound` was **988** — roughly twice the entire current dataset.
-- `response.docs` is the row array, 20 per page. `start`/`rows` are real pagination, so
-  paging is a URL change rather than scroll-driving. Politeness still applies: sequential,
-  `politeDelay()` between pages, and stop at a sane cap rather than pulling all 988 blindly.
-- No bot wall across the probes made (HTTP 200, no Incapsula/Cloudflare/PerimeterX markers).
-
-**Verified row shape** (`response.docs[0]`):
-
-```json
-{
-  "cruiseId": "W656",
-  "shipName": "Westerdam#@#WE",
-  "embarkPortName": "Vancouver, B.C., CA#@#YVR",
-  "disembarkPortName": "Whittier, Alaska, US",
-  "departDate": "2026-08-16T00:00:00Z",
-  "duration": 7,
-  "name": "7-DAY GLACIER DISCOVERY NORTHBOUND",
-  "destinationIds": ["A"],
-  "price_CAD_IN_RESTRICTED_d": 1124
-}
-```
-
-**Three quirks to design for, all already visible:**
-
-1. **`#@#` packs two values into one string** — `"Westerdam#@#WE"` is name plus ship code,
-   `"Vancouver, B.C., CA#@#YVR"` is port plus code. Split on it; do not regex around it.
-2. **Price keys are dynamic**, with fare codes baked into the key name
-   (`price_CAD_IN_RESTRICTED_d`, `launch_price_CAD_HEP26HOB4A_d`). There is no fixed path
-   to read, so the adapter must scan keys by pattern. Cheapest-tier becomes "lowest
-   `price_CAD_*`", and note `launch_price_*` looks like a list price — the Princess "Was
-   vs Now" trap in a different costume, so establish which is which before trusting either.
-3. **`destinationIds` are codes** — `["A"]` for Alaska. A reference table will be needed,
-   same as Princess's trades/ports/ships lookups. Find where the site resolves them.
-
-**Also CAD** (`country=ca`). Matters far less now that mixed currencies are noted rather
-than blocked, but it is two of three lines in CAD, so it may be worth revisiting whether
-`country=us` is honoured on this endpoint — Princess ignored the equivalent.
-
-**Open questions to settle while planning:** how many of the 988 to take (a cap, or all of
-them at 20/page = 50 requests); whether Holland America publishes usable ship descriptions,
-given Princess's did not; and whether `destinationIds` resolve from a table on the page or
-need a second request.
+Nothing queued. Holland America's design and plan are in `docs/superpowers/specs/` and
+`docs/superpowers/plans/` (2026-10-02).
 
 ## Open questions
 
