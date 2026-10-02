@@ -195,3 +195,23 @@ test('the note reflects the candidates, not the survivors', () => {
   assert.ok(currencyNote(mixed, { maxPrice: 800 }),
     'candidates reveal the mix, which is why the server passes those');
 });
+
+test('tripType filters, and a sailing without one counts as a cruise', () => {
+  const mixed = [
+    { ...sailings[0], tripType: 'cruisetour' },
+    { ...sailings[1], tripType: 'cruise' },
+    sailings[2], // scraped before tripType existed
+  ];
+  assert.equal(searchSailings(mixed, { tripType: 'cruisetour' }).length, 1);
+  assert.equal(searchSailings(mixed, { tripType: 'cruise' }).length, 2);
+  assert.equal(searchSailings(mixed, {}).length, 3);
+});
+
+test('asking only for cruisetours is a real constraint', () => {
+  assert.equal(hasNoConstraints({ tripType: 'cruisetour' }), false);
+});
+
+test('describeFilter names the trip type', () => {
+  assert.equal(describeFilter({ tripType: 'cruisetour', destination: 'alaska' }), 'cruisetours and Alaska');
+  assert.equal(describeFilter({ tripType: 'cruise' }), 'cruises only');
+});

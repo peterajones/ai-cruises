@@ -24,6 +24,8 @@ export function searchSailings(sailings, filter = {}) {
     if (filter.destination && s.destination !== filter.destination) return false;
     if (filter.departurePort && s.departurePort !== filter.departurePort) return false;
     if (filter.cabin && s.cabin !== filter.cabin) return false;
+    // A sailing scraped before tripType existed is a plain cruise.
+    if (filter.tripType && (s.tripType ?? 'cruise') !== filter.tripType) return false;
     if (filter.nights != null && s.nights !== filter.nights) return false;
     if (filter.minNights != null && s.nights < filter.minNights) return false;
     if (filter.maxNights != null && s.nights > filter.maxNights) return false;
@@ -160,7 +162,7 @@ export function currencyNote(sailings, filter = {}) {
 
 /** The keys that actually constrain a search. `unrecognised` is not one of them. */
 const CONSTRAINTS = [
-  'line', 'ship', 'destination', 'departurePort', 'cabin',
+  'line', 'ship', 'destination', 'departurePort', 'cabin', 'tripType',
   'nights', 'minNights', 'maxNights', 'minPrice', 'maxPrice', 'dateFrom', 'dateTo',
 ];
 
@@ -210,6 +212,8 @@ export function describeFilter(filter = {}) {
   if (filter.nights != null) parts.push(`${filter.nights} nights`);
   if (filter.minNights != null) parts.push(`${filter.minNights}+ nights`);
   if (filter.maxNights != null) parts.push(`up to ${filter.maxNights} nights`);
+  if (filter.tripType === 'cruisetour') parts.push('cruisetours');
+  if (filter.tripType === 'cruise') parts.push('cruises only');
   if (filter.cabin) parts.push(filter.cabin);
   if (filter.destination) parts.push(titleCase(filter.destination));
   if (filter.departurePort) parts.push(`from ${filter.departurePort}`);

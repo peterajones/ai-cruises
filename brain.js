@@ -32,6 +32,7 @@ export function buildSchema(values) {
     destination: oneOf(values.destination),
     departurePort: oneOf(values.departurePort),
     cabin: oneOf(values.cabin),
+    tripType: oneOf(values.tripType ?? []),
     nights: oneOf(values.nights, 'integer'),
     minNights: orNull({ type: 'integer' }),
     maxNights: orNull({ type: 'integer' }),
@@ -71,6 +72,9 @@ Vocabulary:
 - "a week", "7 nights" mean nights 7. "under a week" means maxNights 6.
   "at least 5 nights" means minNights 5.
 - "out of Miami", "leaving from Miami" mean departurePort "Miami".
+- "cruisetour", "land tour", "Denali", "Yukon" mean tripType "cruisetour" — a
+  cruise plus land days, sold as one package. "cruise only", "no land tour" mean
+  tripType "cruise". Otherwise tripType is null: show both.
 - "next January" means dateFrom the 1st and dateTo the 31st of that January.
 
 Put into "unrecognised" any requirement you could not express with the other
