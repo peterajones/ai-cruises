@@ -111,6 +111,10 @@
     font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px;
     backdrop-filter: blur(4px);
   }
+  .tour {
+    position: absolute; left: 12px; top: 44px; background: var(--accent); color: var(--accent-ink);
+    font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px;
+  }
   .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
   .title { font-size: 16px; font-weight: 650; line-height: 1.3; letter-spacing: -.01em; }
   .meta { font-size: 13px; color: var(--muted); }
@@ -266,6 +270,7 @@ function buildFacets() {
   const defs = [
     ['destination', 'Destination', v.destination.map(d => [d, titleCase(d)])],
     ['cabin', 'Cabin', v.cabin.map(c => [c, titleCase(c)])],
+    ['tripType', 'Trip type', (v.tripType ?? []).map(t => [t, t === 'cruisetour' ? 'Cruisetour (with land days)' : 'Cruise'])],
     ['departurePort', 'Leaves from', v.departurePort.map(p => [p, p])],
     ['nights', 'Nights', v.nights.map(n => [String(n), n + ' nights'])],
     ['ship', 'Ship', [...new Set(state.all.map(s => s.ship))].sort().map(s => [s, s])],
@@ -322,6 +327,7 @@ function applyFacets(list) {
   let out = list.filter(s =>
     (!f.destination || s.destination === f.destination) &&
     (!f.cabin || s.cabin === f.cabin) &&
+    (!f.tripType || (s.tripType ?? 'cruise') === f.tripType) &&
     (!f.departurePort || s.departurePort === f.departurePort) &&
     (!f.nights || s.nights === +f.nights) &&
     (!f.ship || s.ship === f.ship) &&
@@ -360,6 +366,9 @@ function render() {
     const img = safeUrl(s.image);
     if (img) thumb.append(el('img', { loading: 'lazy', alt: '', src: img }));
     thumb.append(el('span', { class: 'nights', text: `${s.nights} nights` }));
+    if (s.tripType === 'cruisetour') {
+      thumb.append(el('span', { class: 'tour', text: 'Cruisetour · includes land days' }));
+    }
 
     const price = el('div', { class: 'price', text: money(s.price) });
     price.append(el('small', { text: ' pp' }));
