@@ -258,3 +258,24 @@ test('priceFor: data without a table falls back to the cheapest-cabin rule', () 
   assert.deepEqual(priceFor(oldData, 'interior'), { price: 959, cabin: 'interior' });
   assert.equal(priceFor(oldData, 'balcony'), null);
 });
+
+const cabinSailings = [
+  { cabin: 'interior', price: 959, cabinPrices: { interior: 959, balcony: 1459 } },
+  { cabin: 'interior', price: 900, cabinPrices: { interior: 900, balcony: 2400 } },
+  { cabin: 'interior', price: 1142, cabinPrices: null }, // Princess: not listed
+  { cabin: 'interior', price: 700, cabinPrices: { interior: 700 } }, // no balcony
+];
+
+test('a cabin search finds sailings that offer it, not just those where it is cheapest', () => {
+  assert.equal(searchSailings(cabinSailings, { cabin: 'balcony' }).length, 3);
+});
+
+test('a price limit applies to the asked-for cabin, not the cheapest one', () => {
+  const found = searchSailings(cabinSailings, { cabin: 'balcony', maxPrice: 2000 });
+  // 1459 balcony: in. 2400 balcony (cheapest 900): out. Not listed: in. No balcony: out.
+  assert.deepEqual(found.map((s) => s.price), [959, 1142]);
+});
+
+test('without a cabin, price limits still use the cheapest price', () => {
+  assert.equal(searchSailings(cabinSailings, { maxPrice: 950 }).length, 2);
+});

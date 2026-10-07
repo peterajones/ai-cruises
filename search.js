@@ -23,7 +23,14 @@ export function searchSailings(sailings, filter = {}) {
     if (filter.ship && s.ship !== filter.ship) return false;
     if (filter.destination && s.destination !== filter.destination) return false;
     if (filter.departurePort && s.departurePort !== filter.departurePort) return false;
-    if (filter.cabin && s.cabin !== filter.cabin) return false;
+    // The cabin filter means "offers this cabin", and a price limit then applies to
+    // that cabin's price. A not-listed price (Princess) passes: unknown, not too high.
+    const counted = priceFor(s, filter.cabin);
+    if (counted === null) return false;
+    if (!counted.notListed) {
+      if (filter.minPrice != null && counted.price < filter.minPrice) return false;
+      if (filter.maxPrice != null && counted.price > filter.maxPrice) return false;
+    }
     // A sailing scraped before tripType existed (undefined) is a plain cruise. An
     // unrecognised one (null, reported by normalize.js) is neither: not ??, which
     // would turn it into a cruise.
@@ -31,8 +38,6 @@ export function searchSailings(sailings, filter = {}) {
     if (filter.nights != null && s.nights !== filter.nights) return false;
     if (filter.minNights != null && s.nights < filter.minNights) return false;
     if (filter.maxNights != null && s.nights > filter.maxNights) return false;
-    if (filter.minPrice != null && s.price < filter.minPrice) return false;
-    if (filter.maxPrice != null && s.price > filter.maxPrice) return false;
     if (filter.dateFrom && s.departureDate < filter.dateFrom) return false;
     if (filter.dateTo && s.departureDate > filter.dateTo) return false;
     return true;
