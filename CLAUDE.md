@@ -141,7 +141,11 @@ shape, the others keep running.
 - **`#@#` packs a value and a code** (`"Westerdam#@#WE"`); `unpack()` splits it.
 - **Destination codes resolve from `facets.destinations`** in the same response.
 - **No ship descriptions** (`shipDescriptions = false`): ship pages are client-rendered
-  shells. **No images** either — the API has no image field.
+  shells.
+- **The API returns only the fields you ask for** (`fl`), and has ~5,500 per sailing.
+  Copying the site's own search query missed `cruiseOverviewImage` (the card photo,
+  requested `?imwidth=600`: 43 KB instead of 190 KB) and `portImages` (the ports of call).
+  Before concluding a field doesn't exist, ask for `fl=*` on one sailing.
 
 **Cross-currency price searches get a notice, not a refusal.** `search.js` compares bare
 numbers, so "under $800" across USD and CAD is approximate. `currencyNote()` returns the
