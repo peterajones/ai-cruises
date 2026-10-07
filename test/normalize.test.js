@@ -125,6 +125,7 @@ test('a good row becomes a fully canonical Sailing', () => {
     nights: 7,
     cabin: 'balcony',
     price: 1299,
+    cabinPrices: null,
     currency: 'USD',
     tripType: 'cruise',
     itinerary: null,
@@ -194,4 +195,24 @@ test('an unknown tripType is reported and the sailing is kept', () => {
   assert.equal(sailings.length, 1);
   assert.equal(sailings[0].tripType, null);
   assert.deepEqual(unrecognised, [{ field: 'tripType', raw: 'RIVER_FIRST', count: 1 }]);
+});
+
+test('cabinPrices: site labels become cabin types, the cheaper price kept per type', () => {
+  const row = { ...goodRow, cabinPrices: { INTERIOR: 949.94, OUTSIDE: 999.94, BALCONY: 999.94, CONCIERGE: 1199.94 } };
+  const { sailings, unrecognised } = normalizeAll([row], { source: 'celebrity', line: 'Celebrity Cruises' });
+  assert.deepEqual(sailings[0].cabinPrices, { interior: 949.94, oceanview: 999.94, balcony: 999.94 });
+  assert.equal(unrecognised.length, 0);
+});
+
+test('cabinPrices: an unmappable label is reported, and the rest kept', () => {
+  const row = { ...goodRow, cabinPrices: { Inside: 959, Lanai: 1300, Verandah: 1459 } };
+  const { sailings, unrecognised } = normalizeAll([row], { source: 'holland-america', line: 'Holland America' });
+  assert.equal(sailings.length, 1);
+  assert.deepEqual(sailings[0].cabinPrices, { interior: 959, balcony: 1459 });
+  assert.deepEqual(unrecognised, [{ field: 'cabin', raw: 'Lanai', count: 1 }]);
+});
+
+test('cabinPrices: an adapter that supplies none is "not listed"', () => {
+  const { sailings } = normalizeAll([goodRow], { source: 'princess', line: 'Princess' });
+  assert.equal(sailings[0].cabinPrices, null);
 });

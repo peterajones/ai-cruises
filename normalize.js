@@ -145,6 +145,31 @@ export function canonicalCabin(raw) {
   return CABIN_LOOKUP.get(key(raw)) ?? null;
 }
 
+/**
+ * A site's per-cabin prices ({ BALCONY: 1028.16, … }) as cabin types. Two labels
+ * that are one type (Celebrity's Balcony and Concierge) keep the cheaper price. An
+ * adapter that supplies no table gets null: only the cheapest cabin is listed.
+ *
+ * @param {object|undefined|null} raw
+ * @param {(field: string, raw: string) => void} miss
+ * @returns {object|null}
+ */
+function canonicalCabinPrices(raw, miss) {
+  if (raw === undefined || raw === null) return null;
+  const table = {};
+  for (const [label, value] of Object.entries(raw)) {
+    const price = toNumber(value);
+    if (price === null) continue;
+    const cabin = canonicalCabin(label);
+    if (cabin === null) {
+      miss('cabin', String(label));
+      continue;
+    }
+    if (table[cabin] === undefined || price < table[cabin]) table[cabin] = price;
+  }
+  return table;
+}
+
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
 
 export function toIsoDate(raw) {
@@ -222,6 +247,7 @@ export function normalizeAll(rawRows, { source, line }) {
       nights: toNumber(row.nights),
       cabin: null,
       price: toNumber(row.price),
+      cabinPrices: null,
       currency: row.currency ?? 'USD',
       // Adapters that sell only plain cruises never set this, so absent means cruise.
       tripType: row.tripType ?? 'cruise',
@@ -244,6 +270,8 @@ export function normalizeAll(rawRows, { source, line }) {
       sailing.cabin = canonicalCabin(row.cabin);
       if (sailing.cabin === null) miss('cabin', String(row.cabin));
     }
+
+    sailing.cabinPrices = canonicalCabinPrices(row.cabinPrices, miss);
 
     if (!TRIP_TYPES.includes(sailing.tripType)) {
       miss('tripType', String(sailing.tripType));

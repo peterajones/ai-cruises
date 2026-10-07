@@ -24,7 +24,12 @@ export function deriveValues(sailings) {
   return {
     line: uniqueSortedStrings(sailings.map((s) => s.line)),
     destination: uniqueSortedStrings(sailings.map((s) => s.destination)),
-    cabin: uniqueSortedStrings(sailings.map((s) => s.cabin)),
+    // Every cabin type on offer, not just each sailing's cheapest — so "balcony" is
+    // a choice whenever any sailing prices one.
+    cabin: uniqueSortedStrings([
+      ...sailings.map((s) => s.cabin),
+      ...sailings.flatMap((s) => Object.keys(s.cabinPrices ?? {})),
+    ]),
     departurePort: uniqueSortedStrings(sailings.map((s) => s.departurePort)),
     nights: uniqueSortedNumbers(sailings.map((s) => s.nights)),
     // A sailing scraped before tripType existed is a plain cruise; an unrecognised
