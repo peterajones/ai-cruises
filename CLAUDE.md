@@ -66,10 +66,24 @@ a good dataset.
 
 ## Status
 
-**Four lines working** (scraped 2026-10-02): Royal Caribbean (190), Celebrity (119),
-Princess (192), Holland America (760) — 1,261 sailings, every one with a destination and a
-trip type, 14 ships with descriptions, prices $289–$8,446 USD and $347–$3,451 CAD. Alaska:
-809 sailings (Holland America 760, Celebrity 36, Princess 13). 137 tests.
+**Four lines working** (scraped 2026-10-07): Royal Caribbean (179), Celebrity (117),
+Princess (198), Holland America (760) — 1,254 sailings, every one with a destination and a
+trip type, 14 ships with descriptions, cheapest prices $298–$6,439 USD and $347–$3,451 CAD.
+Alaska: 773 sailings (Holland America 760, Princess 13). 159 tests.
+
+**Prices per cabin type.** Every sailing has `cabinPrices` — cabin type → that cabin's
+cheapest price, e.g. `{ interior: 959, oceanview: 1009, balcony: 1459, suite: 2164 }` — and
+`price`/`cabin` stay the cheapest overall. A cabin search means "offers this cabin", and a
+price limit applies to that cabin's price, so "a balcony under $2,000" compares balconies.
+`priceFor(sailing, cabin)` in `search.js` is the one rule: the server's search uses it, and
+the page imports the same file (served at `/search.js`) for the Cabin dropdown, the price
+slider, the sort and each card's headline price. Princess lists only its cheapest cabin, so
+its `cabinPrices` is `null`: in a search for another cabin its cards say "Balcony price not
+listed · from $… interior". Spec: `docs/superpowers/specs/2026-10-03-cabin-prices-design.md`.
+
+**Celebrity and Royal Caribbean read one results page each**, and the site chooses what is
+on it. Coverage by destination drifts between scrapes: Celebrity had 36 Alaska sailings on
+2026-10-02 and none on 2026-10-07. Asking their APIs per destination would fix it.
 
 **Cruisetours are a trip type.** Every sailing has `tripType`: `"cruise"` or
 `"cruisetour"` (a cruise plus land days, sold as one package — only Holland America has
