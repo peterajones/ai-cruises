@@ -16,7 +16,8 @@ import {
 } from './search.js';
 import { deriveValues } from './values.js';
 
-const PORT = 3030;
+// PORT lets a second copy run beside the usual one, e.g. to check a change.
+const PORT = Number(process.env.PORT) || 3030;
 const PUBLIC_DIR = new URL('./public/', import.meta.url).pathname;
 const DATA_FILE = new URL('./data/sailings.json', import.meta.url).pathname;
 
@@ -166,6 +167,14 @@ const server = createServer(async (req, res) => {
         notice: currency?.note ?? null,
         tookMs: Date.now() - started,
       });
+    }
+
+    // The page imports the same filter rules the server uses (priceFor), so the
+    // dropdown and the search can never disagree. search.js has no imports.
+    if (req.method === 'GET' && req.url === '/search.js') {
+      const js = await readFile(new URL('./search.js', import.meta.url));
+      res.writeHead(200, { 'content-type': MIME['.js'] });
+      return res.end(js);
     }
 
     // Static assets from public/, path-traversal guarded.

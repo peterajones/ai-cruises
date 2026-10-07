@@ -9,6 +9,7 @@ import {
   emptyMessage,
   upcoming,
   localDate,
+  priceFor,
 } from '../search.js';
 
 const sailings = [
@@ -223,4 +224,37 @@ test('an unrecognised tripType matches neither trip type', () => {
   assert.equal(searchSailings(odd, { tripType: 'cruise' }).length, 0);
   assert.equal(searchSailings(odd, { tripType: 'cruisetour' }).length, 0);
   assert.equal(searchSailings(odd, {}).length, 1);
+});
+
+// Which price counts for a sailing when a cabin is asked for. One rule, used by the
+// server's search and by the page (which imports this same file).
+const withTable = { cabin: 'interior', price: 959, cabinPrices: { interior: 959, oceanview: 1009, balcony: 1459 } };
+const notListed = { cabin: 'interior', price: 1142, cabinPrices: null }; // Princess
+const oldData = { cabin: 'interior', price: 959 }; // scraped before cabinPrices existed
+
+test('priceFor: no cabin asked for means the cheapest, as before', () => {
+  assert.deepEqual(priceFor(withTable, null), { price: 959, cabin: 'interior' });
+  assert.deepEqual(priceFor(withTable, undefined), { price: 959, cabin: 'interior' });
+});
+
+test('priceFor: a cabin in the table is priced from the table', () => {
+  assert.deepEqual(priceFor(withTable, 'balcony'), { price: 1459, cabin: 'balcony' });
+});
+
+test('priceFor: a cabin missing from the table excludes the sailing', () => {
+  assert.equal(priceFor(withTable, 'suite'), null);
+  assert.equal(priceFor({ cabin: 'interior', price: 959, cabinPrices: {} }, 'interior'), null);
+});
+
+test('priceFor: a not-listed table is included, without a price', () => {
+  assert.deepEqual(priceFor(notListed, 'balcony'), { price: null, cabin: 'balcony', notListed: true });
+});
+
+test('priceFor: a not-listed table still prices the one cabin it does list', () => {
+  assert.deepEqual(priceFor(notListed, 'interior'), { price: 1142, cabin: 'interior' });
+});
+
+test('priceFor: data without a table falls back to the cheapest-cabin rule', () => {
+  assert.deepEqual(priceFor(oldData, 'interior'), { price: 959, cabin: 'interior' });
+  assert.equal(priceFor(oldData, 'balcony'), null);
 });

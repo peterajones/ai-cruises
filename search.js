@@ -40,6 +40,34 @@ export function searchSailings(sailings, filter = {}) {
 }
 
 /**
+ * Which price counts for this sailing when a cabin is asked for — and whether the
+ * sailing qualifies at all. One rule, used by searchSailings and by the page.
+ *
+ * - No cabin asked for: the cheapest price, as it has always been.
+ * - The sailing's cabinPrices table has the cabin: that cabin's price.
+ * - A table without the cabin: null — the sailing does not offer it.
+ * - cabinPrices null (only the cheapest cabin is listed — Princess): the listed
+ *   cabin's price if that is the one asked for, otherwise "not listed".
+ * - cabinPrices undefined (data scraped before the table existed): the old rule,
+ *   matching on the cheapest cabin.
+ *
+ * @param {object} sailing
+ * @param {string|null|undefined} cabin
+ * @returns {{price: number|null, cabin: string|null, notListed?: true}|null}
+ */
+export function priceFor(sailing, cabin) {
+  if (!cabin) return { price: sailing.price, cabin: sailing.cabin };
+
+  const table = sailing.cabinPrices;
+  if (table === undefined || table === null) {
+    if (sailing.cabin === cabin) return { price: sailing.price, cabin };
+    return table === null ? { price: null, cabin, notListed: true } : null;
+  }
+
+  return table[cabin] !== undefined ? { price: table[cabin], cabin } : null;
+}
+
+/**
  * Sailings that have not yet left. One departing today is kept — it is still
  * bookable on the morning of.
  *

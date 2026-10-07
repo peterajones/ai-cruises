@@ -74,7 +74,7 @@ export function priceFor(sailing, cabin)
 | `cabin` not given | `{ price: sailing.price, cabin: sailing.cabin }` — today's behaviour |
 | `cabinPrices` has the cabin | `{ price: cabinPrices[cabin], cabin }` |
 | `cabinPrices` is a table without the cabin | `null` — excluded |
-| `cabinPrices` is `null` (Princess) | `{ price: null, cabin, notListed: true }` — included |
+| `cabinPrices` is `null` (Princess) | the asked-for cabin is the sailing's `cabin`: `{ price: sailing.price, cabin }`; otherwise `{ price: null, cabin, notListed: true }` — included. *(Corrected while planning: Princess does list its cheapest cabin, so that one is priced.)* |
 | `cabinPrices` is `undefined` (data scraped before this change) | `sailing.cabin === cabin ? { price: sailing.price, cabin } : null` — today's rule |
 
 `searchSailings` uses it for the cabin filter, and applies `minPrice`/`maxPrice` to the
