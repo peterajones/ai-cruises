@@ -196,3 +196,40 @@ test('the cabin table folds the suites into one suite price', () => {
   assert.deepEqual(sailings[0].cabinPrices, { interior: 959, oceanview: 1009, balcony: 1459, suite: 2164 });
   assert.ok(sailings.every((s) => s.cabinPrices && s.cabinPrices[s.cabin] === s.price));
 });
+
+// The search API only returns the fields it is asked for; these two were missed at
+// first because the site's own search query does not ask for them.
+test('the overview image becomes a 600px-wide absolute URL', () => {
+  const payload = JSON.stringify({ response: { docs: [{
+    cruiseId: 'D733', price_USD_IN_RESTRICTED_d: 959,
+    cruiseOverviewImage: '/content/dam/hal/itin-destinations/alaska/c146.jpg',
+  }] } });
+  assert.equal(parseListing(payload)[0].image,
+    'https://www.hollandamerica.com/content/dam/hal/itin-destinations/alaska/c146.jpg?imwidth=600');
+});
+
+test('ports of call come from portImages, without the start and end, as short names', () => {
+  const payload = JSON.stringify({ response: { docs: [{
+    cruiseId: 'D733', price_USD_IN_RESTRICTED_d: 959,
+    portImages: [
+      'Seattle, Washington, US#@#/a.jpg#@#',
+      'Juneau, Alaska, US#@#/b.jpg#@#',
+      'Glacier Bay#@#/c.jpg#@#',
+      'Victoria, British Columbia, Canada#@#/d.jpg#@#',
+      'Seattle, Washington, US#@#/e.jpg#@#',
+    ],
+  }] } });
+  assert.deepEqual(parseListing(payload)[0].ports, ['Juneau', 'Glacier Bay', 'Victoria']);
+});
+
+test('a sailing without an image or ports gets none, rather than a broken URL', () => {
+  const row = parseListing(JSON.stringify({ response: { docs: [{ cruiseId: 'X1', price_USD_IN_RESTRICTED_d: 1 }] } }))[0];
+  assert.equal(row.image, null);
+  assert.deepEqual(row.ports, []);
+});
+
+test('the search asks for the image and the ports', () => {
+  const fl = new URL(searchUrl(0)).searchParams.get('fl').split(',');
+  assert.ok(fl.includes('cruiseOverviewImage'));
+  assert.ok(fl.includes('portImages'));
+});

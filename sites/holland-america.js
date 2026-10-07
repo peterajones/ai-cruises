@@ -31,6 +31,9 @@ const FILTERS = ['departDate:[NOW/DAY+1DAY TO *]', 'destinationIds:A', 'soldOut:
 const FIELDS = [
   'cruiseId', 'tourId', 'itineraryId', 'shipName', 'embarkPortName', 'departDate',
   'duration', 'name', 'cruiseType', 'destinationIds', 'contentPath', 'meta',
+  // Not in the site's own search query, so easy to miss: the API returns only what
+  // is asked for, and these two hold the card's picture and its ports of call.
+  'cruiseOverviewImage', 'portImages',
   // Every currency's public fares. Promo-code keys (price_USD_HEP2614AK_d) end in _d
   // but not in a fare type, so these leave out ~600 of them per sailing.
   'price_*_RESTRICTED_d', 'price_*_FLEXIBLE_d', 'price_*_anonymous_d',
@@ -111,6 +114,26 @@ export function cabinFares(doc, currency) {
   return fares;
 }
 
+/**
+ * The overview photo as an absolute URL, 600px wide. The site's image server honours
+ * ?imwidth, which takes this photo from 190 KB to 43 KB for a ~290px card.
+ */
+function overviewImage(path) {
+  if (!path) return null;
+  const url = /^https?:\/\//.test(path) ? path : `${SITE_ORIGIN}${path}`;
+  return `${url}?imwidth=600`;
+}
+
+/**
+ * Ports of call from portImages ("Juneau, Alaska, US#@#/image.jpg#@#"), without the
+ * first and last entries — where the cruise starts and ends — and shortened to the
+ * place name, as the other lines' cards show them.
+ */
+function portsOfCall(portImages) {
+  const names = (portImages ?? []).map((entry) => unpack(entry).value?.split(',')[0].trim()).filter(Boolean);
+  return [...new Set(names.slice(1, -1))];
+}
+
 /** "Inside#@#WE_IN" -> { IN: 'Inside' }: the site's own name for each cabin code. */
 function cabinLabels(meta) {
   const labels = {};
@@ -184,8 +207,8 @@ export function parseListing(payload) {
       currency: fare?.currency ?? null,
       cabinPrices,
       itinerary: doc.name ?? null,
-      image: null,
-      ports: [],
+      image: overviewImage(doc.cruiseOverviewImage),
+      ports: portsOfCall(doc.portImages),
     });
   }
 

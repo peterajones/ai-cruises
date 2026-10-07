@@ -1,6 +1,7 @@
 {
   "response" : {
     "docs" : [ {
+      "cruiseOverviewImage" : "/content/dam/hal/itin-destinations/alaska/c146-alaska-glacier-bay-cruise-ship-desktop.jpg",
       "price_CAD_IN_RESTRICTED_d" : 1323.0,
       "price_AUD_NS_RESTRICTED_d" : 5049.0,
       "price_GBP_VN_FLEXIBLE_d" : 2014.0,
@@ -31,6 +32,7 @@
       "price_CAD_OV_anonymous_d" : 2068.0,
       "price_AUD_VN_FLEXIBLE_d" : 3659.0,
       "price_USD_OV_FLEXIBLE_d" : 1499.0,
+      "portImages" : [ "Seattle, Washington, US#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/cruise-from-seattle/cruises-from-seattle-082224-c037.jpg#@#", "Puget Sound#@#/content/dam/hal/inventory-assets/destinations/ports/271/port-puget-sound-dog-c037.jpg#@#", "Scenic cruising Stephens Passage#@#/content/dam/hal/inventory-assets/destinations/ports/272/port-stephens-passage-alaska-us-whale-c037.jpg#@#", "Juneau, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/jnu/port-jnu-juneau-alaska-us-mountain-c037.jpg#@#", "Glacier Bay#@#/content/dam/hal/inventory-assets/ports/GB1/images/glacier-bay-c037.jpg#@#", "Icy Strait Point, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/is1/port-is1-icy-strait-point-alaska-us-water-c037.jpg#@#", "Sitka, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/sit/port-sitka-alaska-c037.jpg#@#", "Ketchikan, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/ktn/port-ketchikan-alaska-us-c037.jpg#@#", "Victoria, British Columbia, Canada#@#/content/dam/hal/inventory-assets/destinations/ports/yyj/port-victoria-british-columbia-canada-c037.jpg#@#", "Seattle, Washington, US#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/cruise-from-seattle/cruises-from-seattle-082224-c037.jpg#@#" ],
       "price_AUD_LA_anonymous_d" : -1.0,
       "price_EUR_VS_anonymous_d" : -1.0,
       "price_EUR_LA_RESTRICTED_d" : -1.0,
@@ -134,8 +136,9 @@
       "duration" : 7,
       "itineraryId" : "A7E07B"
     }, {
+      "cruiseOverviewImage" : "/content/dam/hal/itin-destinations/alaska/c146-alaska-misty-fjords-desktops.jpg",
       "price_CAD_IN_RESTRICTED_d" : 1234.0,
-      "price_AUD_NS_RESTRICTED_d" : 4689.0,
+      "price_AUD_NS_RESTRICTED_d" : 5079.0,
       "price_GBP_VN_FLEXIBLE_d" : 1754.0,
       "cruiseType" : "",
       "price_USD_PH_anonymous_d" : -1.0,
@@ -151,19 +154,20 @@
       "price_USD_IN_RESTRICTED_d" : 894.0,
       "price_CAD_VS_FLEXIBLE_d" : 3414.0,
       "price_AUD_VS_anonymous_d" : 3829.0,
-      "price_CAD_NS_FLEXIBLE_d" : 5277.0,
+      "price_CAD_NS_FLEXIBLE_d" : 5953.0,
       "price_AUD_VN_RESTRICTED_d" : 2439.0,
       "price_CAD_OV_RESTRICTED_d" : 1910.0,
       "price_EUR_SS_RESTRICTED_d" : 2519.0,
       "price_CAD_SS_anonymous_d" : 4587.0,
       "price_CAD_PH_RESTRICTED_d" : -1.0,
       "price_GBP_VN_RESTRICTED_d" : 1299.0,
-      "price_AUD_NS_anonymous_d" : 5379.0,
+      "price_AUD_NS_anonymous_d" : 5769.0,
       "cruiseId" : "K723",
       "price_AUD_VS_RESTRICTED_d" : 3139.0,
       "price_CAD_OV_anonymous_d" : 2586.0,
       "price_AUD_VN_FLEXIBLE_d" : 3129.0,
       "price_USD_OV_FLEXIBLE_d" : 1874.0,
+      "portImages" : [ "Vancouver, B.C., CA#@#/content/dam/hal/inventory-assets/destinations/ports/yvr/port-vancouver-bc-canadac037.jpg#@#", "Scenic Cruising The Inside Passage#@#/content/dam/hal/inventory-assets/destinations/ports/270/port-the-inside-passage-alaska-us-bear-c037.jpg#@#", "Juneau, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/jnu/port-jnu-juneau-alaska-us-mountain-c037.jpg#@#", "Skagway, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/sgy/port-skagway-alaska-c037.jpg#@#", "Glacier Bay#@#/content/dam/hal/inventory-assets/ports/GB1/images/glacier-bay-c037.jpg#@#", "Ketchikan, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/ktn/port-ketchikan-alaska-us-c037.jpg#@#", "Scenic Cruising The Inside Passage#@#/content/dam/hal/inventory-assets/destinations/ports/270/port-the-inside-passage-alaska-us-bear-c037.jpg#@#", "Vancouver, B.C., CA#@#/content/dam/hal/inventory-assets/destinations/ports/yvr/port-vancouver-bc-canadac037.jpg#@#" ],
       "price_AUD_LA_anonymous_d" : -1.0,
       "price_EUR_VS_anonymous_d" : 2404.0,
       "price_EUR_LA_RESTRICTED_d" : -1.0,
@@ -173,19 +177,19 @@
       "price_EUR_LA_anonymous_d" : -1.0,
       "price_EUR_VN_RESTRICTED_d" : 1479.0,
       "price_AUD_IN_RESTRICTED_d" : 1509.0,
-      "price_GBP_NS_RESTRICTED_d" : 2449.0,
+      "price_GBP_NS_RESTRICTED_d" : 2839.0,
       "price_USD_LA_RESTRICTED_d" : -1.0,
       "price_GBP_VS_RESTRICTED_d" : 1549.0,
       "price_GBP_VS_anonymous_d" : 2004.0,
       "price_CAD_IN_anonymous_d" : 1909.0,
       "price_USD_PH_FLEXIBLE_d" : -1.0,
-      "price_USD_NS_RESTRICTED_d" : 3334.0,
+      "price_USD_NS_RESTRICTED_d" : 3824.0,
       "price_USD_IN_anonymous_d" : 1384.0,
       "price_USD_VS_anonymous_d" : 2474.0,
       "price_USD_VS_RESTRICTED_d" : 1984.0,
       "shipName" : "Koningsdam#@#KO",
-      "price_AUD_NS_FLEXIBLE_d" : 5379.0,
-      "price_GBP_NS_anonymous_d" : 2904.0,
+      "price_AUD_NS_FLEXIBLE_d" : 5769.0,
+      "price_GBP_NS_anonymous_d" : 3294.0,
       "price_AUD_OV_anonymous_d" : 2899.0,
       "price_EUR_SS_FLEXIBLE_d" : 3044.0,
       "price_AUD_LA_RESTRICTED_d" : -1.0,
@@ -197,9 +201,9 @@
       "price_CAD_IN_FLEXIBLE_d" : 1909.0,
       "price_EUR_VS_RESTRICTED_d" : 1879.0,
       "price_GBP_IN_anonymous_d" : 1354.0,
-      "price_USD_NS_anonymous_d" : 3824.0,
-      "price_EUR_NS_RESTRICTED_d" : 2789.0,
-      "price_CAD_NS_anonymous_d" : 5277.0,
+      "price_USD_NS_anonymous_d" : 4314.0,
+      "price_EUR_NS_RESTRICTED_d" : 3149.0,
+      "price_CAD_NS_anonymous_d" : 5953.0,
       "price_EUR_VS_FLEXIBLE_d" : 2404.0,
       "price_USD_IN_FLEXIBLE_d" : 1384.0,
       "price_GBP_VS_FLEXIBLE_d" : 2004.0,
@@ -216,7 +220,7 @@
       "price_EUR_VN_anonymous_d" : 2004.0,
       "price_GBP_SS_anonymous_d" : 2664.0,
       "price_GBP_PH_RESTRICTED_d" : -1.0,
-      "price_USD_NS_FLEXIBLE_d" : 3824.0,
+      "price_USD_NS_FLEXIBLE_d" : 4314.0,
       "price_AUD_PH_anonymous_d" : -1.0,
       "price_AUD_IN_FLEXIBLE_d" : 2199.0,
       "price_CAD_LA_RESTRICTED_d" : -1.0,
@@ -226,19 +230,19 @@
       "meta" : [ "Ocean View#@#KO_OV", "Verandah#@#KO_VN", "Inside#@#KO_IN", "Neptune Suite#@#KO_NS", "Signature Suite#@#KO_SS", "Vista Suite#@#KO_VS" ],
       "price_EUR_PH_RESTRICTED_d" : -1.0,
       "price_AUD_SS_RESTRICTED_d" : 4219.0,
-      "price_GBP_NS_FLEXIBLE_d" : 2904.0,
+      "price_GBP_NS_FLEXIBLE_d" : 3294.0,
       "price_CAD_OV_FLEXIBLE_d" : 2586.0,
       "price_GBP_OV_RESTRICTED_d" : 1259.0,
-      "price_EUR_NS_FLEXIBLE_d" : 3314.0,
+      "price_EUR_NS_FLEXIBLE_d" : 3674.0,
       "price_EUR_IN_FLEXIBLE_d" : 1454.0,
       "price_USD_VN_FLEXIBLE_d" : 1919.0,
       "price_GBP_IN_FLEXIBLE_d" : 1354.0,
       "price_CAD_LA_FLEXIBLE_d" : -1.0,
-      "price_CAD_NS_RESTRICTED_d" : 4601.0,
+      "price_CAD_NS_RESTRICTED_d" : 5277.0,
       "price_GBP_SS_RESTRICTED_d" : 2209.0,
       "price_USD_LA_anonymous_d" : -1.0,
       "price_USD_OV_anonymous_d" : 1874.0,
-      "price_EUR_NS_anonymous_d" : 3314.0,
+      "price_EUR_NS_anonymous_d" : 3674.0,
       "price_CAD_VN_FLEXIBLE_d" : 2648.0,
       "price_CAD_SS_FLEXIBLE_d" : 4587.0,
       "price_AUD_IN_anonymous_d" : 2199.0,
@@ -267,6 +271,7 @@
       "duration" : 7,
       "itineraryId" : "A7G07E"
     }, {
+      "cruiseOverviewImage" : "/content/dam/hal/itin-destinations/alaska/c146-alaska-kodiak-island-grizzly-desktop.jpg",
       "price_CAD_IN_RESTRICTED_d" : 3324.0,
       "price_AUD_NS_RESTRICTED_d" : 0.0,
       "price_GBP_VN_FLEXIBLE_d" : -1.0,
@@ -297,6 +302,7 @@
       "price_CAD_OV_anonymous_d" : 5476.0,
       "price_AUD_VN_FLEXIBLE_d" : -1.0,
       "price_USD_OV_FLEXIBLE_d" : 3969.0,
+      "portImages" : [ "Vancouver, B.C., CA#@#/content/dam/hal/inventory-assets/destinations/ports/yvr/port-vancouver-bc-canadac037.jpg#@#", "Transit the Seymour Narrows#@#/content/dam/hal/inventory-assets/destinations/ports/466/port-transit-the-seymour-narrows-canada-c037.jpg#@#", "Scenic Cruising The Inside Passage#@#/content/dam/hal/inventory-assets/destinations/ports/270/port-the-inside-passage-alaska-us-bear-c037.jpg#@#", "Scenic cruising Bella Bella#@#/content/dam/hal/inventory-assets/destinations/ports/470/port-cruising-bella-bella-canada-c037.jpg#@#", "Scenic cruising Princess Royal Island#@#/content/dam/hal/inventory-assets/ports/454/princess-royal-island-canada-hero-c037.jpg#@#", "Scenic cruising Grenville Channel#@#/content/dam/hal/inventory-assets/destinations/ports/457/port-cruising-grenville-channel-canada-c037.jpg#@#", "Scenic cruising Great Bear Rainforest#@#/content/dam/hal/inventory-assets/ports/455/great-bear-canada-hero-c037.jpg#@#", "Sitka, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/sit/port-sitka-alaska-c037.jpg#@#", "Anchorage, Alaska, US#@#/content/dam/hal/inventory-assets/ports/ANC/images/anchorage-alaska-hero.jpg#@#", "Anchorage, Alaska, US#@#/content/dam/hal/inventory-assets/ports/ANC/images/anchorage-alaska-hero.jpg#@#", "Homer, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/hom/port-hom-homer-alaska-us-water-c037.jpg#@#", "Kodiak, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/adq/port-kodiak-alaska-us-rocks-c037.jpg#@#", "Valdez, Alaska, USA#@#/content/dam/hal/inventory-assets/ports/VDZ/images/valdez-alaska-c037.jpg#@#", "Cruising Hubbard Glacier#@#/content/dam/hal/inventory-assets/destinations/ports/hub/port-hub-hubbard-glacier-canada-c037.jpg#@#", "Glacier Bay#@#/content/dam/hal/inventory-assets/ports/GB1/images/glacier-bay-c037.jpg#@#", "Juneau, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/jnu/port-jnu-juneau-alaska-us-mountain-c037.jpg#@#", "Wrangell, Alaska, US#@#/content/dam/hal/inventory-assets/ports/WRG/images/wrangle-alaska-c037.jpg#@#", "Ketchikan, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/ktn/port-ketchikan-alaska-us-c037.jpg#@#", "Prince Rupert, British Columbia, Canada#@#/content/dam/hal/marketing-assets/Ports/Canada_NewEngland/port-prince-rupert-british-columbia-c037.jpg#@#", "Scenic Cruising The Inside Passage#@#/content/dam/hal/inventory-assets/destinations/ports/270/port-the-inside-passage-alaska-us-bear-c037.jpg#@#", "Vancouver, B.C., CA#@#/content/dam/hal/inventory-assets/destinations/ports/yvr/port-vancouver-bc-canadac037.jpg#@#" ],
       "price_AUD_LA_anonymous_d" : -1.0,
       "price_EUR_VS_anonymous_d" : 0.0,
       "price_EUR_LA_RESTRICTED_d" : -1.0,
@@ -400,6 +406,7 @@
       "duration" : 18,
       "itineraryId" : "A7L18A"
     }, {
+      "cruiseOverviewImage" : "/content/dam/hal/itin-destinations/alaska/c146-alaska-glacier-bay-cruise-ship-desktop.jpg",
       "price_CAD_IN_RESTRICTED_d" : 1323.0,
       "price_AUD_NS_RESTRICTED_d" : 5049.0,
       "price_GBP_VN_FLEXIBLE_d" : 2014.0,
@@ -417,7 +424,7 @@
       "price_USD_IN_RESTRICTED_d" : 959.0,
       "price_CAD_VS_FLEXIBLE_d" : -1.0,
       "price_AUD_VS_anonymous_d" : -1.0,
-      "price_CAD_NS_FLEXIBLE_d" : 4834.0,
+      "price_CAD_NS_FLEXIBLE_d" : 4972.0,
       "price_AUD_VN_RESTRICTED_d" : 2969.0,
       "price_CAD_OV_RESTRICTED_d" : 1392.0,
       "price_EUR_SS_RESTRICTED_d" : 2369.0,
@@ -430,6 +437,7 @@
       "price_CAD_OV_anonymous_d" : 2068.0,
       "price_AUD_VN_FLEXIBLE_d" : 3659.0,
       "price_USD_OV_FLEXIBLE_d" : 1499.0,
+      "portImages" : [ "Seattle, Washington, US#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/cruise-from-seattle/cruises-from-seattle-082224-c037.jpg#@#", "Puget Sound#@#/content/dam/hal/inventory-assets/destinations/ports/271/port-puget-sound-dog-c037.jpg#@#", "Scenic cruising Stephens Passage#@#/content/dam/hal/inventory-assets/destinations/ports/272/port-stephens-passage-alaska-us-whale-c037.jpg#@#", "Juneau, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/jnu/port-jnu-juneau-alaska-us-mountain-c037.jpg#@#", "Glacier Bay#@#/content/dam/hal/inventory-assets/ports/GB1/images/glacier-bay-c037.jpg#@#", "Icy Strait Point, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/is1/port-is1-icy-strait-point-alaska-us-water-c037.jpg#@#", "Sitka, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/sit/port-sitka-alaska-c037.jpg#@#", "Ketchikan, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/ktn/port-ketchikan-alaska-us-c037.jpg#@#", "Victoria, British Columbia, Canada#@#/content/dam/hal/inventory-assets/destinations/ports/yyj/port-victoria-british-columbia-canada-c037.jpg#@#", "Seattle, Washington, US#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/cruise-from-seattle/cruises-from-seattle-082224-c037.jpg#@#" ],
       "price_AUD_LA_anonymous_d" : -1.0,
       "price_EUR_VS_anonymous_d" : -1.0,
       "price_EUR_LA_RESTRICTED_d" : -1.0,
@@ -445,7 +453,7 @@
       "price_GBP_VS_anonymous_d" : -1.0,
       "price_CAD_IN_anonymous_d" : 1999.0,
       "price_USD_PH_FLEXIBLE_d" : -1.0,
-      "price_USD_NS_RESTRICTED_d" : 3014.0,
+      "price_USD_NS_RESTRICTED_d" : 3114.0,
       "price_USD_IN_anonymous_d" : 1449.0,
       "price_USD_VS_anonymous_d" : -1.0,
       "price_USD_VS_RESTRICTED_d" : -1.0,
@@ -463,9 +471,9 @@
       "price_CAD_IN_FLEXIBLE_d" : 1999.0,
       "price_EUR_VS_RESTRICTED_d" : -1.0,
       "price_GBP_IN_anonymous_d" : 1534.0,
-      "price_USD_NS_anonymous_d" : 3504.0,
+      "price_USD_NS_anonymous_d" : 3604.0,
       "price_EUR_NS_RESTRICTED_d" : 3009.0,
-      "price_CAD_NS_anonymous_d" : 4834.0,
+      "price_CAD_NS_anonymous_d" : 4972.0,
       "price_EUR_VS_FLEXIBLE_d" : -1.0,
       "price_USD_IN_FLEXIBLE_d" : 1449.0,
       "price_GBP_VS_FLEXIBLE_d" : -1.0,
@@ -482,7 +490,7 @@
       "price_EUR_VN_anonymous_d" : 2314.0,
       "price_GBP_SS_anonymous_d" : 2534.0,
       "price_GBP_PH_RESTRICTED_d" : -1.0,
-      "price_USD_NS_FLEXIBLE_d" : 3504.0,
+      "price_USD_NS_FLEXIBLE_d" : 3604.0,
       "price_AUD_PH_anonymous_d" : -1.0,
       "price_AUD_IN_FLEXIBLE_d" : 2709.0,
       "price_CAD_LA_RESTRICTED_d" : -1.0,
@@ -500,7 +508,7 @@
       "price_USD_VN_FLEXIBLE_d" : 1949.0,
       "price_GBP_IN_FLEXIBLE_d" : 1534.0,
       "price_CAD_LA_FLEXIBLE_d" : -1.0,
-      "price_CAD_NS_RESTRICTED_d" : 4159.0,
+      "price_CAD_NS_RESTRICTED_d" : 4297.0,
       "price_GBP_SS_RESTRICTED_d" : 2079.0,
       "price_USD_LA_anonymous_d" : -1.0,
       "price_USD_OV_anonymous_d" : 1499.0,
@@ -533,6 +541,7 @@
       "duration" : 7,
       "itineraryId" : "A7E07B"
     }, {
+      "cruiseOverviewImage" : "/content/dam/hal/itin-destinations/alaska/c146-alaska-inside-passage-sunset-desktop.jpg",
       "price_CAD_IN_RESTRICTED_d" : 1289.0,
       "price_AUD_NS_RESTRICTED_d" : 4839.0,
       "price_GBP_VN_FLEXIBLE_d" : 1854.0,
@@ -550,7 +559,7 @@
       "price_USD_IN_RESTRICTED_d" : 934.0,
       "price_CAD_VS_FLEXIBLE_d" : 3483.0,
       "price_AUD_VS_anonymous_d" : 4139.0,
-      "price_CAD_NS_FLEXIBLE_d" : 4725.0,
+      "price_CAD_NS_FLEXIBLE_d" : 5001.0,
       "price_AUD_VN_RESTRICTED_d" : 2599.0,
       "price_CAD_OV_RESTRICTED_d" : 1814.0,
       "price_EUR_SS_RESTRICTED_d" : 2609.0,
@@ -563,6 +572,7 @@
       "price_CAD_OV_anonymous_d" : 2489.0,
       "price_AUD_VN_FLEXIBLE_d" : 3289.0,
       "price_USD_OV_FLEXIBLE_d" : 1804.0,
+      "portImages" : [ "Vancouver, B.C., CA#@#/content/dam/hal/inventory-assets/destinations/ports/yvr/port-vancouver-bc-canadac037.jpg#@#", "Scenic Cruising The Inside Passage#@#/content/dam/hal/inventory-assets/destinations/ports/270/port-the-inside-passage-alaska-us-bear-c037.jpg#@#", "Juneau, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/jnu/port-jnu-juneau-alaska-us-mountain-c037.jpg#@#", "Skagway, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/sgy/port-skagway-alaska-c037.jpg#@#", "Scenic cruising Endicott Arm/Dawes Glacier#@#/content/dam/hal/inventory-assets/ports/100/dawes_glacier-037.jpg#@#", "Ketchikan, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/ktn/port-ketchikan-alaska-us-c037.jpg#@#", "Scenic Cruising The Inside Passage#@#/content/dam/hal/inventory-assets/destinations/ports/270/port-the-inside-passage-alaska-us-bear-c037.jpg#@#", "Vancouver, B.C., CA#@#/content/dam/hal/inventory-assets/destinations/ports/yvr/port-vancouver-bc-canadac037.jpg#@#" ],
       "price_AUD_LA_anonymous_d" : -1.0,
       "price_EUR_VS_anonymous_d" : 2594.0,
       "price_EUR_LA_RESTRICTED_d" : -1.0,
@@ -578,7 +588,7 @@
       "price_GBP_VS_anonymous_d" : 2154.0,
       "price_CAD_IN_anonymous_d" : 1965.0,
       "price_USD_PH_FLEXIBLE_d" : -1.0,
-      "price_USD_NS_RESTRICTED_d" : 2934.0,
+      "price_USD_NS_RESTRICTED_d" : 3134.0,
       "price_USD_IN_anonymous_d" : 1424.0,
       "price_USD_VS_anonymous_d" : 2524.0,
       "price_USD_VS_RESTRICTED_d" : 2034.0,
@@ -596,9 +606,9 @@
       "price_CAD_IN_FLEXIBLE_d" : 1965.0,
       "price_EUR_VS_RESTRICTED_d" : 2069.0,
       "price_GBP_IN_anonymous_d" : 1404.0,
-      "price_USD_NS_anonymous_d" : 3424.0,
+      "price_USD_NS_anonymous_d" : 3624.0,
       "price_EUR_NS_RESTRICTED_d" : 2889.0,
-      "price_CAD_NS_anonymous_d" : 4725.0,
+      "price_CAD_NS_anonymous_d" : 5001.0,
       "price_EUR_VS_FLEXIBLE_d" : 2594.0,
       "price_USD_IN_FLEXIBLE_d" : 1424.0,
       "price_GBP_VS_FLEXIBLE_d" : 2154.0,
@@ -615,7 +625,7 @@
       "price_EUR_VN_anonymous_d" : 2094.0,
       "price_GBP_SS_anonymous_d" : 2744.0,
       "price_GBP_PH_RESTRICTED_d" : -1.0,
-      "price_USD_NS_FLEXIBLE_d" : 3424.0,
+      "price_USD_NS_FLEXIBLE_d" : 3624.0,
       "price_AUD_PH_anonymous_d" : -1.0,
       "price_AUD_IN_FLEXIBLE_d" : 2279.0,
       "price_CAD_LA_RESTRICTED_d" : -1.0,
@@ -633,7 +643,7 @@
       "price_USD_VN_FLEXIBLE_d" : 1899.0,
       "price_GBP_IN_FLEXIBLE_d" : 1404.0,
       "price_CAD_LA_FLEXIBLE_d" : -1.0,
-      "price_CAD_NS_RESTRICTED_d" : 4049.0,
+      "price_CAD_NS_RESTRICTED_d" : 4325.0,
       "price_GBP_SS_RESTRICTED_d" : 2289.0,
       "price_USD_LA_anonymous_d" : -1.0,
       "price_USD_OV_anonymous_d" : 1804.0,
@@ -666,6 +676,7 @@
       "duration" : 7,
       "itineraryId" : "A7G07I"
     }, {
+      "cruiseOverviewImage" : "/content/dam/hal/itin-destinations/alaska/c146-alaska-dawes-glacier-desktop.jpg",
       "price_CAD_IN_RESTRICTED_d" : 1137.0,
       "price_AUD_NS_RESTRICTED_d" : 4659.0,
       "price_USD_PH_anonymous_d" : -1.0,
@@ -684,6 +695,7 @@
       "price_AUD_NS_anonymous_d" : 5349.0,
       "price_AUD_VS_RESTRICTED_d" : -1.0,
       "price_AUD_VN_FLEXIBLE_d" : 3259.0,
+      "portImages" : [ "Seattle, Washington, US#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/cruise-from-seattle/cruises-from-seattle-082224-c037.jpg#@#", "Puget Sound#@#/content/dam/hal/inventory-assets/destinations/ports/271/port-puget-sound-dog-c037.jpg#@#", "Scenic cruising Stephens Passage#@#/content/dam/hal/inventory-assets/destinations/ports/272/port-stephens-passage-alaska-us-whale-c037.jpg#@#", "Juneau, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/jnu/port-jnu-juneau-alaska-us-mountain-c037.jpg#@#", "Scenic cruising Endicott Arm/Dawes Glacier#@#/content/dam/hal/inventory-assets/ports/100/dawes_glacier-037.jpg#@#", "Sitka, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/sit/port-sitka-alaska-c037.jpg#@#", "Ketchikan, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/ktn/port-ketchikan-alaska-us-c037.jpg#@#", "Victoria, British Columbia, Canada#@#/content/dam/hal/inventory-assets/destinations/ports/yyj/port-victoria-british-columbia-canada-c037.jpg#@#", "Seattle, Washington, US#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/cruise-from-seattle/cruises-from-seattle-082224-c037.jpg#@#" ],
       "price_AUD_LA_anonymous_d" : -1.0,
       "price_EUR_VS_anonymous_d" : -1.0,
       "price_EUR_IN_anonymous_d" : 1574.0,
@@ -799,6 +811,7 @@
       "departDate" : "2027-05-02T00:00:00Z",
       "itineraryId" : "A7E07C"
     }, {
+      "cruiseOverviewImage" : "/content/dam/hal/itin-destinations/alaska/c146-alaska-glacier-bay-cruise-ship-desktop.jpg",
       "price_CAD_IN_RESTRICTED_d" : 1420.0,
       "price_AUD_NS_RESTRICTED_d" : 5049.0,
       "price_GBP_VN_FLEXIBLE_d" : 2054.0,
@@ -829,6 +842,7 @@
       "price_CAD_OV_anonymous_d" : 2164.0,
       "price_AUD_VN_FLEXIBLE_d" : 3739.0,
       "price_USD_OV_FLEXIBLE_d" : 1569.0,
+      "portImages" : [ "Seattle, Washington, US#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/cruise-from-seattle/cruises-from-seattle-082224-c037.jpg#@#", "Puget Sound#@#/content/dam/hal/inventory-assets/destinations/ports/271/port-puget-sound-dog-c037.jpg#@#", "Scenic cruising Stephens Passage#@#/content/dam/hal/inventory-assets/destinations/ports/272/port-stephens-passage-alaska-us-whale-c037.jpg#@#", "Juneau, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/jnu/port-jnu-juneau-alaska-us-mountain-c037.jpg#@#", "Glacier Bay#@#/content/dam/hal/inventory-assets/ports/GB1/images/glacier-bay-c037.jpg#@#", "Icy Strait Point, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/is1/port-is1-icy-strait-point-alaska-us-water-c037.jpg#@#", "Sitka, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/sit/port-sitka-alaska-c037.jpg#@#", "Ketchikan, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/ktn/port-ketchikan-alaska-us-c037.jpg#@#", "Victoria, British Columbia, Canada#@#/content/dam/hal/inventory-assets/destinations/ports/yyj/port-victoria-british-columbia-canada-c037.jpg#@#", "Seattle, Washington, US#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/cruise-from-seattle/cruises-from-seattle-082224-c037.jpg#@#" ],
       "price_AUD_LA_anonymous_d" : -1.0,
       "price_EUR_VS_anonymous_d" : -1.0,
       "price_EUR_LA_RESTRICTED_d" : -1.0,
@@ -932,8 +946,9 @@
       "duration" : 7,
       "itineraryId" : "A7E07B"
     }, {
+      "cruiseOverviewImage" : "/content/dam/hal/itin-destinations/alaska/c146-alaska-misty-fjords-desktops.jpg",
       "price_CAD_IN_RESTRICTED_d" : 1323.0,
-      "price_AUD_NS_RESTRICTED_d" : 0.0,
+      "price_AUD_NS_RESTRICTED_d" : 5449.0,
       "price_GBP_VN_FLEXIBLE_d" : 1959.0,
       "cruiseType" : "",
       "price_USD_PH_anonymous_d" : -1.0,
@@ -949,19 +964,20 @@
       "price_USD_IN_RESTRICTED_d" : 959.0,
       "price_CAD_VS_FLEXIBLE_d" : -1.0,
       "price_AUD_VS_anonymous_d" : -1.0,
-      "price_CAD_NS_FLEXIBLE_d" : 0.0,
+      "price_CAD_NS_FLEXIBLE_d" : 6277.0,
       "price_AUD_VN_RESTRICTED_d" : 2729.0,
       "price_CAD_OV_RESTRICTED_d" : 1599.0,
       "price_EUR_SS_RESTRICTED_d" : 2279.0,
       "price_CAD_SS_anonymous_d" : 4166.0,
       "price_CAD_PH_RESTRICTED_d" : -1.0,
       "price_GBP_VN_RESTRICTED_d" : 1439.0,
-      "price_AUD_NS_anonymous_d" : 0.0,
+      "price_AUD_NS_anonymous_d" : 6659.0,
       "cruiseId" : "I731",
       "price_AUD_VS_RESTRICTED_d" : -1.0,
       "price_CAD_OV_anonymous_d" : 2372.0,
       "price_AUD_VN_FLEXIBLE_d" : 3509.0,
       "price_USD_OV_FLEXIBLE_d" : 1719.0,
+      "portImages" : [ "Vancouver, B.C., CA#@#/content/dam/hal/inventory-assets/destinations/ports/yvr/port-vancouver-bc-canadac037.jpg#@#", "Scenic Cruising The Inside Passage#@#/content/dam/hal/inventory-assets/destinations/ports/270/port-the-inside-passage-alaska-us-bear-c037.jpg#@#", "Juneau, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/jnu/port-jnu-juneau-alaska-us-mountain-c037.jpg#@#", "Skagway, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/sgy/port-skagway-alaska-c037.jpg#@#", "Scenic Cruising Tracy Arm#@#/content/dam/hal/inventory-assets/destinations/ports/ta1/port-tracy-arm-alaska-us-glacier-c037.jpg#@#", "Wrangell, Alaska, US#@#/content/dam/hal/inventory-assets/ports/WRG/images/wrangle-alaska-c037.jpg#@#", "Ketchikan, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/ktn/port-ketchikan-alaska-us-c037.jpg#@#", "Scenic Cruising The Inside Passage#@#/content/dam/hal/inventory-assets/destinations/ports/270/port-the-inside-passage-alaska-us-bear-c037.jpg#@#", "Vancouver, B.C., CA#@#/content/dam/hal/inventory-assets/destinations/ports/yvr/port-vancouver-bc-canadac037.jpg#@#" ],
       "price_AUD_LA_anonymous_d" : -1.0,
       "price_EUR_VS_anonymous_d" : -1.0,
       "price_EUR_LA_RESTRICTED_d" : -1.0,
@@ -971,19 +987,19 @@
       "price_EUR_LA_anonymous_d" : -1.0,
       "price_EUR_VN_RESTRICTED_d" : 1649.0,
       "price_AUD_IN_RESTRICTED_d" : 1639.0,
-      "price_GBP_NS_RESTRICTED_d" : 0.0,
+      "price_GBP_NS_RESTRICTED_d" : 3059.0,
       "price_USD_LA_RESTRICTED_d" : -1.0,
       "price_GBP_VS_RESTRICTED_d" : -1.0,
       "price_GBP_VS_anonymous_d" : -1.0,
       "price_CAD_IN_anonymous_d" : 2096.0,
       "price_USD_PH_FLEXIBLE_d" : -1.0,
-      "price_USD_NS_RESTRICTED_d" : 0.0,
+      "price_USD_NS_RESTRICTED_d" : 3989.0,
       "price_USD_IN_anonymous_d" : 1519.0,
       "price_USD_VS_anonymous_d" : -1.0,
       "price_USD_VS_RESTRICTED_d" : -1.0,
       "shipName" : "Nieuw Amsterdam#@#NA",
-      "price_AUD_NS_FLEXIBLE_d" : 0.0,
-      "price_GBP_NS_anonymous_d" : 0.0,
+      "price_AUD_NS_FLEXIBLE_d" : 6659.0,
+      "price_GBP_NS_anonymous_d" : 3579.0,
       "price_AUD_OV_anonymous_d" : 2889.0,
       "price_EUR_SS_FLEXIBLE_d" : 2879.0,
       "price_AUD_LA_RESTRICTED_d" : -1.0,
@@ -995,9 +1011,9 @@
       "price_CAD_IN_FLEXIBLE_d" : 2096.0,
       "price_EUR_VS_RESTRICTED_d" : -1.0,
       "price_GBP_IN_anonymous_d" : 1399.0,
-      "price_USD_NS_anonymous_d" : 0.0,
-      "price_EUR_NS_RESTRICTED_d" : 0.0,
-      "price_CAD_NS_anonymous_d" : 0.0,
+      "price_USD_NS_anonymous_d" : 4549.0,
+      "price_EUR_NS_RESTRICTED_d" : 3489.0,
+      "price_CAD_NS_anonymous_d" : 6277.0,
       "price_EUR_VS_FLEXIBLE_d" : -1.0,
       "price_USD_IN_FLEXIBLE_d" : 1519.0,
       "price_GBP_VS_FLEXIBLE_d" : -1.0,
@@ -1014,7 +1030,7 @@
       "price_EUR_VN_anonymous_d" : 2249.0,
       "price_GBP_SS_anonymous_d" : 2519.0,
       "price_GBP_PH_RESTRICTED_d" : -1.0,
-      "price_USD_NS_FLEXIBLE_d" : 0.0,
+      "price_USD_NS_FLEXIBLE_d" : 4549.0,
       "price_AUD_PH_anonymous_d" : -1.0,
       "price_AUD_IN_FLEXIBLE_d" : 2419.0,
       "price_CAD_LA_RESTRICTED_d" : -1.0,
@@ -1024,19 +1040,19 @@
       "meta" : [ "Signature Suite#@#NA_SS", "Ocean View#@#NA_OV", "Inside#@#NA_IN", "Neptune Suite#@#NA_NS", "Verandah#@#NA_VN" ],
       "price_EUR_PH_RESTRICTED_d" : -1.0,
       "price_AUD_SS_RESTRICTED_d" : 3809.0,
-      "price_GBP_NS_FLEXIBLE_d" : 0.0,
+      "price_GBP_NS_FLEXIBLE_d" : 3579.0,
       "price_CAD_OV_FLEXIBLE_d" : 2372.0,
       "price_GBP_OV_RESTRICTED_d" : 1119.0,
-      "price_EUR_NS_FLEXIBLE_d" : 0.0,
+      "price_EUR_NS_FLEXIBLE_d" : 4089.0,
       "price_EUR_IN_FLEXIBLE_d" : 1609.0,
       "price_USD_VN_FLEXIBLE_d" : 2169.0,
       "price_GBP_IN_FLEXIBLE_d" : 1399.0,
       "price_CAD_LA_FLEXIBLE_d" : -1.0,
-      "price_CAD_NS_RESTRICTED_d" : 0.0,
+      "price_CAD_NS_RESTRICTED_d" : 5505.0,
       "price_GBP_SS_RESTRICTED_d" : 1999.0,
       "price_USD_LA_anonymous_d" : -1.0,
       "price_USD_OV_anonymous_d" : 1719.0,
-      "price_EUR_NS_anonymous_d" : 0.0,
+      "price_EUR_NS_anonymous_d" : 4089.0,
       "price_CAD_VN_FLEXIBLE_d" : 2993.0,
       "price_CAD_SS_FLEXIBLE_d" : 4166.0,
       "price_AUD_IN_anonymous_d" : 2419.0,
@@ -1065,8 +1081,9 @@
       "duration" : 8,
       "itineraryId" : "A7G08A"
     }, {
-      "price_CAD_IN_RESTRICTED_d" : 1393.0,
-      "price_AUD_NS_RESTRICTED_d" : 5459.0,
+      "cruiseOverviewImage" : "/content/dam/hal/itin-destinations/alaska/c146-alaska-inside-passage-whale-desktop.jpg",
+      "price_CAD_IN_RESTRICTED_d" : 1420.0,
+      "price_AUD_NS_RESTRICTED_d" : 5849.0,
       "price_GBP_VN_FLEXIBLE_d" : 1904.0,
       "cruiseType" : "",
       "price_USD_PH_anonymous_d" : -1.0,
@@ -1079,22 +1096,23 @@
       "price_GBP_PH_FLEXIBLE_d" : -1.0,
       "price_USD_PH_RESTRICTED_d" : -1.0,
       "price_EUR_PH_FLEXIBLE_d" : -1.0,
-      "price_USD_IN_RESTRICTED_d" : 1009.0,
+      "price_USD_IN_RESTRICTED_d" : 1029.0,
       "price_CAD_VS_FLEXIBLE_d" : 3890.0,
       "price_AUD_VS_anonymous_d" : 4369.0,
-      "price_CAD_NS_FLEXIBLE_d" : 6098.0,
+      "price_CAD_NS_FLEXIBLE_d" : 6774.0,
       "price_AUD_VN_RESTRICTED_d" : 2749.0,
       "price_CAD_OV_RESTRICTED_d" : 2179.0,
       "price_EUR_SS_RESTRICTED_d" : 2889.0,
       "price_CAD_SS_anonymous_d" : 5132.0,
       "price_CAD_PH_RESTRICTED_d" : -1.0,
       "price_GBP_VN_RESTRICTED_d" : 1449.0,
-      "price_AUD_NS_anonymous_d" : 6149.0,
+      "price_AUD_NS_anonymous_d" : 6759.0,
       "cruiseId" : "K727",
       "price_AUD_VS_RESTRICTED_d" : 3679.0,
       "price_CAD_OV_anonymous_d" : 2855.0,
       "price_AUD_VN_FLEXIBLE_d" : 3439.0,
       "price_USD_OV_FLEXIBLE_d" : 2069.0,
+      "portImages" : [ "Vancouver, B.C., CA#@#/content/dam/hal/inventory-assets/destinations/ports/yvr/port-vancouver-bc-canadac037.jpg#@#", "Scenic Cruising The Inside Passage#@#/content/dam/hal/inventory-assets/destinations/ports/270/port-the-inside-passage-alaska-us-bear-c037.jpg#@#", "Tracy Arm Inlet#@#/content/dam/hal/inventory-assets/destinations/ports/tac/port-tracy-arm-inlet-c037.jpg#@#", "Juneau, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/jnu/port-jnu-juneau-alaska-us-mountain-c037.jpg#@#", "Skagway, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/sgy/port-skagway-alaska-c037.jpg#@#", "Glacier Bay#@#/content/dam/hal/inventory-assets/ports/GB1/images/glacier-bay-c037.jpg#@#", "Ketchikan, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/ktn/port-ketchikan-alaska-us-c037.jpg#@#", "Scenic Cruising The Inside Passage#@#/content/dam/hal/inventory-assets/destinations/ports/270/port-the-inside-passage-alaska-us-bear-c037.jpg#@#", "Vancouver, B.C., CA#@#/content/dam/hal/inventory-assets/destinations/ports/yvr/port-vancouver-bc-canadac037.jpg#@#" ],
       "price_AUD_LA_anonymous_d" : -1.0,
       "price_EUR_VS_anonymous_d" : 2724.0,
       "price_EUR_LA_RESTRICTED_d" : -1.0,
@@ -1104,19 +1122,19 @@
       "price_EUR_LA_anonymous_d" : -1.0,
       "price_EUR_VN_RESTRICTED_d" : 1659.0,
       "price_AUD_IN_RESTRICTED_d" : 1589.0,
-      "price_GBP_NS_RESTRICTED_d" : 2849.0,
+      "price_GBP_NS_RESTRICTED_d" : 3239.0,
       "price_USD_LA_RESTRICTED_d" : -1.0,
       "price_GBP_VS_RESTRICTED_d" : 1799.0,
       "price_GBP_VS_anonymous_d" : 2254.0,
-      "price_CAD_IN_anonymous_d" : 2068.0,
+      "price_CAD_IN_anonymous_d" : 2096.0,
       "price_USD_PH_FLEXIBLE_d" : -1.0,
-      "price_USD_NS_RESTRICTED_d" : 3929.0,
-      "price_USD_IN_anonymous_d" : 1499.0,
+      "price_USD_NS_RESTRICTED_d" : 4419.0,
+      "price_USD_IN_anonymous_d" : 1519.0,
       "price_USD_VS_anonymous_d" : 2819.0,
       "price_USD_VS_RESTRICTED_d" : 2329.0,
       "shipName" : "Koningsdam#@#KO",
-      "price_AUD_NS_FLEXIBLE_d" : 6149.0,
-      "price_GBP_NS_anonymous_d" : 3304.0,
+      "price_AUD_NS_FLEXIBLE_d" : 6759.0,
+      "price_GBP_NS_anonymous_d" : 3694.0,
       "price_AUD_OV_anonymous_d" : 2979.0,
       "price_EUR_SS_FLEXIBLE_d" : 3414.0,
       "price_AUD_LA_RESTRICTED_d" : -1.0,
@@ -1125,14 +1143,14 @@
       "price_AUD_PH_RESTRICTED_d" : -1.0,
       "price_AUD_PH_FLEXIBLE_d" : -1.0,
       "price_CAD_SS_RESTRICTED_d" : 4456.0,
-      "price_CAD_IN_FLEXIBLE_d" : 2068.0,
+      "price_CAD_IN_FLEXIBLE_d" : 2096.0,
       "price_EUR_VS_RESTRICTED_d" : 2199.0,
       "price_GBP_IN_anonymous_d" : 1404.0,
-      "price_USD_NS_anonymous_d" : 4419.0,
-      "price_EUR_NS_RESTRICTED_d" : 3249.0,
-      "price_CAD_NS_anonymous_d" : 6098.0,
+      "price_USD_NS_anonymous_d" : 4909.0,
+      "price_EUR_NS_RESTRICTED_d" : 3599.0,
+      "price_CAD_NS_anonymous_d" : 6774.0,
       "price_EUR_VS_FLEXIBLE_d" : 2724.0,
-      "price_USD_IN_FLEXIBLE_d" : 1499.0,
+      "price_USD_IN_FLEXIBLE_d" : 1519.0,
       "price_GBP_VS_FLEXIBLE_d" : 2254.0,
       "price_AUD_OV_FLEXIBLE_d" : 2979.0,
       "price_GBP_LA_FLEXIBLE_d" : -1.0,
@@ -1147,7 +1165,7 @@
       "price_EUR_VN_anonymous_d" : 2184.0,
       "price_GBP_SS_anonymous_d" : 2984.0,
       "price_GBP_PH_RESTRICTED_d" : -1.0,
-      "price_USD_NS_FLEXIBLE_d" : 4419.0,
+      "price_USD_NS_FLEXIBLE_d" : 4909.0,
       "price_AUD_PH_anonymous_d" : -1.0,
       "price_AUD_IN_FLEXIBLE_d" : 2279.0,
       "price_CAD_LA_RESTRICTED_d" : -1.0,
@@ -1157,19 +1175,19 @@
       "meta" : [ "Ocean View#@#KO_OV", "Verandah#@#KO_VN", "Inside#@#KO_IN", "Neptune Suite#@#KO_NS", "Signature Suite#@#KO_SS", "Vista Suite#@#KO_VS" ],
       "price_EUR_PH_RESTRICTED_d" : -1.0,
       "price_AUD_SS_RESTRICTED_d" : 4839.0,
-      "price_GBP_NS_FLEXIBLE_d" : 3304.0,
+      "price_GBP_NS_FLEXIBLE_d" : 3694.0,
       "price_CAD_OV_FLEXIBLE_d" : 2855.0,
       "price_GBP_OV_RESTRICTED_d" : 1359.0,
-      "price_EUR_NS_FLEXIBLE_d" : 3774.0,
+      "price_EUR_NS_FLEXIBLE_d" : 4124.0,
       "price_EUR_IN_FLEXIBLE_d" : 1494.0,
       "price_USD_VN_FLEXIBLE_d" : 2169.0,
       "price_GBP_IN_FLEXIBLE_d" : 1404.0,
       "price_CAD_LA_FLEXIBLE_d" : -1.0,
-      "price_CAD_NS_RESTRICTED_d" : 5422.0,
+      "price_CAD_NS_RESTRICTED_d" : 6098.0,
       "price_GBP_SS_RESTRICTED_d" : 2529.0,
       "price_USD_LA_anonymous_d" : -1.0,
       "price_USD_OV_anonymous_d" : 2069.0,
-      "price_EUR_NS_anonymous_d" : 3774.0,
+      "price_EUR_NS_anonymous_d" : 4124.0,
       "price_CAD_VN_FLEXIBLE_d" : 2993.0,
       "price_CAD_SS_FLEXIBLE_d" : 5132.0,
       "price_AUD_IN_anonymous_d" : 2279.0,
@@ -1198,24 +1216,26 @@
       "duration" : 7,
       "itineraryId" : "A7G07F"
     }, {
-      "price_CAD_IN_RESTRICTED_d" : 1199.0,
+      "cruiseOverviewImage" : "/content/dam/hal/itin-destinations/alaska/c146-alaska-dawes-glacier-desktop.jpg",
+      "price_CAD_IN_RESTRICTED_d" : 1158.0,
       "price_AUD_NS_RESTRICTED_d" : 4659.0,
       "price_USD_PH_anonymous_d" : -1.0,
-      "price_USD_SS_anonymous_d" : 2264.0,
+      "price_USD_SS_anonymous_d" : 2199.0,
       "contentPath" : "/find-a-cruise/a7e07c/n727",
       "price_USD_VN_anonymous_d" : 1664.0,
       "destinationIds" : [ "A" ],
       "price_USD_PH_RESTRICTED_d" : -1.0,
-      "price_USD_IN_RESTRICTED_d" : 869.0,
+      "price_USD_IN_RESTRICTED_d" : 839.0,
       "price_CAD_VS_FLEXIBLE_d" : -1.0,
       "price_AUD_VS_anonymous_d" : -1.0,
-      "price_CAD_NS_FLEXIBLE_d" : 4096.0,
+      "price_CAD_NS_FLEXIBLE_d" : 4027.0,
       "price_AUD_VN_RESTRICTED_d" : 2569.0,
-      "price_CAD_SS_anonymous_d" : 3124.0,
+      "price_CAD_SS_anonymous_d" : 3034.0,
       "price_CAD_PH_RESTRICTED_d" : -1.0,
       "price_AUD_NS_anonymous_d" : 5349.0,
       "price_AUD_VS_RESTRICTED_d" : -1.0,
       "price_AUD_VN_FLEXIBLE_d" : 3259.0,
+      "portImages" : [ "Seattle, Washington, US#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/cruise-from-seattle/cruises-from-seattle-082224-c037.jpg#@#", "Puget Sound#@#/content/dam/hal/inventory-assets/destinations/ports/271/port-puget-sound-dog-c037.jpg#@#", "Scenic cruising Stephens Passage#@#/content/dam/hal/inventory-assets/destinations/ports/272/port-stephens-passage-alaska-us-whale-c037.jpg#@#", "Juneau, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/jnu/port-jnu-juneau-alaska-us-mountain-c037.jpg#@#", "Scenic cruising Endicott Arm/Dawes Glacier#@#/content/dam/hal/inventory-assets/ports/100/dawes_glacier-037.jpg#@#", "Sitka, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/sit/port-sitka-alaska-c037.jpg#@#", "Ketchikan, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/ktn/port-ketchikan-alaska-us-c037.jpg#@#", "Victoria, British Columbia, Canada#@#/content/dam/hal/inventory-assets/destinations/ports/yyj/port-victoria-british-columbia-canada-c037.jpg#@#", "Seattle, Washington, US#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/cruise-from-seattle/cruises-from-seattle-082224-c037.jpg#@#" ],
       "price_AUD_LA_anonymous_d" : -1.0,
       "price_EUR_VS_anonymous_d" : -1.0,
       "price_EUR_IN_anonymous_d" : 1624.0,
@@ -1223,18 +1243,18 @@
       "price_EUR_LA_anonymous_d" : -1.0,
       "price_EUR_VN_RESTRICTED_d" : 1549.0,
       "price_GBP_VS_anonymous_d" : -1.0,
-      "price_CAD_IN_anonymous_d" : 1923.0,
-      "price_USD_IN_anonymous_d" : 1394.0,
+      "price_CAD_IN_anonymous_d" : 1882.0,
+      "price_USD_IN_anonymous_d" : 1364.0,
       "price_USD_VS_anonymous_d" : -1.0,
       "price_GBP_NS_anonymous_d" : 2894.0,
       "price_AUD_OV_anonymous_d" : 2639.0,
       "price_AUD_PH_FLEXIBLE_d" : -1.0,
-      "price_CAD_IN_FLEXIBLE_d" : 1923.0,
+      "price_CAD_IN_FLEXIBLE_d" : 1882.0,
       "price_EUR_VS_RESTRICTED_d" : -1.0,
       "price_GBP_IN_anonymous_d" : 1414.0,
-      "price_USD_NS_anonymous_d" : 2969.0,
+      "price_USD_NS_anonymous_d" : 2919.0,
       "price_EUR_NS_RESTRICTED_d" : 2779.0,
-      "price_CAD_NS_anonymous_d" : 4096.0,
+      "price_CAD_NS_anonymous_d" : 4027.0,
       "price_EUR_VS_FLEXIBLE_d" : -1.0,
       "price_GBP_VS_FLEXIBLE_d" : -1.0,
       "price_AUD_OV_FLEXIBLE_d" : 2639.0,
@@ -1244,42 +1264,42 @@
       "price_EUR_LA_FLEXIBLE_d" : -1.0,
       "price_CAD_VS_anonymous_d" : -1.0,
       "price_GBP_SS_anonymous_d" : 2254.0,
-      "price_USD_NS_FLEXIBLE_d" : 2969.0,
+      "price_USD_NS_FLEXIBLE_d" : 2919.0,
       "price_CAD_LA_RESTRICTED_d" : -1.0,
       "embarkPortName" : "Seattle, Washington, US#@#SEA",
       "meta" : [ "Inside#@#NO_IN", "Neptune Suite#@#NO_NS", "Ocean View#@#NO_OV", "Verandah#@#NO_VN", "Signature Suite#@#NO_SS" ],
       "price_EUR_PH_RESTRICTED_d" : -1.0,
-      "price_CAD_OV_FLEXIBLE_d" : 1978.0,
+      "price_CAD_OV_FLEXIBLE_d" : 1951.0,
       "price_GBP_OV_RESTRICTED_d" : 1039.0,
       "price_EUR_NS_FLEXIBLE_d" : 3304.0,
       "price_USD_VN_FLEXIBLE_d" : 1664.0,
       "price_GBP_IN_FLEXIBLE_d" : 1414.0,
       "price_GBP_SS_RESTRICTED_d" : 1799.0,
-      "price_USD_OV_anonymous_d" : 1434.0,
+      "price_USD_OV_anonymous_d" : 1414.0,
       "price_CAD_VN_FLEXIBLE_d" : 2296.0,
-      "price_CAD_SS_FLEXIBLE_d" : 3124.0,
+      "price_CAD_SS_FLEXIBLE_d" : 3034.0,
       "price_EUR_OV_FLEXIBLE_d" : 1714.0,
       "price_AUD_VS_FLEXIBLE_d" : -1.0,
-      "price_USD_SS_FLEXIBLE_d" : 2264.0,
+      "price_USD_SS_FLEXIBLE_d" : 2199.0,
       "price_CAD_VS_RESTRICTED_d" : -1.0,
       "price_GBP_PH_anonymous_d" : -1.0,
       "price_GBP_OV_anonymous_d" : 1494.0,
       "price_CAD_PH_anonymous_d" : -1.0,
       "price_AUD_LA_FLEXIBLE_d" : -1.0,
       "price_CAD_VN_anonymous_d" : 2296.0,
-      "price_USD_SS_RESTRICTED_d" : 1739.0,
+      "price_USD_SS_RESTRICTED_d" : 1674.0,
       "price_GBP_VN_FLEXIBLE_d" : 1814.0,
       "cruiseType" : "",
       "price_EUR_VN_FLEXIBLE_d" : 2074.0,
-      "price_USD_OV_RESTRICTED_d" : 909.0,
+      "price_USD_OV_RESTRICTED_d" : 889.0,
       "price_GBP_PH_FLEXIBLE_d" : -1.0,
       "price_EUR_PH_FLEXIBLE_d" : -1.0,
-      "price_CAD_OV_RESTRICTED_d" : 1255.0,
+      "price_CAD_OV_RESTRICTED_d" : 1227.0,
       "price_EUR_SS_RESTRICTED_d" : 2049.0,
       "price_GBP_VN_RESTRICTED_d" : 1359.0,
       "cruiseId" : "N727",
-      "price_CAD_OV_anonymous_d" : 1978.0,
-      "price_USD_OV_FLEXIBLE_d" : 1434.0,
+      "price_CAD_OV_anonymous_d" : 1951.0,
+      "price_USD_OV_FLEXIBLE_d" : 1414.0,
       "price_EUR_LA_RESTRICTED_d" : -1.0,
       "price_CAD_PH_FLEXIBLE_d" : -1.0,
       "price_AUD_IN_RESTRICTED_d" : 1789.0,
@@ -1287,7 +1307,7 @@
       "price_USD_LA_RESTRICTED_d" : -1.0,
       "price_GBP_VS_RESTRICTED_d" : -1.0,
       "price_USD_PH_FLEXIBLE_d" : -1.0,
-      "price_USD_NS_RESTRICTED_d" : 2444.0,
+      "price_USD_NS_RESTRICTED_d" : 2394.0,
       "price_USD_VS_RESTRICTED_d" : -1.0,
       "shipName" : "Noordam#@#NO",
       "price_AUD_NS_FLEXIBLE_d" : 5349.0,
@@ -1296,8 +1316,8 @@
       "price_GBP_SS_FLEXIBLE_d" : 2254.0,
       "price_USD_VN_RESTRICTED_d" : 1139.0,
       "price_AUD_PH_RESTRICTED_d" : -1.0,
-      "price_CAD_SS_RESTRICTED_d" : 2400.0,
-      "price_USD_IN_FLEXIBLE_d" : 1394.0,
+      "price_CAD_SS_RESTRICTED_d" : 2310.0,
+      "price_USD_IN_FLEXIBLE_d" : 1364.0,
       "price_GBP_LA_FLEXIBLE_d" : -1.0,
       "price_EUR_PH_anonymous_d" : -1.0,
       "tourId" : "",
@@ -1312,7 +1332,7 @@
       "price_GBP_NS_FLEXIBLE_d" : 2894.0,
       "price_EUR_IN_FLEXIBLE_d" : 1624.0,
       "price_CAD_LA_FLEXIBLE_d" : -1.0,
-      "price_CAD_NS_RESTRICTED_d" : 3373.0,
+      "price_CAD_NS_RESTRICTED_d" : 3304.0,
       "price_USD_LA_anonymous_d" : -1.0,
       "price_EUR_NS_anonymous_d" : 3304.0,
       "price_AUD_IN_anonymous_d" : 2479.0,
@@ -1331,6 +1351,7 @@
       "departDate" : "2027-05-09T00:00:00Z",
       "itineraryId" : "A7E07C"
     }, {
+      "cruiseOverviewImage" : "/content/dam/hal/itin-destinations/alaska/c146-alaska-glacier-bay-calving-desktop.jpg",
       "price_CAD_IN_RESTRICTED_d" : 1062.0,
       "price_AUD_NS_RESTRICTED_d" : 0.0,
       "price_GBP_VN_FLEXIBLE_d" : 0.0,
@@ -1361,15 +1382,16 @@
       "price_CAD_OV_anonymous_d" : 1889.0,
       "price_AUD_VN_FLEXIBLE_d" : 0.0,
       "price_USD_OV_FLEXIBLE_d" : 1369.0,
+      "portImages" : [ "Vancouver, B.C., CA#@#/content/dam/hal/inventory-assets/destinations/ports/yvr/port-vancouver-bc-canadac037.jpg#@#", "Scenic Cruising The Inside Passage#@#/content/dam/hal/inventory-assets/destinations/ports/270/port-the-inside-passage-alaska-us-bear-c037.jpg#@#", "Ketchikan, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/ktn/port-ketchikan-alaska-us-c037.jpg#@#", "Juneau, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/jnu/port-jnu-juneau-alaska-us-mountain-c037.jpg#@#", "Skagway, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/sgy/port-skagway-alaska-c037.jpg#@#", "Glacier Bay#@#/content/dam/hal/inventory-assets/ports/GB1/images/glacier-bay-c037.jpg#@#", "College Fjord#@#/content/dam/hal/inventory-assets/AFAR/afar-college-fjord-alaska-c037.jpg#@#", "Whittier, Alaska, US#@#/content/dam/hal/inventory-assets/ports/WH1/whittier-alaska-c037.jpg#@#" ],
       "price_AUD_LA_anonymous_d" : -1.0,
       "price_EUR_VS_anonymous_d" : -1.0,
       "price_EUR_LA_RESTRICTED_d" : -1.0,
       "price_CAD_PH_FLEXIBLE_d" : -1.0,
       "price_EUR_IN_anonymous_d" : 1374.0,
-      "price_AUD_OV_RESTRICTED_d" : 2529.0,
+      "price_AUD_OV_RESTRICTED_d" : 1859.0,
       "price_EUR_LA_anonymous_d" : -1.0,
       "price_EUR_VN_RESTRICTED_d" : 0.0,
-      "price_AUD_IN_RESTRICTED_d" : 2059.0,
+      "price_AUD_IN_RESTRICTED_d" : 1399.0,
       "price_GBP_NS_RESTRICTED_d" : 0.0,
       "price_USD_LA_RESTRICTED_d" : -1.0,
       "price_GBP_VS_RESTRICTED_d" : -1.0,
@@ -1400,7 +1422,7 @@
       "price_EUR_VS_FLEXIBLE_d" : -1.0,
       "price_USD_IN_FLEXIBLE_d" : 1259.0,
       "price_GBP_VS_FLEXIBLE_d" : -1.0,
-      "price_AUD_OV_FLEXIBLE_d" : 1899.0,
+      "price_AUD_OV_FLEXIBLE_d" : 2529.0,
       "price_GBP_LA_FLEXIBLE_d" : -1.0,
       "price_EUR_PH_anonymous_d" : -1.0,
       "tourId" : "",
@@ -1415,7 +1437,7 @@
       "price_GBP_PH_RESTRICTED_d" : -1.0,
       "price_USD_NS_FLEXIBLE_d" : 0.0,
       "price_AUD_PH_anonymous_d" : -1.0,
-      "price_AUD_IN_FLEXIBLE_d" : 1429.0,
+      "price_AUD_IN_FLEXIBLE_d" : 2059.0,
       "price_CAD_LA_RESTRICTED_d" : -1.0,
       "embarkPortName" : "Vancouver, B.C., CA#@#YVR",
       "price_AUD_VN_anonymous_d" : 0.0,
@@ -1465,6 +1487,7 @@
       "itineraryId" : "A7N07C"
     }, {
       "price_CAD_PH_FLEXIBLE_d" : -1.0,
+      "cruiseOverviewImage" : "/content/dam/hal/itin-destinations/alaska/c146-cruisetour-tundra-wilderness-tour-bus-desktop.jpg",
       "price_CAD_IN_RESTRICTED_d" : 3207.0,
       "price_EUR_IN_FLEXIBLE_d" : 3074.0,
       "price_AUD_NS_RESTRICTED_d" : 6589.0,
@@ -1561,6 +1584,7 @@
       "price_AUD_VN_FLEXIBLE_d" : 6139.0,
       "price_AUD_IN_FLEXIBLE_d" : 4869.0,
       "price_USD_OV_FLEXIBLE_d" : 3169.0,
+      "portImages" : [ "Vancouver, B.C., CA#@#/content/dam/hal/inventory-assets/destinations/ports/yvr/port-vancouver-bc-canadac037.jpg#@#", "Scenic Cruising The Inside Passage#@#/content/dam/hal/inventory-assets/destinations/ports/270/port-the-inside-passage-alaska-us-bear-c037.jpg#@#", "Ketchikan, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/ktn/port-ketchikan-alaska-us-c037.jpg#@#", "Juneau, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/jnu/port-jnu-juneau-alaska-us-mountain-c037.jpg#@#", "Skagway, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/sgy/port-skagway-alaska-c037.jpg#@#", "Glacier Bay#@#/content/dam/hal/inventory-assets/ports/GB1/images/glacier-bay-c037.jpg#@#", "College Fjord#@#/content/dam/hal/inventory-assets/AFAR/afar-college-fjord-alaska-c037.jpg#@#", "Whittier, Alaska, US#@#/content/dam/hal/inventory-assets/ports/WH1/whittier-alaska-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Fairbanks, Alaska#@#/content/dam/hal/inventory-assets/destinations/ports/fai/c105-port-alaska-fairbanks-aerial.jpg#@#", "Fairbanks, Alaska#@#/content/dam/hal/inventory-assets/destinations/ports/fai/c105-port-alaska-fairbanks-aerial.jpg#@#" ],
       "price_CAD_LA_RESTRICTED_d" : -1.0,
       "price_CAD_LA_anonymous_d" : -1.0,
       "embarkPortName" : "Vancouver, B.C., CA#@#YVR",
@@ -1598,6 +1622,7 @@
       "itineraryId" : "A7N07CD0C"
     }, {
       "price_CAD_PH_FLEXIBLE_d" : -1.0,
+      "cruiseOverviewImage" : "/content/dam/hal/itin-destinations/alaska/c146-cruisetour-denali-cloudy-desktop.jpg",
       "price_CAD_IN_RESTRICTED_d" : 3870.0,
       "price_EUR_IN_FLEXIBLE_d" : 3704.0,
       "price_AUD_NS_RESTRICTED_d" : 7349.0,
@@ -1694,6 +1719,7 @@
       "price_AUD_VN_FLEXIBLE_d" : 6899.0,
       "price_AUD_IN_FLEXIBLE_d" : 5629.0,
       "price_USD_OV_FLEXIBLE_d" : 3699.0,
+      "portImages" : [ "Vancouver, B.C., CA#@#/content/dam/hal/inventory-assets/destinations/ports/yvr/port-vancouver-bc-canadac037.jpg#@#", "Scenic Cruising The Inside Passage#@#/content/dam/hal/inventory-assets/destinations/ports/270/port-the-inside-passage-alaska-us-bear-c037.jpg#@#", "Ketchikan, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/ktn/port-ketchikan-alaska-us-c037.jpg#@#", "Juneau, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/jnu/port-jnu-juneau-alaska-us-mountain-c037.jpg#@#", "Skagway, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/sgy/port-skagway-alaska-c037.jpg#@#", "Glacier Bay#@#/content/dam/hal/inventory-assets/ports/GB1/images/glacier-bay-c037.jpg#@#", "College Fjord#@#/content/dam/hal/inventory-assets/AFAR/afar-college-fjord-alaska-c037.jpg#@#", "Whittier, Alaska, US#@#/content/dam/hal/inventory-assets/ports/WH1/whittier-alaska-c037.jpg#@#", "Anchorage, Alaska, US#@#/content/dam/hal/inventory-assets/ports/ANC/images/anchorage-alaska-hero.jpg#@#", "Anchorage, Alaska, US#@#/content/dam/hal/inventory-assets/ports/ANC/images/anchorage-alaska-hero.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Fairbanks, Alaska#@#/content/dam/hal/inventory-assets/destinations/ports/fai/c105-port-alaska-fairbanks-aerial.jpg#@#", "Fairbanks, Alaska#@#/content/dam/hal/inventory-assets/destinations/ports/fai/c105-port-alaska-fairbanks-aerial.jpg#@#" ],
       "price_CAD_LA_RESTRICTED_d" : -1.0,
       "price_CAD_LA_anonymous_d" : -1.0,
       "embarkPortName" : "Vancouver, B.C., CA#@#YVR",
@@ -1731,6 +1757,7 @@
       "itineraryId" : "A7N07CD1C"
     }, {
       "price_CAD_PH_FLEXIBLE_d" : -1.0,
+      "cruiseOverviewImage" : "/content/dam/hal/itin-destinations/alaska/c146-cruisetour-denali-park-fall-desktop.jpg",
       "price_CAD_IN_RESTRICTED_d" : 3007.0,
       "price_EUR_IN_FLEXIBLE_d" : 3254.0,
       "price_AUD_NS_RESTRICTED_d" : 6949.0,
@@ -1827,6 +1854,7 @@
       "price_AUD_VN_FLEXIBLE_d" : 6299.0,
       "price_AUD_IN_FLEXIBLE_d" : 5029.0,
       "price_USD_OV_FLEXIBLE_d" : 3074.0,
+      "portImages" : [ "Vancouver, B.C., CA#@#/content/dam/hal/inventory-assets/destinations/ports/yvr/port-vancouver-bc-canadac037.jpg#@#", "Scenic Cruising The Inside Passage#@#/content/dam/hal/inventory-assets/destinations/ports/270/port-the-inside-passage-alaska-us-bear-c037.jpg#@#", "Ketchikan, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/ktn/port-ketchikan-alaska-us-c037.jpg#@#", "Juneau, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/jnu/port-jnu-juneau-alaska-us-mountain-c037.jpg#@#", "Skagway, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/sgy/port-skagway-alaska-c037.jpg#@#", "Glacier Bay#@#/content/dam/hal/inventory-assets/ports/GB1/images/glacier-bay-c037.jpg#@#", "College Fjord#@#/content/dam/hal/inventory-assets/AFAR/afar-college-fjord-alaska-c037.jpg#@#", "Whittier, Alaska, US#@#/content/dam/hal/inventory-assets/ports/WH1/whittier-alaska-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Anchorage, Alaska, US#@#/content/dam/hal/inventory-assets/ports/ANC/images/anchorage-alaska-hero.jpg#@#", "Anchorage, Alaska, US#@#/content/dam/hal/inventory-assets/ports/ANC/images/anchorage-alaska-hero.jpg#@#" ],
       "price_CAD_LA_RESTRICTED_d" : -1.0,
       "price_CAD_LA_anonymous_d" : -1.0,
       "embarkPortName" : "Vancouver, B.C., CA#@#YVR",
@@ -1864,6 +1892,7 @@
       "itineraryId" : "A7N07CD2C"
     }, {
       "price_CAD_PH_FLEXIBLE_d" : -1.0,
+      "cruiseOverviewImage" : "/content/dam/hal/itin-destinations/alaska/c146-cruisetour-tundra-wilderness-tour-fog-desktop.jpg",
       "price_CAD_IN_RESTRICTED_d" : 3628.0,
       "price_EUR_IN_FLEXIBLE_d" : 3594.0,
       "price_AUD_NS_RESTRICTED_d" : 7049.0,
@@ -1960,6 +1989,7 @@
       "price_AUD_VN_FLEXIBLE_d" : 6599.0,
       "price_AUD_IN_FLEXIBLE_d" : 5329.0,
       "price_USD_OV_FLEXIBLE_d" : 3524.0,
+      "portImages" : [ "Vancouver, B.C., CA#@#/content/dam/hal/inventory-assets/destinations/ports/yvr/port-vancouver-bc-canadac037.jpg#@#", "Scenic Cruising The Inside Passage#@#/content/dam/hal/inventory-assets/destinations/ports/270/port-the-inside-passage-alaska-us-bear-c037.jpg#@#", "Ketchikan, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/ktn/port-ketchikan-alaska-us-c037.jpg#@#", "Juneau, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/jnu/port-jnu-juneau-alaska-us-mountain-c037.jpg#@#", "Skagway, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/sgy/port-skagway-alaska-c037.jpg#@#", "Glacier Bay#@#/content/dam/hal/inventory-assets/ports/GB1/images/glacier-bay-c037.jpg#@#", "College Fjord#@#/content/dam/hal/inventory-assets/AFAR/afar-college-fjord-alaska-c037.jpg#@#", "Whittier, Alaska, US#@#/content/dam/hal/inventory-assets/ports/WH1/whittier-alaska-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Fairbanks, Alaska#@#/content/dam/hal/inventory-assets/destinations/ports/fai/c105-port-alaska-fairbanks-aerial.jpg#@#", "Fairbanks, Alaska#@#/content/dam/hal/inventory-assets/destinations/ports/fai/c105-port-alaska-fairbanks-aerial.jpg#@#" ],
       "price_CAD_LA_RESTRICTED_d" : -1.0,
       "price_CAD_LA_anonymous_d" : -1.0,
       "embarkPortName" : "Vancouver, B.C., CA#@#YVR",
@@ -1997,6 +2027,7 @@
       "itineraryId" : "A7N07CD3C"
     }, {
       "price_CAD_PH_FLEXIBLE_d" : -1.0,
+      "cruiseOverviewImage" : "/content/dam/hal/itin-destinations/alaska/c146-cruisetour-denali-caribou-desktop.jpg",
       "price_CAD_IN_RESTRICTED_d" : 3366.0,
       "price_EUR_IN_FLEXIBLE_d" : 3114.0,
       "price_AUD_NS_RESTRICTED_d" : 6649.0,
@@ -2093,6 +2124,7 @@
       "price_AUD_VN_FLEXIBLE_d" : 6199.0,
       "price_AUD_IN_FLEXIBLE_d" : 4929.0,
       "price_USD_OV_FLEXIBLE_d" : 3334.0,
+      "portImages" : [ "Vancouver, B.C., CA#@#/content/dam/hal/inventory-assets/destinations/ports/yvr/port-vancouver-bc-canadac037.jpg#@#", "Scenic Cruising The Inside Passage#@#/content/dam/hal/inventory-assets/destinations/ports/270/port-the-inside-passage-alaska-us-bear-c037.jpg#@#", "Ketchikan, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/ktn/port-ketchikan-alaska-us-c037.jpg#@#", "Juneau, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/jnu/port-jnu-juneau-alaska-us-mountain-c037.jpg#@#", "Skagway, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/sgy/port-skagway-alaska-c037.jpg#@#", "Glacier Bay#@#/content/dam/hal/inventory-assets/ports/GB1/images/glacier-bay-c037.jpg#@#", "College Fjord#@#/content/dam/hal/inventory-assets/AFAR/afar-college-fjord-alaska-c037.jpg#@#", "Whittier, Alaska, US#@#/content/dam/hal/inventory-assets/ports/WH1/whittier-alaska-c037.jpg#@#", "Anchorage, Alaska, US#@#/content/dam/hal/inventory-assets/ports/ANC/images/anchorage-alaska-hero.jpg#@#", "Anchorage, Alaska, US#@#/content/dam/hal/inventory-assets/ports/ANC/images/anchorage-alaska-hero.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Fairbanks, Alaska#@#/content/dam/hal/inventory-assets/destinations/ports/fai/c105-port-alaska-fairbanks-aerial.jpg#@#", "Fairbanks, Alaska#@#/content/dam/hal/inventory-assets/destinations/ports/fai/c105-port-alaska-fairbanks-aerial.jpg#@#" ],
       "price_CAD_LA_RESTRICTED_d" : -1.0,
       "price_CAD_LA_anonymous_d" : -1.0,
       "embarkPortName" : "Vancouver, B.C., CA#@#YVR",
@@ -2130,13 +2162,14 @@
       "itineraryId" : "A7N07CD5C"
     }, {
       "price_CAD_PH_FLEXIBLE_d" : -1.0,
+      "cruiseOverviewImage" : "/content/dam/hal/itin-destinations/alaska/c146-cruisetour-denali-park-mountains-desktop.jpg",
       "price_CAD_IN_RESTRICTED_d" : 2559.0,
       "price_EUR_IN_FLEXIBLE_d" : 2864.0,
       "price_AUD_NS_RESTRICTED_d" : 6249.0,
       "price_GBP_VN_FLEXIBLE_d" : 3414.0,
       "price_EUR_IN_anonymous_d" : 2864.0,
       "cruiseType" : "SEA_FIRST",
-      "price_USD_VN_FLEXIBLE_d" : 3499.0,
+      "price_USD_VN_FLEXIBLE_d" : 3449.0,
       "price_AUD_OV_RESTRICTED_d" : 4129.0,
       "price_GBP_IN_FLEXIBLE_d" : 2464.0,
       "price_USD_PH_anonymous_d" : -1.0,
@@ -2146,7 +2179,7 @@
       "price_EUR_VN_FLEXIBLE_d" : 3814.0,
       "price_CAD_LA_FLEXIBLE_d" : -1.0,
       "contentPath" : "/find-a-cruise/a7n07cd6c/w728",
-      "price_USD_VN_anonymous_d" : 3499.0,
+      "price_USD_VN_anonymous_d" : 3449.0,
       "price_CAD_NS_RESTRICTED_d" : 5664.0,
       "price_AUD_IN_RESTRICTED_d" : 3679.0,
       "price_GBP_SS_RESTRICTED_d" : 3459.0,
@@ -2156,11 +2189,11 @@
       "price_EUR_PH_anonymous_d" : -1.0,
       "price_USD_LA_anonymous_d" : -1.0,
       "tourId" : "T7AD6C",
-      "price_USD_OV_anonymous_d" : 2799.0,
-      "price_USD_OV_RESTRICTED_d" : 2204.0,
+      "price_USD_OV_anonymous_d" : 2699.0,
+      "price_USD_OV_RESTRICTED_d" : 2104.0,
       "price_GBP_PH_FLEXIBLE_d" : -1.0,
       "price_EUR_NS_anonymous_d" : 4814.0,
-      "price_CAD_VN_FLEXIBLE_d" : 4828.0,
+      "price_CAD_VN_FLEXIBLE_d" : 4759.0,
       "price_USD_LA_RESTRICTED_d" : -1.0,
       "price_GBP_VS_RESTRICTED_d" : -1.0,
       "price_GBP_IN_RESTRICTED_d" : 2009.0,
@@ -2177,7 +2210,7 @@
       "price_USD_PH_FLEXIBLE_d" : -1.0,
       "price_EUR_LA_FLEXIBLE_d" : -1.0,
       "price_USD_NS_RESTRICTED_d" : 4104.0,
-      "price_CAD_VN_RESTRICTED_d" : 4008.0,
+      "price_CAD_VN_RESTRICTED_d" : 3939.0,
       "price_GBP_LA_RESTRICTED_d" : -1.0,
       "name" : "10-Day Signature Denali D6C",
       "price_USD_IN_anonymous_d" : 2449.0,
@@ -2196,7 +2229,7 @@
       "shipName" : "Westerdam#@#WE",
       "price_AUD_NS_FLEXIBLE_d" : 7099.0,
       "price_AUD_VN_RESTRICTED_d" : 4949.0,
-      "price_CAD_OV_RESTRICTED_d" : 3042.0,
+      "price_CAD_OV_RESTRICTED_d" : 2904.0,
       "price_EUR_SS_RESTRICTED_d" : 3789.0,
       "price_AUD_VS_FLEXIBLE_d" : -1.0,
       "price_GBP_OV_FLEXIBLE_d" : 2814.0,
@@ -2219,13 +2252,14 @@
       "price_GBP_SS_FLEXIBLE_d" : 3914.0,
       "price_AUD_NS_anonymous_d" : 7099.0,
       "cruiseId" : "W728",
-      "price_CAD_VN_anonymous_d" : 4828.0,
-      "price_USD_VN_RESTRICTED_d" : 2904.0,
+      "price_CAD_VN_anonymous_d" : 4759.0,
+      "price_USD_VN_RESTRICTED_d" : 2854.0,
       "price_AUD_VS_RESTRICTED_d" : -1.0,
-      "price_CAD_OV_anonymous_d" : 3862.0,
+      "price_CAD_OV_anonymous_d" : 3724.0,
       "price_AUD_VN_FLEXIBLE_d" : 5799.0,
       "price_AUD_IN_FLEXIBLE_d" : 4529.0,
-      "price_USD_OV_FLEXIBLE_d" : 2799.0,
+      "price_USD_OV_FLEXIBLE_d" : 2699.0,
+      "portImages" : [ "Vancouver, B.C., CA#@#/content/dam/hal/inventory-assets/destinations/ports/yvr/port-vancouver-bc-canadac037.jpg#@#", "Scenic Cruising The Inside Passage#@#/content/dam/hal/inventory-assets/destinations/ports/270/port-the-inside-passage-alaska-us-bear-c037.jpg#@#", "Ketchikan, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/ktn/port-ketchikan-alaska-us-c037.jpg#@#", "Juneau, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/jnu/port-jnu-juneau-alaska-us-mountain-c037.jpg#@#", "Skagway, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/sgy/port-skagway-alaska-c037.jpg#@#", "Glacier Bay#@#/content/dam/hal/inventory-assets/ports/GB1/images/glacier-bay-c037.jpg#@#", "College Fjord#@#/content/dam/hal/inventory-assets/AFAR/afar-college-fjord-alaska-c037.jpg#@#", "Whittier, Alaska, US#@#/content/dam/hal/inventory-assets/ports/WH1/whittier-alaska-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Anchorage, Alaska, US#@#/content/dam/hal/inventory-assets/ports/ANC/images/anchorage-alaska-hero.jpg#@#", "Anchorage, Alaska, US#@#/content/dam/hal/inventory-assets/ports/ANC/images/anchorage-alaska-hero.jpg#@#" ],
       "price_CAD_LA_RESTRICTED_d" : -1.0,
       "price_CAD_LA_anonymous_d" : -1.0,
       "embarkPortName" : "Vancouver, B.C., CA#@#YVR",
@@ -2248,7 +2282,7 @@
       "price_CAD_NS_anonymous_d" : 6484.0,
       "price_GBP_NS_FLEXIBLE_d" : 4414.0,
       "price_GBP_LA_anonymous_d" : -1.0,
-      "price_CAD_OV_FLEXIBLE_d" : 3862.0,
+      "price_CAD_OV_FLEXIBLE_d" : 3724.0,
       "price_AUD_SS_anonymous_d" : 6399.0,
       "price_USD_SS_RESTRICTED_d" : 3604.0,
       "price_EUR_VS_FLEXIBLE_d" : -1.0,
@@ -2263,6 +2297,7 @@
       "itineraryId" : "A7N07CD6C"
     }, {
       "price_CAD_PH_FLEXIBLE_d" : -1.0,
+      "cruiseOverviewImage" : "/content/dam/hal/itin-destinations/alaska/c146-cruisetour-denali-park-mountains-desktop.jpg",
       "price_CAD_IN_RESTRICTED_d" : 2683.0,
       "price_EUR_IN_FLEXIBLE_d" : 2534.0,
       "price_AUD_NS_RESTRICTED_d" : 5669.0,
@@ -2359,6 +2394,7 @@
       "price_AUD_VN_FLEXIBLE_d" : 5219.0,
       "price_AUD_IN_FLEXIBLE_d" : 3949.0,
       "price_USD_OV_FLEXIBLE_d" : 2789.0,
+      "portImages" : [ "Vancouver, B.C., CA#@#/content/dam/hal/inventory-assets/destinations/ports/yvr/port-vancouver-bc-canadac037.jpg#@#", "Scenic Cruising The Inside Passage#@#/content/dam/hal/inventory-assets/destinations/ports/270/port-the-inside-passage-alaska-us-bear-c037.jpg#@#", "Ketchikan, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/ktn/port-ketchikan-alaska-us-c037.jpg#@#", "Juneau, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/jnu/port-jnu-juneau-alaska-us-mountain-c037.jpg#@#", "Skagway, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/sgy/port-skagway-alaska-c037.jpg#@#", "Glacier Bay#@#/content/dam/hal/inventory-assets/ports/GB1/images/glacier-bay-c037.jpg#@#", "College Fjord#@#/content/dam/hal/inventory-assets/AFAR/afar-college-fjord-alaska-c037.jpg#@#", "Whittier, Alaska, US#@#/content/dam/hal/inventory-assets/ports/WH1/whittier-alaska-c037.jpg#@#", "Anchorage, Alaska, US#@#/content/dam/hal/inventory-assets/ports/ANC/images/anchorage-alaska-hero.jpg#@#", "Anchorage, Alaska, US#@#/content/dam/hal/inventory-assets/ports/ANC/images/anchorage-alaska-hero.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Fairbanks, Alaska#@#/content/dam/hal/inventory-assets/destinations/ports/fai/c105-port-alaska-fairbanks-aerial.jpg#@#", "Fairbanks, Alaska#@#/content/dam/hal/inventory-assets/destinations/ports/fai/c105-port-alaska-fairbanks-aerial.jpg#@#" ],
       "price_CAD_LA_RESTRICTED_d" : -1.0,
       "price_CAD_LA_anonymous_d" : -1.0,
       "embarkPortName" : "Vancouver, B.C., CA#@#YVR",
@@ -2396,6 +2432,7 @@
       "itineraryId" : "A7N07CD7C"
     }, {
       "price_CAD_PH_FLEXIBLE_d" : -1.0,
+      "cruiseOverviewImage" : "/content/dam/hal/itin-destinations/alaska/c146-cruisetour-denali-park-fall-desktop.jpg",
       "price_CAD_IN_RESTRICTED_d" : 2359.0,
       "price_EUR_IN_FLEXIBLE_d" : 2344.0,
       "price_AUD_NS_RESTRICTED_d" : 5349.0,
@@ -2492,6 +2529,7 @@
       "price_AUD_VN_FLEXIBLE_d" : 4899.0,
       "price_AUD_IN_FLEXIBLE_d" : 3629.0,
       "price_USD_OV_FLEXIBLE_d" : 2554.0,
+      "portImages" : [ "Vancouver, B.C., CA#@#/content/dam/hal/inventory-assets/destinations/ports/yvr/port-vancouver-bc-canadac037.jpg#@#", "Scenic Cruising The Inside Passage#@#/content/dam/hal/inventory-assets/destinations/ports/270/port-the-inside-passage-alaska-us-bear-c037.jpg#@#", "Ketchikan, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/ktn/port-ketchikan-alaska-us-c037.jpg#@#", "Juneau, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/jnu/port-jnu-juneau-alaska-us-mountain-c037.jpg#@#", "Skagway, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/sgy/port-skagway-alaska-c037.jpg#@#", "Glacier Bay#@#/content/dam/hal/inventory-assets/ports/GB1/images/glacier-bay-c037.jpg#@#", "College Fjord#@#/content/dam/hal/inventory-assets/AFAR/afar-college-fjord-alaska-c037.jpg#@#", "Whittier, Alaska, US#@#/content/dam/hal/inventory-assets/ports/WH1/whittier-alaska-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Fairbanks, Alaska#@#/content/dam/hal/inventory-assets/destinations/ports/fai/c105-port-alaska-fairbanks-aerial.jpg#@#", "Fairbanks, Alaska#@#/content/dam/hal/inventory-assets/destinations/ports/fai/c105-port-alaska-fairbanks-aerial.jpg#@#" ],
       "price_CAD_LA_RESTRICTED_d" : -1.0,
       "price_CAD_LA_anonymous_d" : -1.0,
       "embarkPortName" : "Vancouver, B.C., CA#@#YVR",
@@ -2529,6 +2567,7 @@
       "itineraryId" : "A7N07CD8C"
     }, {
       "price_CAD_PH_FLEXIBLE_d" : -1.0,
+      "cruiseOverviewImage" : "/content/dam/hal/itin-destinations/alaska/c146-cruisetour-talkeetna-desktop.jpg",
       "price_CAD_IN_RESTRICTED_d" : 2779.0,
       "price_EUR_IN_FLEXIBLE_d" : 2604.0,
       "price_AUD_NS_RESTRICTED_d" : 5789.0,
@@ -2625,6 +2664,7 @@
       "price_AUD_VN_FLEXIBLE_d" : 5339.0,
       "price_AUD_IN_FLEXIBLE_d" : 4069.0,
       "price_USD_OV_FLEXIBLE_d" : 2859.0,
+      "portImages" : [ "Vancouver, B.C., CA#@#/content/dam/hal/inventory-assets/destinations/ports/yvr/port-vancouver-bc-canadac037.jpg#@#", "Scenic Cruising The Inside Passage#@#/content/dam/hal/inventory-assets/destinations/ports/270/port-the-inside-passage-alaska-us-bear-c037.jpg#@#", "Ketchikan, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/ktn/port-ketchikan-alaska-us-c037.jpg#@#", "Juneau, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/jnu/port-jnu-juneau-alaska-us-mountain-c037.jpg#@#", "Skagway, Alaska, US#@#/content/dam/hal/inventory-assets/destinations/ports/sgy/port-skagway-alaska-c037.jpg#@#", "Glacier Bay#@#/content/dam/hal/inventory-assets/ports/GB1/images/glacier-bay-c037.jpg#@#", "College Fjord#@#/content/dam/hal/inventory-assets/AFAR/afar-college-fjord-alaska-c037.jpg#@#", "Whittier, Alaska, US#@#/content/dam/hal/inventory-assets/ports/WH1/whittier-alaska-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Denali National Park, Alaska#@#/content/dam/hal/inventory-assets/destinations/Alaska-Yukon/ports/denali-national-park-summer-c037.jpg#@#", "Talkeetna, Alaska#@#/content/dam/hal/inventory-assets/destinations/ports/tka/port-talkeetna-alaska-c037.jpg#@#", "Talkeetna, Alaska#@#/content/dam/hal/inventory-assets/destinations/ports/tka/port-talkeetna-alaska-c037.jpg#@#", "Anchorage, Alaska, US#@#/content/dam/hal/inventory-assets/ports/ANC/images/anchorage-alaska-hero.jpg#@#", "Anchorage, Alaska, US#@#/content/dam/hal/inventory-assets/ports/ANC/images/anchorage-alaska-hero.jpg#@#" ],
       "price_CAD_LA_RESTRICTED_d" : -1.0,
       "price_CAD_LA_anonymous_d" : -1.0,
       "embarkPortName" : "Vancouver, B.C., CA#@#YVR",
@@ -2661,20 +2701,20 @@
       "duration" : 10,
       "itineraryId" : "A7N07CD9C"
     } ],
-    "numFound" : 858,
+    "numFound" : 851,
     "start" : 0,
     "numFoundExact" : true
   },
   "responseHeader" : {
     "zkConnected" : true,
-    "QTime" : 3,
-    "totalTime" : 394,
+    "QTime" : 4,
+    "totalTime" : 310,
     "params" : {
       "country" : "us",
-      "_stateVer_" : "hal:41440",
+      "_stateVer_" : "hal:41525",
       "lw.pipelineId" : "hal_cruisesearch",
       "campid" : "anonymous",
-      "fl" : "cruiseId,tourId,itineraryId,shipName,embarkPortName,departDate,duration,name,cruiseType,destinationIds,contentPath,meta,price_*_RESTRICTED_d,price_*_FLEXIBLE_d,price_*_anonymous_d",
+      "fl" : "cruiseId,tourId,itineraryId,shipName,embarkPortName,departDate,duration,name,cruiseType,destinationIds,contentPath,meta,cruiseOverviewImage,portImages,price_*_RESTRICTED_d,price_*_FLEXIBLE_d,price_*_anonymous_d",
       "start" : "0",
       "isFusionQuery" : "true",
       "language" : "en",
@@ -2684,7 +2724,7 @@
       "version" : "2.2",
       "queryProfileID" : "halcruisesearch",
       "soldOut" : "false",
-      "fusionQueryId" : "uwd5CbW3D1",
+      "fusionQueryId" : "61dFzsdKKO",
       "tags" : "cruisesearch,cruisesearch_en_us",
       "json.facet" : "{\"departure\":{\"type\":\"terms\",\"field\":\"en_us_embarkPortName_ss\",\"sort\":{\"index\":\"asc\"},\"limit\":-1,\"domain\":{\"excludeTags\":\"embarkTag,collapse\"},\"mincount\":0},\"duration\":{\"type\":\"range\",\"field\":\"duration\",\"start\":0,\"end\":10000,\"gap\":10000,\"facet\":{\"1-5\":{\"type\":\"query\",\"q\":\"duration:[1 TO 5]\",\"domain\":{\"excludeTags\":\"durationTag,collapse\"}},\"6-8\":{\"type\":\"query\",\"q\":\"duration:[6 TO 8]\",\"domain\":{\"excludeTags\":\"durationTag,collapse\"}},\"9-16\":{\"type\":\"query\",\"q\":\"duration:[9 TO 16]\",\"domain\":{\"excludeTags\":\"durationTag,collapse\"}},\"17-*\":{\"type\":\"query\",\"q\":\"duration:[17 TO *]\",\"domain\":{\"excludeTags\":\"durationTag,collapse\"}}}},\"departDate\":{\"type\":\"range\",\"field\":\"departDate\",\"start\":\"NOW/YEAR\",\"end\":\"NOW/YEAR+4YEAR\",\"gap\":\"+1MONTH\",\"domain\":{\"excludeTags\":\"departTag,collapse\"}},\"regions\":{\"type\":\"terms\",\"field\":\"en_us_regionNames_ss\",\"sort\":{\"index\":\"asc\"},\"limit\":-1,\"domain\":{\"excludeTags\":\"regionTag,collapse\"},\"mincount\":0},\"cruiseType\":{\"type\":\"terms\",\"field\":\"cruiseType\",\"sort\":{\"index\":\"asc\"},\"domain\":{\"excludeTags\":\"cruisetypeTag,collapse\"},\"mincount\":0},\"portOfCalls\":{\"type\":\"terms\",\"field\":\"en_us_portOfCallIds_ss\",\"sort\":{\"index\":\"asc\"},\"limit\":-1,\"domain\":{\"excludeTags\":\"portsTag,collapse\"},\"mincount\":0},\"destinations\":{\"type\":\"terms\",\"field\":\"en_us_destinationNames_ss\",\"sort\":{\"index\":\"asc\"},\"limit\":-1,\"domain\":{\"excludeTags\":\"destinationTag,collapse\"},\"mincount\":0},\"ships\":{\"type\":\"terms\",\"field\":\"shipName\",\"sort\":{\"index\":\"asc\"},\"mincount\":0,\"limit\":-1,\"domain\":{\"excludeTags\":\"shipsTag,collapse\"}},\"offers\":{\"type\":\"terms\",\"field\":\"en_us_promoData_ss\",\"sort\":{\"index\":\"asc\"},\"limit\":-1,\"domain\":{\"excludeTags\":\"offerTag,collapse\"},\"mincount\":0},\"soldOut\":{\"type\":\"terms\",\"field\":\"soldOut\",\"sort\":{\"index\":\"desc\"},\"domain\":{\"excludeTags\":\"soldOutTag,collapse\"},\"mincount\":0},\"roomCategory\":{\"type\":\"query\",\"q\":\"*:*\",\"domain\":{\"excludeTags\":\"roomCategoryTag,collapse\"},\"facet\":{\"IN\":{\"type\":\"query\",\"q\":\"{!frange l=1}price_USD_IN_anonymous_d\"},\"OV\":{\"type\":\"query\",\"q\":\"{!frange l=1}price_USD_OV_anonymous_d\"},\"LA\":{\"type\":\"query\",\"q\":\"{!frange l=1}price_USD_LA_anonymous_d\"},\"VN\":{\"type\":\"query\",\"q\":\"{!frange l=1}price_USD_VN_anonymous_d\"},\"VS\":{\"type\":\"query\",\"q\":\"{!frange l=1}price_USD_VS_anonymous_d\"},\"NS\":{\"type\":\"query\",\"q\":\"{!frange l=1}price_USD_NS_anonymous_d\"},\"SS\":{\"type\":\"query\",\"q\":\"{!frange l=1}price_USD_SS_anonymous_d\"},\"PH\":{\"type\":\"query\",\"q\":\"{!frange l=1}price_USD_PH_anonymous_d\"}}}}",
       "q" : "*:*",
@@ -2698,14 +2738,14 @@
     "status" : 0
   },
   "facets" : {
-    "count" : 858,
+    "count" : 851,
     "departure" : {
       "buckets" : [ {
         "val" : "Amsterdam, The Netherlands#@#AMS",
         "count" : 0
       }, {
         "val" : "Anchorage, Alaska, US#@#ANC",
-        "count" : 120
+        "count" : 118
       }, {
         "val" : "Auckland, New Zealand#@#AKL",
         "count" : 0
@@ -2729,7 +2769,7 @@
         "count" : 0
       }, {
         "val" : "Fairbanks, Alaska#@#FAI",
-        "count" : 135
+        "count" : 131
       }, {
         "val" : "Fort Lauderdale, Florida, US#@#FLL",
         "count" : 0
@@ -2789,7 +2829,7 @@
         "count" : 0
       }, {
         "val" : "Vancouver, B.C., CA#@#YVR",
-        "count" : 487
+        "count" : 486
       }, {
         "val" : "Whittier, Alaska, US#@#WH1",
         "count" : 36
@@ -2798,7 +2838,7 @@
     "duration" : {
       "buckets" : [ {
         "val" : 0,
-        "count" : 858,
+        "count" : 851,
         "1-5" : {
           "count" : 0
         },
@@ -2806,10 +2846,10 @@
           "count" : 234
         },
         "9-16" : {
-          "count" : 593
+          "count" : 587
         },
         "17-*" : {
-          "count" : 31
+          "count" : 30
         }
       } ]
     },
@@ -2864,19 +2904,19 @@
         "count" : 3
       }, {
         "val" : "2027-05-01T00:00:00Z",
-        "count" : 152
+        "count" : 155
       }, {
         "val" : "2027-06-01T00:00:00Z",
-        "count" : 161
+        "count" : 156
       }, {
         "val" : "2027-07-01T00:00:00Z",
-        "count" : 170
+        "count" : 168
       }, {
         "val" : "2027-08-01T00:00:00Z",
-        "count" : 180
+        "count" : 178
       }, {
         "val" : "2027-09-01T00:00:00Z",
-        "count" : 50
+        "count" : 49
       }, {
         "val" : "2027-10-01T00:00:00Z",
         "count" : 0
@@ -2963,19 +3003,19 @@
     "regions" : {
       "buckets" : [ {
         "val" : "Alaska Denali - 1 Day at Denali#@#4D1",
-        "count" : 92
+        "count" : 93
       }, {
         "val" : "Alaska Denali - 2 Days at Denali#@#4D2",
-        "count" : 187
+        "count" : 185
       }, {
         "val" : "Alaska Denali - 3 Days at Denali#@#4D3",
-        "count" : 102
+        "count" : 101
       }, {
         "val" : "Alaska Denali+Yukon - 2 Days at Denali#@#4Y2",
-        "count" : 115
+        "count" : 113
       }, {
         "val" : "Alaska Denali+Yukon - 3 Days at Denali#@#4Y3",
-        "count" : 82
+        "count" : 79
       }, {
         "val" : "Alaska Glacier Bay National Park#@#GB1",
         "count" : 231
@@ -3035,10 +3075,10 @@
         "count" : 280
       }, {
         "val" : "LAND_FIRST",
-        "count" : 268
+        "count" : 262
       }, {
         "val" : "SEA_FIRST",
-        "count" : 310
+        "count" : 309
       } ]
     },
     "portOfCalls" : {
@@ -3101,7 +3141,7 @@
         "count" : 0
       }, {
         "val" : "Alyeska, Alaska#@#AL1",
-        "count" : 31
+        "count" : 30
       }, {
         "val" : "Amber Cove, Dominican Republic#@#AMB",
         "count" : 0
@@ -3110,7 +3150,7 @@
         "count" : 0
       }, {
         "val" : "Anchorage, Alaska, US#@#ANC",
-        "count" : 474
+        "count" : 471
       }, {
         "val" : "Andalsnes, Norway#@#AN1",
         "count" : 0
@@ -3308,7 +3348,7 @@
         "count" : 0
       }, {
         "val" : "College Fjord#@#CF1",
-        "count" : 307
+        "count" : 306
       }, {
         "val" : "Colombo, Sri Lanka#@#CMB",
         "count" : 0
@@ -3362,7 +3402,7 @@
         "count" : 0
       }, {
         "val" : "Cruising Hubbard Glacier#@#HUB",
-        "count" : 294
+        "count" : 292
       }, {
         "val" : "Cruising Panama Canal and Gatun Lake#@#204",
         "count" : 0
@@ -3407,7 +3447,7 @@
         "count" : 0
       }, {
         "val" : "Dawson, Yukon#@#YDA",
-        "count" : 197
+        "count" : 192
       }, {
         "val" : "Daylight cruising Glacier Alley#@#246",
         "count" : 0
@@ -3416,7 +3456,7 @@
         "count" : 85
       }, {
         "val" : "Denali National Park, Alaska#@#DNP",
-        "count" : 578
+        "count" : 571
       }, {
         "val" : "Devils Island, French Guiana#@#DI1",
         "count" : 0
@@ -3479,7 +3519,7 @@
         "count" : 0
       }, {
         "val" : "Fairbanks, Alaska#@#FAI",
-        "count" : 476
+        "count" : 468
       }, {
         "val" : "Fakarava, Tuamotu, French Polynesia#@#FAK",
         "count" : 0
@@ -3542,7 +3582,7 @@
         "count" : 0
       }, {
         "val" : "Glacier Bay#@#GB1",
-        "count" : 707
+        "count" : 700
       }, {
         "val" : "Grand Turk, Turks and Caicos#@#GDT",
         "count" : 0
@@ -3644,7 +3684,7 @@
         "count" : 0
       }, {
         "val" : "Icy Strait Point, Alaska, US#@#IS1",
-        "count" : 61
+        "count" : 60
       }, {
         "val" : "Incheon (Seoul), South Korea#@#INC",
         "count" : 0
@@ -3677,7 +3717,7 @@
         "count" : 0
       }, {
         "val" : "Juneau, Alaska, US#@#JNU",
-        "count" : 788
+        "count" : 784
       }, {
         "val" : "Kagoshima, Japan#@#KOJ",
         "count" : 0
@@ -3701,7 +3741,7 @@
         "count" : 0
       }, {
         "val" : "Ketchikan, Alaska, US#@#KTN",
-        "count" : 781
+        "count" : 774
       }, {
         "val" : "Key West, Florida, US#@#EYW",
         "count" : 0
@@ -4295,7 +4335,7 @@
         "count" : 0
       }, {
         "val" : "Scenic Cruising The Inside Passage#@#270",
-        "count" : 779
+        "count" : 772
       }, {
         "val" : "Scenic Cruising Torres Strait#@#701",
         "count" : 0
@@ -4397,7 +4437,7 @@
         "count" : 0
       }, {
         "val" : "Seward (Anchorage), Alaska, US#@#SEW",
-        "count" : 28
+        "count" : 29
       }, {
         "val" : "Seydisfjordur, Iceland#@#SEJ",
         "count" : 0
@@ -4421,7 +4461,7 @@
         "count" : 0
       }, {
         "val" : "Skagway, Alaska, US#@#SGY",
-        "count" : 773
+        "count" : 766
       }, {
         "val" : "Skjolden, Norway#@#SKO",
         "count" : 0
@@ -4505,7 +4545,7 @@
         "count" : 0
       }, {
         "val" : "Talkeetna, Alaska#@#TKA",
-        "count" : 32
+        "count" : 33
       }, {
         "val" : "Tallinn, Estonia#@#TLL",
         "count" : 0
@@ -4583,7 +4623,7 @@
         "count" : 0
       }, {
         "val" : "Vancouver, B.C., CA#@#YVR",
-        "count" : 779
+        "count" : 772
       }, {
         "val" : "Vava'u, Tonga#@#VAV",
         "count" : 0
@@ -4610,10 +4650,10 @@
         "count" : 0
       }, {
         "val" : "Whitehorse, Yukon#@#YXY",
-        "count" : 182
+        "count" : 178
       }, {
         "val" : "Whittier, Alaska, US#@#WH1",
-        "count" : 540
+        "count" : 536
       }, {
         "val" : "Willemstad, Curacao#@#CUR",
         "count" : 0
@@ -4637,7 +4677,7 @@
     "destinations" : {
       "buckets" : [ {
         "val" : "ALASKA#@#A",
-        "count" : 858
+        "count" : 851
       }, {
         "val" : "ASIA#@#O",
         "count" : 0
@@ -4715,10 +4755,10 @@
         "count" : 50
       }, {
         "val" : "Koningsdam#@#KO",
-        "count" : 111
+        "count" : 108
       }, {
         "val" : "Nieuw Amsterdam#@#NA",
-        "count" : 241
+        "count" : 238
       }, {
         "val" : "Nieuw Statendam#@#NS",
         "count" : 0
@@ -4736,7 +4776,7 @@
         "count" : 0
       }, {
         "val" : "Westerdam#@#WE",
-        "count" : 272
+        "count" : 271
       }, {
         "val" : "Zaandam#@#AA",
         "count" : 121
@@ -4766,46 +4806,46 @@
         "count" : 0
       }, {
         "val" : "#@#N2_AUD",
-        "count" : 856
+        "count" : 851
       }, {
         "val" : "#@#N2_CAD",
-        "count" : 856
+        "count" : 851
       }, {
         "val" : "#@#N2_EUR",
-        "count" : 856
+        "count" : 851
       }, {
         "val" : "#@#N2_GBP",
-        "count" : 856
+        "count" : 851
       }, {
         "val" : "#@#N2_USD",
-        "count" : 856
+        "count" : 851
       }, {
         "val" : "#@#NH_AUD",
-        "count" : 856
+        "count" : 851
       }, {
         "val" : "#@#NH_CAD",
-        "count" : 856
+        "count" : 851
       }, {
         "val" : "#@#NH_EUR",
-        "count" : 856
+        "count" : 851
       }, {
         "val" : "#@#NH_GBP",
-        "count" : 856
+        "count" : 851
       }, {
         "val" : "#@#NH_USD",
-        "count" : 856
+        "count" : 851
       }, {
         "val" : "#@#QA_AUD",
-        "count" : 338
+        "count" : 851
       }, {
         "val" : "#@#QA_CAD",
-        "count" : 704
+        "count" : 700
       }, {
         "val" : "#@#QA_USD",
-        "count" : 856
+        "count" : 851
       }, {
         "val" : "#@#QC_CAD",
-        "count" : 157
+        "count" : 156
       }, {
         "val" : "#@#QF_AUD",
         "count" : 0
@@ -4841,10 +4881,10 @@
         "count" : 138
       }, {
         "val" : "#@#UD_CAD",
-        "count" : 576
+        "count" : 571
       }, {
         "val" : "#@#UD_USD",
-        "count" : 576
+        "count" : 571
       }, {
         "val" : "#@#UF_CAD",
         "count" : 0
@@ -4868,10 +4908,10 @@
         "count" : 0
       }, {
         "val" : "#@#UP_CAD",
-        "count" : 569
+        "count" : 566
       }, {
         "val" : "#@#UP_USD",
-        "count" : 569
+        "count" : 566
       }, {
         "val" : "#@#UR_CAD",
         "count" : 0
@@ -4943,31 +4983,31 @@
         "count" : 0
       }, {
         "val" : false,
-        "count" : 858
+        "count" : 851
       } ]
     },
     "roomCategory" : {
-      "count" : 858,
+      "count" : 851,
       "IN" : {
-        "count" : 858
+        "count" : 851
       },
       "OV" : {
-        "count" : 858
+        "count" : 851
       },
       "LA" : {
         "count" : 0
       },
       "VN" : {
-        "count" : 629
+        "count" : 622
       },
       "VS" : {
-        "count" : 230
+        "count" : 228
       },
       "NS" : {
-        "count" : 582
+        "count" : 543
       },
       "SS" : {
-        "count" : 531
+        "count" : 524
       },
       "PH" : {
         "count" : 0

@@ -10,8 +10,23 @@
   "cabin": "Inside",
   "price": 959,
   "currency": "USD",
-  "cabinPrices": { "Inside": 959, "Ocean View": 1009, "Verandah": 1459, "Signature Suite": 2164, "Neptune Suite": 3024 },
+  "cabinPrices": {
+    "Signature Suite": 2164,
+    "Verandah": 1459,
+    "Ocean View": 1009,
+    "Inside": 959,
+    "Neptune Suite": 3024
+  },
   "itinerary": "7-DAY ALASKA EXPLORER",
-  "image": null,
-  "ports": []
+  "image": "https://www.hollandamerica.com/content/dam/hal/itin-destinations/alaska/c146-alaska-glacier-bay-cruise-ship-desktop.jpg?imwidth=600",
+  "ports": [
+    "Puget Sound",
+    "Scenic cruising Stephens Passage",
+    "Juneau",
+    "Glacier Bay",
+    "Icy Strait Point",
+    "Sitka",
+    "Ketchikan",
+    "Victoria"
+  ]
 }
