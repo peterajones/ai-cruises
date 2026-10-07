@@ -24,10 +24,14 @@ export function searchSailings(sailings, filter = {}) {
     if (filter.destination && s.destination !== filter.destination) return false;
     if (filter.departurePort && s.departurePort !== filter.departurePort) return false;
     // The cabin filter means "offers this cabin", and a price limit then applies to
-    // that cabin's price. A not-listed price (Princess) passes: unknown, not too high.
+    // that cabin's price.
     const counted = priceFor(s, filter.cabin);
     if (counted === null) return false;
-    if (!counted.notListed) {
+    if (counted.notListed) {
+      // Princess lists only its cheapest cabin, so the asked-for one costs at least
+      // that: a maximum below it is known to be too low. A minimum can't rule it out.
+      if (filter.maxPrice != null && s.price > filter.maxPrice) return false;
+    } else {
       if (filter.minPrice != null && counted.price < filter.minPrice) return false;
       if (filter.maxPrice != null && counted.price > filter.maxPrice) return false;
     }

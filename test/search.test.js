@@ -279,3 +279,13 @@ test('a price limit applies to the asked-for cabin, not the cheapest one', () =>
 test('without a cabin, price limits still use the cheapest price', () => {
   assert.equal(searchSailings(cabinSailings, { maxPrice: 950 }).length, 2);
 });
+
+// Princess lists only its cheapest cabin, so any other cabin costs at least that much.
+// Its price for the asked-for cabin is unknown — but never below the cheapest one.
+test('a not-listed cabin is excluded when even the cheapest cabin is over the limit', () => {
+  const princess = [{ cabin: 'interior', price: 1142, cabinPrices: null }];
+  assert.equal(searchSailings(princess, { cabin: 'balcony', maxPrice: 1000 }).length, 0);
+  assert.equal(searchSailings(princess, { cabin: 'balcony', maxPrice: 2000 }).length, 1);
+  // A minimum cannot rule it out: the balcony could cost more than the cheapest cabin.
+  assert.equal(searchSailings(princess, { cabin: 'balcony', minPrice: 5000 }).length, 1);
+});

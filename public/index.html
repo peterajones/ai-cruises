@@ -343,7 +343,8 @@ function applyFacets(list) {
     (!f.nights || s.nights === +f.nights) &&
     (!f.ship || s.ship === f.ship) &&
     (!f.year || s.departureDate.startsWith(f.year)) &&
-    (f.maxPrice == null || shownPrice(s).notListed || shownPrice(s).price <= f.maxPrice));
+    // A not-listed cabin costs at least the cheapest one, so that is its floor.
+    (f.maxPrice == null || (shownPrice(s).notListed ? s.price : shownPrice(s).price) <= f.maxPrice));
 
   const by = f.sort ?? 'price';
   out = [...out].sort((a, b) =>
