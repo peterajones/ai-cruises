@@ -154,6 +154,8 @@
 </main>
 
 <script type="module">
+import { priceFor } from '/search.js';
+
 const $ = (s) => document.querySelector(s);
 
 // Everything rendered below comes from somewhere untrusted: ship names, itinerary
@@ -175,7 +177,7 @@ const el = (tag, props = {}, ...kids) => {
 
 /** Only http(s) may reach an href or src — blocks javascript: and data: URLs. */
 const safeUrl = (u) => (typeof u === 'string' && /^https?:\/\//i.test(u) ? u : null);
-const state = { all: [], subset: null, message: null, values: {}, facets: {} };
+const state = { all: [], subset: null, message: null, values: {}, facets: {}, searchCabin: null };
 
 const EXAMPLES = [
   'a 4-night Bahamas cruise with a balcony under $700',
@@ -189,6 +191,15 @@ const prettyDate = (iso) =>
   new Date(iso + 'T00:00:00').toLocaleDateString('en-US',
     { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 const titleCase = (s) => String(s).split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
+
+const CABIN_NAMES = { interior: 'Interior', oceanview: 'Ocean view', balcony: 'Balcony', suite: 'Suite' };
+const cabinName = (c) => CABIN_NAMES[c] ?? titleCase(c ?? 'cabin');
+
+/** The dropdown wins over the search: it is the more recent, more specific choice. */
+const chosenCabin = () => state.facets.cabin || state.searchCabin || null;
+
+/** The price a card shows and the slider and sort use — the shared rule. */
+const shownPrice = (s) => priceFor(s, chosenCabin()) ?? priceFor(s, null);
 
 async function boot() {
   const res = await fetch('/api/dataset');
@@ -326,19 +337,20 @@ function applyFacets(list) {
   const f = state.facets;
   let out = list.filter(s =>
     (!f.destination || s.destination === f.destination) &&
-    (!f.cabin || s.cabin === f.cabin) &&
+    (!f.cabin || priceFor(s, f.cabin) !== null) &&
     (!f.tripType || (s.tripType === undefined ? 'cruise' : s.tripType) === f.tripType) &&
     (!f.departurePort || s.departurePort === f.departurePort) &&
     (!f.nights || s.nights === +f.nights) &&
     (!f.ship || s.ship === f.ship) &&
     (!f.year || s.departureDate.startsWith(f.year)) &&
-    (f.maxPrice == null || s.price <= f.maxPrice));
+    (f.maxPrice == null || shownPrice(s).notListed || shownPrice(s).price <= f.maxPrice));
 
   const by = f.sort ?? 'price';
   out = [...out].sort((a, b) =>
     by === 'date' ? a.departureDate.localeCompare(b.departureDate)
     : by === 'nights' ? b.nights - a.nights
-    : a.price - b.price);
+    // Not-listed prices sort last: unknown, so they cannot be "cheapest first".
+    : (shownPrice(a).price ?? Infinity) - (shownPrice(b).price ?? Infinity));
   return out;
 }
 
@@ -370,12 +382,21 @@ function render() {
       thumb.append(el('span', { class: 'tour', text: 'Cruisetour · includes land days' }));
     }
 
-    const price = el('div', { class: 'price', text: money(s.price) });
-    price.append(el('small', { text: ' pp' }));
+    const shown = shownPrice(s);
+    const price = shown.notListed
+      ? el('div', { class: 'cabin', text: `${cabinName(shown.cabin)} price not listed · from ${money(s.price)} ${cabinName(s.cabin).toLowerCase()}` })
+      : el('div', { class: 'price', text: money(shown.price) }, el('small', { text: ' pp' }));
+    const priceLabel = shown.notListed ? null : el('div', { class: 'cabin', text: cabinName(shown.cabin) });
+
+    // Every cabin's price, cheapest type first — useful whatever was searched for.
+    const table = s.cabinPrices ? Object.keys(CABIN_NAMES).filter((c) => s.cabinPrices[c] !== undefined) : [];
+    const cabinRow = table.length > 1
+      ? el('div', { class: 'ports cabins', text: table.map((c) => `${cabinName(c)} ${money(s.cabinPrices[c])}`).join(' · ') })
+      : null;
 
     const link = safeUrl(s.url);
     const foot = el('div', { class: 'foot' },
-      el('div', {}, price, el('div', { class: 'cabin', text: s.cabin ?? 'cabin varies' })),
+      el('div', {}, price, priceLabel),
       link ? el('a', { class: 'book', href: link, target: '_blank', rel: 'noopener', text: 'View ↗' }) : null);
 
     host.append(el('article', { class: 'card' }, thumb,
@@ -384,6 +405,7 @@ function render() {
         el('div', { class: 'meta', text: `${s.ship} · ${s.line}` }),
         el('div', { class: 'meta', text: `${prettyDate(s.departureDate)} · from ${s.departurePort}` }),
         s.ports?.length ? el('div', { class: 'ports', text: `Calls at ${s.ports.join(' · ')}` }) : null,
+        cabinRow,
         foot)));
   }
 }
@@ -451,6 +473,7 @@ $('#form').addEventListener('submit', async (e) => {
     }
 
     state.subset = data.results;
+    state.searchCabin = data.filter.cabin ?? null;
     state.message = data.message;
     render();
   } catch (err) {
