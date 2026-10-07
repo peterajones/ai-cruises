@@ -10,6 +10,7 @@
   "cabin": "Inside",
   "price": 959,
   "currency": "USD",
+  "cabinPrices": { "Inside": 959, "Ocean View": 1009, "Verandah": 1459, "Signature Suite": 2164, "Neptune Suite": 3024 },
   "itinerary": "7-DAY ALASKA EXPLORER",
   "image": null,
   "ports": []

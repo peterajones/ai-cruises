@@ -150,3 +150,9 @@ test('the adapter declares it supplies no ship descriptions', () => {
   // full scrape reported 17 per-ship "failures" and exited 1, so exit 1 meant nothing.
   assert.equal(shipDescriptions, false);
 });
+
+test('Princess lists only its cheapest cabin, so its table is "not listed"', () => {
+  const { sailings } = normalizeAll(parseListing(html), { source: 'princess', line: 'Princess Cruises' });
+  assert.ok(sailings.length > 0);
+  assert.ok(sailings.every((s) => s.cabinPrices === null));
+});

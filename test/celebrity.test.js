@@ -109,3 +109,9 @@ test('an unrecognised payload shape yields no rows rather than throwing', () => 
   // Synthetic — a sibling GraphQL operation must not crash a run.
   assert.deepEqual(parseListing('{"data":{"other":{}}}'), []);
 });
+
+test('the cabin table folds Concierge into balcony, keeping the cheaper price', () => {
+  const { sailings } = normalizeAll(parseListing(payload), { source: 'celebrity', line: 'Celebrity Cruises' });
+  assert.deepEqual(sailings[0].cabinPrices, { interior: 949.94, oceanview: 999.94, balcony: 999.94 });
+  assert.ok(sailings.every((s) => s.cabinPrices && s.cabinPrices[s.cabin] === s.price));
+});

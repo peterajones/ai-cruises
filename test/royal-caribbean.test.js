@@ -169,3 +169,9 @@ test('parses a description out of the ship page', () => {
   assert.equal(ship.line, 'Royal Caribbean');
   assert.ok(ship.description.length > 80, `description too short: "${ship.description}"`);
 });
+
+test('the cabin table normalizes to cabin types, without unpriced classes', () => {
+  const { sailings } = normalizeAll(parseListing(payload), { source: 'royal-caribbean', line: 'Royal Caribbean' });
+  assert.deepEqual(sailings[0].cabinPrices, { interior: 598.16, balcony: 1028.16 });
+  assert.ok(sailings.every((s) => s.cabinPrices && s.cabinPrices[s.cabin] === s.price));
+});

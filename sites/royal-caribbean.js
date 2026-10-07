@@ -50,6 +50,11 @@ export function parseListing(payload) {
 
       const cheapest = priced.reduce((min, p) => (p.price.value < min.price.value ? p : min));
 
+      // Every priced class, by the site's label; normalize.js maps them to cabin types.
+      const cabinPrices = Object.fromEntries(
+        priced.map((p) => [p.stateroomClass.id, p.price.value]),
+      );
+
       rows.push({
         externalId: String(s.id),
         url: `${SITE_ORIGIN}${s.bookingLink}`,
@@ -61,6 +66,7 @@ export function parseListing(payload) {
         cabin: cheapest.stateroomClass.id,
         price: cheapest.price.value,
         currency: cheapest.price.currency.code,
+        cabinPrices,
         itinerary,
         image,
         ports,

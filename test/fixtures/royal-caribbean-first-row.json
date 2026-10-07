@@ -9,6 +9,7 @@
   "cabin": "INTERIOR",
   "price": 598.16,
   "currency": "USD",
+  "cabinPrices": { "INTERIOR": 598.16, "BALCONY": 1028.16 },
   "itinerary": "Perfect Day CocoCay & Bahamas",
   "image": "https://www.royalcaribbean.com/content/dam/royal/ports-and-destinations/destinations/perfect-day/arrivals-plaza-perfect-day-at-cococay-aerial-view.jpg",
   "ports": [

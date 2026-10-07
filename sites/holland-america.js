@@ -92,6 +92,25 @@ export function cheapestFare(doc) {
   return byCurrency.USD ?? Object.values(byCurrency)[0] ?? null;
 }
 
+/**
+ * The cheapest public fare for each cabin code, in one currency — the one
+ * cheapestFare chose, so the table and the headline price never mix currencies.
+ *
+ * @param {object} doc
+ * @param {string} currency
+ * @returns {object} cabin code -> price
+ */
+export function cabinFares(doc, currency) {
+  const fares = {};
+  for (const [key, value] of Object.entries(doc)) {
+    const match = key.match(PUBLIC_FARE);
+    if (!match || match[1] !== currency || typeof value !== 'number' || value <= 0) continue;
+    const cabinCode = match[2];
+    if (fares[cabinCode] === undefined || value < fares[cabinCode]) fares[cabinCode] = value;
+  }
+  return fares;
+}
+
 /** "Inside#@#WE_IN" -> { IN: 'Inside' }: the site's own name for each cabin code. */
 function cabinLabels(meta) {
   const labels = {};
@@ -138,6 +157,13 @@ export function parseListing(payload) {
   for (const doc of docs) {
     const fare = cheapestFare(doc);
     const labels = cabinLabels(doc.meta);
+    // Keyed by the site's cabin names, which normalize.js maps to cabin types.
+    const cabinPrices = fare
+      ? Object.fromEntries(
+          Object.entries(cabinFares(doc, fare.currency))
+            .map(([code, price]) => [labels[code] ?? code, price]),
+        )
+      : undefined;
     const destinationCode = doc.destinationIds?.[0] ?? null;
 
     rows.push({
@@ -156,6 +182,7 @@ export function parseListing(payload) {
       cabin: fare ? (labels[fare.cabinCode] ?? fare.cabinCode) : null,
       price: fare?.price ?? null,
       currency: fare?.currency ?? null,
+      cabinPrices,
       itinerary: doc.name ?? null,
       image: null,
       ports: [],

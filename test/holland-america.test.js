@@ -48,6 +48,7 @@ test('the first row reads as the captured sailing', () => {
     cabin: 'Inside',
     price: 1124,
     currency: 'CAD',
+    cabinPrices: { Inside: 1124 },
     itinerary: '7-DAY GLACIER DISCOVERY NORTHBOUND',
     image: null,
     ports: [],
@@ -188,4 +189,10 @@ test('a body without response.docs fails the fetch', async () => {
 test('a partial result (the query ran out of time) fails the fetch', async () => {
   const body = pad({ responseHeader: { partialResults: true }, response: { docs: [] } });
   await assert.rejects(fetchListingPages(fakePage(200, body), { limit: 40 }), /partial/);
+});
+
+test('the cabin table folds the suites into one suite price', () => {
+  const { sailings } = normalizeAll(parseListing(usPayload), { source: 'holland-america', line: 'Holland America' });
+  assert.deepEqual(sailings[0].cabinPrices, { interior: 959, oceanview: 1009, balcony: 1459, suite: 2164 });
+  assert.ok(sailings.every((s) => s.cabinPrices && s.cabinPrices[s.cabin] === s.price));
 });
