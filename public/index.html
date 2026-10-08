@@ -296,6 +296,7 @@ async function showFlights(s, home, body) {
     ...data.options.map((o) => el('div', { class: 'option',
       text: `${money(o.price)} · ${o.airlines} · ${o.departs.slice(11)} · ${o.stops === 0 ? 'nonstop' : `${o.stops} stop${o.stops === 1 ? '' : 's'}`} · ${hm(o.minutes)}` })),
     el('div', { class: 'meta', text: 'Prices are for the whole trip, per person; times are for the flight out.' }),
+    data.note ? el('div', { class: 'meta', text: data.note }) : el('span', {}),
     ...(googleLink ? [googleLink] : []),
     el('div', { class: 'meta', text: checkedAgo(data.fetchedAt) }));
 }

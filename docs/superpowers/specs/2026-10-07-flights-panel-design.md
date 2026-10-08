@@ -23,6 +23,7 @@ search on Google Flights.
 | When to search | When the panel opens, then cached | Peter's choice. A search takes ~9 s; searches are spent only on cruises actually looked at. |
 | What to show | Headline "from about", cruise + flights total, three cheapest options, a Google Flights link | Peter's choice. |
 | Headline | The cheapest option returned, labelled "from about" | Nothing in one search says which options can be completed; in the spike the cheapest ($517) could not, the real cheapest was $543 — ~5% optimistic, acceptable for orientative prices. |
+| Princess one-way ends | A one-way card with 8+ listed ports has `endPort: null`; the panel prices the flight out only and says why | *Added 2026-10-07 during Task 6, Peter's choice.* Results cards list only the first ports of a long itinerary: N731's card ends at Kotor, the cruise ends in Ravenna on day 12. Reading each itinerary page would be exact but adds ~81 rendered pages per scrape. |
 | Currency | The cruise's own currency, via SerpApi's `currency` | The cruise + flights total then never mixes currencies. No converter needed. (Peter's converter, peterjones.dev/projects/currency-converter, is the natural tool if cross-currency cruise comparison is ever wanted — out of scope here.) |
 
 ## What the evidence shows (spike, 2026-10-07)

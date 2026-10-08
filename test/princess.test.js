@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { parseListing, parseShip, shipUrl, name, line, shipDescriptions } from '../sites/princess.js';
+import { parseListing, parseShip, shipUrl, name, line, shipDescriptions, endPortOf } from '../sites/princess.js';
 import { normalizeAll } from '../normalize.js';
 
 const html = await readFile(new URL('./fixtures/princess-results.html', import.meta.url), 'utf8');
@@ -161,4 +161,14 @@ test('a round trip ends where it began; every card has an end port', () => {
   const rows = parseListing(html);
   assert.equal(rows[0].endPort, rows[0].departurePort);
   assert.ok(rows.every((r) => r.endPort));
+});
+
+// Results cards list only the first ports of a long itinerary: N731's card ends at
+// Kotor, but the cruise ends in Ravenna on day 12 (checked 2026-10-07). So a long
+// one-way card's last port is not trusted as where the cruise ends.
+test('a long one-way card does not guess where the cruise ends', () => {
+  const eight = ['Athens (Piraeus), Greece', 'Rhodes', 'Crete', 'Katakolon', 'Valletta', 'Messina', 'Salerno', 'Kotor, Montenegro'];
+  assert.equal(endPortOf(eight.slice(0, 3), false), 'Crete');
+  assert.equal(endPortOf(eight, false), null);
+  assert.equal(endPortOf(eight, true), 'Athens (Piraeus), Greece');
 });

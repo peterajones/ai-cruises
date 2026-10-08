@@ -166,3 +166,24 @@ test('a network failure becomes a message', async () => {
   assert.equal(r.reason, 'search-error');
   assert.equal(r.message, "Couldn't reach the flight search");
 });
+
+test('an unknown end port prices the flight out only, and says why', () => {
+  const plan = planFlights({ ...westerdam, endPort: null }, 'YYZ', TODAY);
+  assert.equal(plan.route.inbound, null);
+  assert.deepEqual(plan.route.outbound, { from: 'YYZ', to: 'YVR', date: '2027-05-08' });
+  assert.equal(plan.note, "Where this cruise ends isn't listed, so the flight home isn't priced.");
+  assert.equal(searchParams(plan, 'k').get('type'), '2');
+});
+
+test('the note reaches the panel, from a search and from the cache', async () => {
+  const f = fakeFetch(multicity); const o = await opts(f);
+  const princessish = { ...westerdam, endPort: null };
+  assert.match((await flightsFor(princessish, 'YYZ', o)).note, /isn't listed/);
+  assert.match((await flightsFor(princessish, 'YYZ', o)).note, /isn't listed/);
+});
+
+test('living at the start port of a cruise whose end is not listed is not "starts and ends at your airport"', () => {
+  const plan = planFlights({ ...westerdam, endPort: null }, 'YVR', TODAY);
+  assert.equal(plan.reason, 'no-flights-needed');
+  assert.doesNotMatch(plan.message, /starts and ends/);
+});

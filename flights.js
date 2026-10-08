@@ -27,9 +27,12 @@ export function planFlights(sailing, home, today) {
   // Data scraped before endPort existed is treated as a round trip.
   const endPort = sailing.endPort === undefined ? sailing.departurePort : sailing.endPort;
   const start = airportFor(sailing.departurePort);
-  const end = airportFor(endPort);
+  // A null end port means the line doesn't say where the cruise ends (long Princess
+  // one-ways): price the flight out, and say why the flight home is missing.
+  const endKnown = endPort !== null;
+  const end = endKnown ? airportFor(endPort) : null;
   if (!start) return { reason: 'no-airport', message: `No airport known for ${sailing.departurePort} yet` };
-  if (!end) return { reason: 'no-airport', message: `No airport known for ${endPort ?? 'where this cruise ends'} yet` };
+  if (endKnown && !end) return { reason: 'no-airport', message: `No airport known for ${endPort} yet` };
 
   const outDate = addDays(sailing.departureDate, -1);
   const homeDate = sailing.endDate ?? addDays(sailing.departureDate, sailing.nights);
@@ -38,10 +41,15 @@ export function planFlights(sailing, home, today) {
   }
 
   const outbound = home === start ? null : { from: home, to: start, date: outDate };
-  const inbound = home === end ? null : { from: end, to: home, date: homeDate };
-  if (!outbound && !inbound) return { reason: 'no-flights-needed', message: 'No flights needed — this cruise starts and ends at your airport' };
+  const inbound = !endKnown || home === end ? null : { from: end, to: home, date: homeDate };
+  if (!outbound && !inbound) {
+    return { reason: 'no-flights-needed', message: endKnown
+      ? 'No flights needed — this cruise starts and ends at your airport'
+      : "No flight needed to get there — it leaves from your airport. Where it ends isn't listed." };
+  }
 
-  return { route: { home, outbound, inbound }, currency: sailing.currency };
+  const note = endKnown ? undefined : "Where this cruise ends isn't listed, so the flight home isn't priced.";
+  return { route: { home, outbound, inbound }, currency: sailing.currency, ...(note && { note }) };
 }
 
 /**
@@ -152,7 +160,7 @@ export async function flightsFor(sailing, home, { today, apiKey, cacheFile, fetc
   const cache = await readCache(cacheFile);
   const hit = cache[key];
   if (hit && now - Date.parse(hit.fetchedAt) < CACHE_DAYS * 86_400_000) {
-    return { route: plan.route, names, currency: plan.currency, ...hit.result, fetchedAt: hit.fetchedAt, cached: true };
+    return { route: plan.route, names, currency: plan.currency, note: plan.note, ...hit.result, fetchedAt: hit.fetchedAt, cached: true };
   }
 
   if (!inFlight.has(key)) {
@@ -169,5 +177,5 @@ export async function flightsFor(sailing, home, { today, apiKey, cacheFile, fetc
   }
 
   const { result, fetchedAt } = await inFlight.get(key);
-  return { route: plan.route, names, currency: plan.currency, ...result, fetchedAt, cached: false };
+  return { route: plan.route, names, currency: plan.currency, note: plan.note, ...result, fetchedAt, cached: false };
 }

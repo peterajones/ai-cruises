@@ -62,6 +62,25 @@ function absolute(url) {
  * @param {string} html - a rendered results page
  * @returns {object[]} RawSailing rows, one per dated departure card
  */
+/** A card lists at most this many ports before its list stops short (seen: 9–10). */
+const LONG_PORT_LIST = 8;
+
+/**
+ * Where a cruise ends, from its card. "Roundtrip" ends where it began. A one-way card's
+ * last port is where it ends — unless the list is long, because results cards show only
+ * the first ports of a long itinerary: N731's card ends at Kotor, but the cruise ends in
+ * Ravenna on day 12 (checked 2026-10-07). Then the end is unknown: null, not a guess.
+ *
+ * @param {string[]} ports - in card order, first is the departure port
+ * @param {boolean} roundtrip
+ * @returns {string|null}
+ */
+export function endPortOf(ports, roundtrip) {
+  if (roundtrip) return ports[0] ?? null;
+  if (ports.length >= LONG_PORT_LIST) return null;
+  return ports.at(-1) ?? null;
+}
+
 export function parseListing(html) {
   const doc = String(html ?? '');
   const rows = [];
@@ -110,8 +129,7 @@ export function parseListing(html) {
     // Not every card carries a "Roundtrip from X" line (one-way sailings do not),
     // so fall back to the first port of call rather than emitting null.
     const departurePort = (portLine.split(/\bfrom\b/i)[1] ?? '').trim() || ports[0] || null;
-    // "Roundtrip from X" ends where it began; a one-way card's last port is where it ends.
-    const endPort = /roundtrip/i.test(portLine) ? departurePort : (ports.at(-1) ?? departurePort);
+    const endPort = /roundtrip/i.test(portLine) ? departurePort : endPortOf(ports, false);
 
     // The detail link carries a real per-departure identifier: ?voyageCode=M634.
     // Preferred over synthesising one from ship+date, because it is the site's own.
