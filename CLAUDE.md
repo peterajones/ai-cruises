@@ -62,14 +62,17 @@ a good dataset.
 - `ANTHROPIC_API_KEY` lives in `.env` (gitignored) and is loaded natively by
   `node --env-file-if-exists=.env` — no `dotenv` dependency. `npm run serve` does this.
   The search layer uses `claude-haiku-4-5` (~$0.002/query). No `ant` CLI installed.
-- Server runs on port 3030.
+- Server runs on port 3030 (`PORT=3031` runs a second copy beside it, e.g. to check a change).
+- `SERP_API_KEY` in `.env` is SerpApi's Google Flights API, for the flights panel. Free plan:
+  250 searches a month. Results are cached in `data/flights-cache.json` (gitignored) for 3 days.
+  Tests never call it; they use saved responses in `test/fixtures/serpapi-*.json`.
 
 ## Status
 
 **Four lines working** (scraped 2026-10-07): Royal Caribbean (179), Celebrity (117),
 Princess (198), Holland America (760) — 1,254 sailings, every one with a destination and a
 trip type, 14 ships with descriptions, cheapest prices $298–$6,439 USD and $347–$3,451 CAD.
-Alaska: 773 sailings (Holland America 760, Princess 13). 159 tests.
+Alaska: 773 sailings (Holland America 760, Princess 13). 191 tests.
 
 **Prices per cabin type.** Every sailing has `cabinPrices` — cabin type → that cabin's
 cheapest price, e.g. `{ interior: 959, oceanview: 1009, balcony: 1459, suite: 2164 }` — and
@@ -80,6 +83,20 @@ the page imports the same file (served at `/search.js`) for the Cabin dropdown, 
 slider, the sort and each card's headline price. Princess lists only its cheapest cabin, so
 its `cabinPrices` is `null`: in a search for another cabin its cards say "Balcony price not
 listed · from $… interior". Spec: `docs/superpowers/specs/2026-10-03-cabin-prices-design.md`.
+
+**Flights panel.** Each card's "✈ Flights" opens a panel pricing the trip there and back
+from a home airport (a box in the panel, remembered in the browser, default YYZ): out the day
+before sailing, home on `endDate` (departure + nights). Every sailing has `endPort` — from the
+disembark day (Royal Caribbean, Celebrity), `disembarkPortName` (Holland America), or "Roundtrip
+from X" / the last listed port (Princess). `airports.js` maps port text to an airport by rules;
+a port it doesn't know shows up in a scrape's `unrecognised` list as `airport: "…"` — add it
+there. `flights.js` plans the search (round trip, multi-city for one-ways, one leg if you live
+at a port), reduces Google Flights' answer, and caches it. A first-leg price is the whole
+trip's price (spike, 2026-10-07), so one search per panel. No search beyond 330 days ahead —
+airlines don't sell that far out. **Princess cards list only the first ports of a long
+itinerary**, so a one-way card with 8+ ports has `endPort: null` and the panel prices only the
+flight out, saying why (N731's card ends at Kotor; the cruise ends in Ravenna). Spec:
+`docs/superpowers/specs/2026-10-07-flights-panel-design.md`.
 
 **Celebrity and Royal Caribbean read one results page each**, and the site chooses what is
 on it. Coverage by destination drifts between scrapes: Celebrity had 36 Alaska sailings on
