@@ -226,6 +226,8 @@ const checkedAgo = (iso) => {
 };
 
 let panelSailing = null;
+/** Bumped per search, so a slower, older search never overwrites a newer one's answer. */
+let flightsRequest = 0;
 
 function closePanel() {
   $('#panel').hidden = true;
@@ -260,6 +262,7 @@ function openPanel(s) {
 }
 
 async function showFlights(s, home, body) {
+  const mine = ++flightsRequest;
   body.textContent = '';
   body.append(el('p', { class: 'meta', text: 'Searching flights… (about 10 seconds)' }));
   let data;
@@ -269,7 +272,8 @@ async function showFlights(s, home, body) {
   } catch {
     data = { message: "Couldn't reach the flight search" };
   }
-  if (panelSailing !== s) return; // closed, or another cruise opened meanwhile
+  // Closed, another cruise opened, or a newer search (e.g. a changed home airport) started.
+  if (panelSailing !== s || mine !== flightsRequest) return;
   body.textContent = '';
 
   const { outbound, inbound } = data.route ?? {};
@@ -291,7 +295,7 @@ async function showFlights(s, home, body) {
   const cruisePrice = shown.notListed ? s.price : shown.price;
   body.append(
     el('div', { class: 'price', text: `Flights from about ${money(data.fromPrice)}` }),
-    el('div', { class: 'meta', text: `Cruise + flights from about ${money(cruisePrice + data.fromPrice)}`
+    el('div', { class: 'meta', text: `Cruise + ${data.route.outbound && data.route.inbound ? 'flights' : (data.route.outbound ? 'flight out' : 'flight home')} from about ${money(cruisePrice + data.fromPrice)}`
       + (shown.notListed ? ` (cruise at its cheapest, ${cabinName(s.cabin).toLowerCase()} — the ${cabinName(shown.cabin).toLowerCase()} price isn't listed)` : '') }),
     ...data.options.map((o) => el('div', { class: 'option',
       text: `${money(o.price)} · ${o.airlines} · ${o.departs.slice(11)} · ${o.stops === 0 ? 'nonstop' : `${o.stops} stop${o.stops === 1 ? '' : 's'}`} · ${hm(o.minutes)}` })),
