@@ -43,6 +43,9 @@ const AIRPORTS = {
   SYD: ['Sydney', 'sydney'],
   BNE: ['Brisbane', 'brisbane'],
   PER: ['Perth', 'perth', 'fremantle'],
+  MEL: ['Melbourne', 'melbourne'],
+  ADL: ['Adelaide', 'adelaide'],
+  AKL: ['Auckland', 'auckland'],
   // Deliberately no "san antonio": the Chilean port would match San Antonio, Texas.
   SCL: ['Santiago', 'santiago'],
   EZE: ['Buenos Aires', 'buenos aires'],

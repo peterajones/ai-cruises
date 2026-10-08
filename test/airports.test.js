@@ -26,6 +26,8 @@ const PORTS = {
   'Boston, Massachusetts, US': 'BOS', 'Montreal, Quebec, Canada': 'YUL',
   'Quebec City, Quebec, Canada': 'YQB', 'Reykjavik, Iceland': 'KEF',
   'Laem Chabang (for Bangkok),Thailand': 'BKK',
+  // Princess one-way seacations, from the 2026-10-07 scrape.
+  'Melbourne, Australia': 'MEL', 'Adelaide, Australia': 'ADL', 'Auckland, New Zealand': 'AKL',
 };
 
 test('every known port maps to its airport', () => {
