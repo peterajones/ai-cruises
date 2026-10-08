@@ -1,0 +1,96 @@
+/**
+ * Approximate airfares for a cruise, from SerpApi's Google Flights API. No AI.
+ *
+ * Out to the start port the day before sailing; home from the end port on the day it
+ * ends. One search prices the whole trip: in the 2026-10-07 spike, a multi-city
+ * search's first-leg prices were whole-trip prices. See
+ * docs/superpowers/specs/2026-10-07-flights-panel-design.md.
+ */
+
+import { airportFor } from './airports.js';
+import { addDays } from './normalize.js';
+
+/** Airlines sell about 11 months ahead; a search further out finds nothing. */
+export const MAX_DAYS_AHEAD = 330;
+
+const daysBetween = (from, to) =>
+  Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
+
+/**
+ * @param {object} sailing
+ * @param {string} home - IATA code
+ * @param {string} today - YYYY-MM-DD
+ */
+export function planFlights(sailing, home, today) {
+  // Data scraped before endPort existed is treated as a round trip.
+  const endPort = sailing.endPort === undefined ? sailing.departurePort : sailing.endPort;
+  const start = airportFor(sailing.departurePort);
+  const end = airportFor(endPort);
+  if (!start) return { reason: 'no-airport', message: `No airport known for ${sailing.departurePort} yet` };
+  if (!end) return { reason: 'no-airport', message: `No airport known for ${endPort ?? 'where this cruise ends'} yet` };
+
+  const outDate = addDays(sailing.departureDate, -1);
+  const homeDate = sailing.endDate ?? addDays(sailing.departureDate, sailing.nights);
+  if (daysBetween(today, outDate) > MAX_DAYS_AHEAD) {
+    return { reason: 'too-far', message: "Airfares aren't published this far ahead yet" };
+  }
+
+  const outbound = home === start ? null : { from: home, to: start, date: outDate };
+  const inbound = home === end ? null : { from: end, to: home, date: homeDate };
+  if (!outbound && !inbound) return { reason: 'no-flights-needed', message: 'No flights needed — this cruise starts and ends at your airport' };
+
+  return { route: { home, outbound, inbound }, currency: sailing.currency };
+}
+
+/**
+ * @param {{route: object, currency: string}} plan
+ * @param {string} apiKey
+ * @returns {URLSearchParams}
+ */
+export function searchParams(plan, apiKey) {
+  const { outbound, inbound } = plan.route;
+  const p = { engine: 'google_flights', hl: 'en', currency: plan.currency, adults: '1' };
+
+  if (outbound && inbound && outbound.to === inbound.from) {
+    Object.assign(p, { type: '1', departure_id: outbound.from, arrival_id: outbound.to, outbound_date: outbound.date, return_date: inbound.date });
+  } else if (outbound && inbound) {
+    const legs = [outbound, inbound].map((l) => ({ departure_id: l.from, arrival_id: l.to, date: l.date }));
+    Object.assign(p, { type: '3', multi_city_json: JSON.stringify(legs) });
+  } else {
+    const leg = outbound ?? inbound;
+    Object.assign(p, { type: '2', departure_id: leg.from, arrival_id: leg.to, outbound_date: leg.date });
+  }
+
+  return new URLSearchParams({ ...p, api_key: apiKey });
+}
+
+/**
+ * The response reduced to what the panel shows. Options are sorted by price, then by
+ * departure time, so equal prices come out in a stable order.
+ */
+export function summarize(raw) {
+  const googleFlightsUrl = raw?.search_metadata?.google_flights_url ?? null;
+  if (raw?.error) {
+    return /hasn't returned any results/i.test(raw.error)
+      ? { reason: 'no-flights', message: 'No flights found for these dates', googleFlightsUrl }
+      : { reason: 'search-error', message: raw.error };
+  }
+
+  const departs = (o) => o.flights?.[0]?.departure_airport?.time ?? '';
+  const options = [...(raw.best_flights ?? []), ...(raw.other_flights ?? [])]
+    .filter((o) => typeof o.price === 'number')
+    .sort((a, b) => a.price - b.price || departs(a).localeCompare(departs(b)));
+  if (options.length === 0) return { reason: 'no-flights', message: 'No flights found for these dates', googleFlightsUrl };
+
+  return {
+    fromPrice: options[0].price,
+    options: options.slice(0, 3).map((o) => ({
+      price: o.price,
+      airlines: [...new Set(o.flights.map((f) => f.airline))].join(', '),
+      departs: departs(o),
+      stops: o.flights.length - 1,
+      minutes: o.total_duration,
+    })),
+    googleFlightsUrl,
+  };
+}

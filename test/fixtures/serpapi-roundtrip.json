@@ -1,0 +1,661 @@
+{
+  "search_metadata": {
+    "id": "6ac6dd16d114df68bde07dd9",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/SvJfRvAb9t9EFw06IcaBCjfdiSdEfMzHeDvzFDgSS-Y/6ac6dd16d114df68bde07dd9.json",
+    "markdown_endpoint": "https://serpapi.com/searches/SvJfRvAb9t9EFw06IcaBCjfdiSdEfMzHeDvzFDgSS-Y/6ac6dd16d114df68bde07dd9.md",
+    "created_at": "2026-10-08 00:00:22 UTC",
+    "processed_at": "2026-10-08 00:00:22 UTC",
+    "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=USD&tfs=CBwQAhoeEgoyMDI3LTA0LTIzagcIARIDWVlacgcIARIDU0VBGh4SCjIwMjctMDUtMDFqBwgBEgNTRUFyBwgBEgNZWVpAAUgBcAGYAQE&tfu=EgIIAQ",
+    "raw_html_file": "https://serpapi.com/searches/SvJfRvAb9t9EFw06IcaBCjfdiSdEfMzHeDvzFDgSS-Y/6ac6dd16d114df68bde07dd9.html",
+    "prettify_html_file": "https://serpapi.com/searches/SvJfRvAb9t9EFw06IcaBCjfdiSdEfMzHeDvzFDgSS-Y/6ac6dd16d114df68bde07dd9.prettify",
+    "total_time_taken": 2.1
+  },
+  "search_parameters": {
+    "engine": "google_flights",
+    "hl": "en",
+    "gl": "us",
+    "type": "1",
+    "departure_id": "YYZ",
+    "arrival_id": "SEA",
+    "outbound_date": "2027-04-23",
+    "return_date": "2027-05-01",
+    "adults": 1,
+    "currency": "USD"
+  },
+  "best_flights": [
+    {
+      "flights": [
+        {
+          "departure_airport": {
+            "name": "Toronto Pearson International Airport",
+            "id": "YYZ",
+            "time": "2027-04-23 09:35"
+          },
+          "arrival_airport": {
+            "name": "Calgary International Airport",
+            "id": "YYC",
+            "time": "2027-04-23 12:10"
+          },
+          "duration": 275,
+          "airplane": "Boeing 737",
+          "airline": "WestJet",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/WS.png",
+          "travel_class": "Economy",
+          "flight_number": "WS 655",
+          "legroom": "30 in",
+          "extensions": [
+            "Average legroom (30 in)",
+            "Free Wi-Fi",
+            "In-seat power & USB outlets",
+            "Carbon emissions estimate: 221 kg"
+          ]
+        },
+        {
+          "departure_airport": {
+            "name": "Calgary International Airport",
+            "id": "YYC",
+            "time": "2027-04-23 13:45"
+          },
+          "arrival_airport": {
+            "name": "Seattle-Tacoma International Airport",
+            "id": "SEA",
+            "time": "2027-04-23 14:40"
+          },
+          "duration": 115,
+          "airplane": "Boeing 737MAX 8 Passenger",
+          "airline": "WestJet",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/WS.png",
+          "travel_class": "Economy",
+          "flight_number": "WS 1552",
+          "legroom": "30 in",
+          "extensions": [
+            "Average legroom (30 in)",
+            "Free Wi-Fi",
+            "In-seat power & USB outlets",
+            "Carbon emissions estimate: 79 kg"
+          ]
+        }
+      ],
+      "layovers": [
+        {
+          "duration": 95,
+          "name": "Calgary International Airport",
+          "id": "YYC"
+        }
+      ],
+      "total_duration": 485,
+      "carbon_emissions": {
+        "this_flight": 302000,
+        "typical_for_this_route": 322000,
+        "difference_percent": -6
+      },
+      "price": 429,
+      "type": "Round trip",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/WS.png",
+      "extensions": [
+        "Checked baggage for a fee",
+        "Bag and fare conditions depend on the return flight"
+      ],
+      "departure_token": "WyJDalJJVkVnd09EWTBTRkpTV0RCQmJWQTJhMUZDUnkwdExTMHRMUzB0TFc5NWMyMHhOa0ZCUVVGQlIzSkhNMUpuUVRkSVoybEJFZ3hYVXpZMU5YeFhVekUxTlRJYUN3amh6Z0lRQWhvRFZWTkVPQnh3NGM0QyIsW1siWVlaIiwiMjAyNy0wNC0yMyIsIllZQyIsbnVsbCwiV1MiLCI2NTUiXSxbIllZQyIsIjIwMjctMDQtMjMiLCJTRUEiLG51bGwsIldTIiwiMTU1MiJdXV0="
+    }
+  ],
+  "other_flights": [
+    {
+      "flights": [
+        {
+          "departure_airport": {
+            "name": "Toronto Pearson International Airport",
+            "id": "YYZ",
+            "time": "2027-04-23 19:12"
+          },
+          "arrival_airport": {
+            "name": "Minneapolis-Saint Paul International Airport",
+            "id": "MSP",
+            "time": "2027-04-23 20:43"
+          },
+          "duration": 151,
+          "airplane": "Embraer 175",
+          "airline": "Delta",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/DL.png",
+          "travel_class": "Economy",
+          "flight_number": "DL 3829",
+          "legroom": "31 in",
+          "extensions": [
+            "Average legroom (31 in)",
+            "Wi-Fi for a fee",
+            "In-seat power outlet",
+            "Carbon emissions estimate: 142 kg"
+          ],
+          "plane_and_crew_by": "SkyWest DBA Delta Connection"
+        },
+        {
+          "departure_airport": {
+            "name": "Minneapolis-Saint Paul International Airport",
+            "id": "MSP",
+            "time": "2027-04-23 21:55"
+          },
+          "arrival_airport": {
+            "name": "Seattle-Tacoma International Airport",
+            "id": "SEA",
+            "time": "2027-04-23 23:59"
+          },
+          "duration": 244,
+          "airplane": "Airbus A321",
+          "airline": "Delta",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/DL.png",
+          "travel_class": "Economy",
+          "flight_number": "DL 922",
+          "legroom": "31 in",
+          "extensions": [
+            "Average legroom (31 in)",
+            "Free Wi-Fi",
+            "In-seat power & USB outlets",
+            "Live TV",
+            "Carbon emissions estimate: 194 kg"
+          ]
+        }
+      ],
+      "layovers": [
+        {
+          "duration": 72,
+          "name": "Minneapolis-Saint Paul International Airport",
+          "id": "MSP"
+        }
+      ],
+      "total_duration": 467,
+      "carbon_emissions": {
+        "this_flight": 336000,
+        "typical_for_this_route": 322000,
+        "difference_percent": 4
+      },
+      "price": 592,
+      "type": "Round trip",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/DL.png",
+      "extensions": [
+        "Checked baggage for a fee",
+        "Bag and fare conditions depend on the return flight"
+      ],
+      "departure_token": "WyJDalJJVkVnd09EWTBTRkpTV0RCQmJWQTJhMUZDUnkwdExTMHRMUzB0TFc5NWMyMHhOa0ZCUVVGQlIzSkhNMUpuUVRkSVoybEJFZ3hFVERNNE1qbDhSRXc1TWpJYUN3aWt6Z01RQWhvRFZWTkVPQnh3cE00RCIsW1siWVlaIiwiMjAyNy0wNC0yMyIsIk1TUCIsbnVsbCwiREwiLCIzODI5Il0sWyJNU1AiLCIyMDI3LTA0LTIzIiwiU0VBIixudWxsLCJETCIsIjkyMiJdXV0="
+    },
+    {
+      "flights": [
+        {
+          "departure_airport": {
+            "name": "Toronto Pearson International Airport",
+            "id": "YYZ",
+            "time": "2027-04-23 16:45"
+          },
+          "arrival_airport": {
+            "name": "Seattle-Tacoma International Airport",
+            "id": "SEA",
+            "time": "2027-04-23 19:13"
+          },
+          "duration": 328,
+          "airplane": "Boeing 737",
+          "airline": "Alaska",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AS.png",
+          "travel_class": "Economy",
+          "flight_number": "AS 401",
+          "legroom": "31 in",
+          "extensions": [
+            "Average legroom (31 in)",
+            "Wi-Fi for a fee",
+            "In-seat power & USB outlets",
+            "Stream media to your device",
+            "Carbon emissions estimate: 314 kg"
+          ]
+        }
+      ],
+      "total_duration": 328,
+      "carbon_emissions": {
+        "this_flight": 315000,
+        "typical_for_this_route": 322000,
+        "difference_percent": -2
+      },
+      "price": 664,
+      "type": "Round trip",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AS.png",
+      "extensions": [
+        "Checked baggage for a fee",
+        "Bag and fare conditions depend on the return flight"
+      ],
+      "departure_token": "WyJDalJJVkVnd09EWTBTRkpTV0RCQmJWQTJhMUZDUnkwdExTMHRMUzB0TFc5NWMyMHhOa0ZCUVVGQlIzSkhNMUpuUVRkSVoybEJFZ1ZCVXpRd01Sb0xDS2lHQkJBQ0dnTlZVMFE0SEhDb2hnUT0iLFtbIllZWiIsIjIwMjctMDQtMjMiLCJTRUEiLG51bGwsIkFTIiwiNDAxIl1dXQ=="
+    },
+    {
+      "flights": [
+        {
+          "departure_airport": {
+            "name": "Toronto Pearson International Airport",
+            "id": "YYZ",
+            "time": "2027-04-23 12:55"
+          },
+          "arrival_airport": {
+            "name": "Vancouver International Airport",
+            "id": "YVR",
+            "time": "2027-04-23 14:59"
+          },
+          "duration": 304,
+          "airplane": "Airbus A321",
+          "airline": "Air Canada",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AC.png",
+          "travel_class": "Economy",
+          "flight_number": "AC 111",
+          "legroom": "31 in",
+          "extensions": [
+            "Average legroom (31 in)",
+            "Free Wi-Fi",
+            "In-seat power & USB outlets",
+            "On-demand video",
+            "Carbon emissions estimate: 290 kg"
+          ]
+        },
+        {
+          "departure_airport": {
+            "name": "Vancouver International Airport",
+            "id": "YVR",
+            "time": "2027-04-23 17:15"
+          },
+          "arrival_airport": {
+            "name": "Seattle-Tacoma International Airport",
+            "id": "SEA",
+            "time": "2027-04-23 18:23"
+          },
+          "duration": 68,
+          "airplane": "Canadair RJ 900",
+          "airline": "Air Canada",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AC.png",
+          "travel_class": "Economy",
+          "flight_number": "AC 8806",
+          "legroom": "31 in",
+          "extensions": [
+            "Average legroom (31 in)",
+            "Free Wi-Fi",
+            "In-seat USB outlet",
+            "Stream media to your device",
+            "Carbon emissions estimate: 58 kg"
+          ],
+          "often_delayed_by_over_30_min": true,
+          "plane_and_crew_by": "Air Canada Express - Jazz"
+        }
+      ],
+      "layovers": [
+        {
+          "duration": 136,
+          "name": "Vancouver International Airport",
+          "id": "YVR"
+        }
+      ],
+      "total_duration": 508,
+      "carbon_emissions": {
+        "this_flight": 350000,
+        "typical_for_this_route": 322000,
+        "difference_percent": 9
+      },
+      "price": 668,
+      "type": "Round trip",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AC.png",
+      "extensions": [
+        "Checked baggage for a fee",
+        "Bag and fare conditions depend on the return flight"
+      ],
+      "departure_token": "WyJDalJJVkVnd09EWTBTRkpTV0RCQmJWQTJhMUZDUnkwdExTMHRMUzB0TFc5NWMyMHhOa0ZCUVVGQlIzSkhNMUpuUVRkSVoybEJFZ3hCUXpFeE1YeEJRemc0TURZYUN3aVlpUVFRQWhvRFZWTkVPQnh3bUlrRSIsW1siWVlaIiwiMjAyNy0wNC0yMyIsIllWUiIsbnVsbCwiQUMiLCIxMTEiXSxbIllWUiIsIjIwMjctMDQtMjMiLCJTRUEiLG51bGwsIkFDIiwiODgwNiJdXV0="
+    },
+    {
+      "flights": [
+        {
+          "departure_airport": {
+            "name": "Toronto Pearson International Airport",
+            "id": "YYZ",
+            "time": "2027-04-23 18:25"
+          },
+          "arrival_airport": {
+            "name": "Seattle-Tacoma International Airport",
+            "id": "SEA",
+            "time": "2027-04-23 20:48"
+          },
+          "duration": 323,
+          "airplane": "Airbus A220-300 Passenger",
+          "airline": "Air Canada",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AC.png",
+          "travel_class": "Economy",
+          "flight_number": "AC 543",
+          "legroom": "30 in",
+          "extensions": [
+            "Average legroom (30 in)",
+            "Free Wi-Fi",
+            "In-seat power & USB outlets",
+            "On-demand video",
+            "Carbon emissions estimate: 334 kg"
+          ]
+        }
+      ],
+      "total_duration": 323,
+      "carbon_emissions": {
+        "this_flight": 335000,
+        "typical_for_this_route": 322000,
+        "difference_percent": 4
+      },
+      "price": 668,
+      "type": "Round trip",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AC.png",
+      "extensions": [
+        "Checked baggage for a fee",
+        "Bag and fare conditions depend on the return flight"
+      ],
+      "departure_token": "WyJDalJJVkVnd09EWTBTRkpTV0RCQmJWQTJhMUZDUnkwdExTMHRMUzB0TFc5NWMyMHhOa0ZCUVVGQlIzSkhNMUpuUVRkSVoybEJFZ1ZCUXpVME14b0xDSmlKQkJBQ0dnTlZVMFE0SEhDWWlRUT0iLFtbIllZWiIsIjIwMjctMDQtMjMiLCJTRUEiLG51bGwsIkFDIiwiNTQzIl1dXQ=="
+    }
+  ],
+  "price_insights": {
+    "lowest_price": 429,
+    "price_level": "typical",
+    "typical_price_range": [
+      220,
+      440
+    ],
+    "price_history": [
+      [
+        1786161600,
+        482
+      ],
+      [
+        1786248000,
+        482
+      ],
+      [
+        1786334400,
+        482
+      ],
+      [
+        1786420800,
+        489
+      ],
+      [
+        1786507200,
+        490
+      ],
+      [
+        1786593600,
+        489
+      ],
+      [
+        1786680000,
+        489
+      ],
+      [
+        1786766400,
+        491
+      ],
+      [
+        1786852800,
+        491
+      ],
+      [
+        1786939200,
+        491
+      ],
+      [
+        1787025600,
+        491
+      ],
+      [
+        1787112000,
+        477
+      ],
+      [
+        1787198400,
+        480
+      ],
+      [
+        1787284800,
+        487
+      ],
+      [
+        1787371200,
+        487
+      ],
+      [
+        1787457600,
+        487
+      ],
+      [
+        1787544000,
+        431
+      ],
+      [
+        1787630400,
+        429
+      ],
+      [
+        1787716800,
+        429
+      ],
+      [
+        1787803200,
+        427
+      ],
+      [
+        1787889600,
+        428
+      ],
+      [
+        1787976000,
+        482
+      ],
+      [
+        1788062400,
+        541
+      ],
+      [
+        1788148800,
+        540
+      ],
+      [
+        1788235200,
+        487
+      ],
+      [
+        1788321600,
+        490
+      ],
+      [
+        1788408000,
+        491
+      ],
+      [
+        1788494400,
+        493
+      ],
+      [
+        1788580800,
+        498
+      ],
+      [
+        1788667200,
+        498
+      ],
+      [
+        1788753600,
+        498
+      ],
+      [
+        1788840000,
+        410
+      ],
+      [
+        1788926400,
+        395
+      ],
+      [
+        1789012800,
+        394
+      ],
+      [
+        1789099200,
+        393
+      ],
+      [
+        1789185600,
+        393
+      ],
+      [
+        1789272000,
+        393
+      ],
+      [
+        1789358400,
+        392
+      ],
+      [
+        1789444800,
+        391
+      ],
+      [
+        1789531200,
+        391
+      ],
+      [
+        1789617600,
+        457
+      ],
+      [
+        1789704000,
+        465
+      ],
+      [
+        1789790400,
+        517
+      ],
+      [
+        1789876800,
+        517
+      ],
+      [
+        1789963200,
+        514
+      ],
+      [
+        1790049600,
+        513
+      ],
+      [
+        1790136000,
+        519
+      ],
+      [
+        1790222400,
+        526
+      ],
+      [
+        1790308800,
+        484
+      ],
+      [
+        1790395200,
+        484
+      ],
+      [
+        1790481600,
+        485
+      ],
+      [
+        1790568000,
+        484
+      ],
+      [
+        1790654400,
+        491
+      ],
+      [
+        1790740800,
+        535
+      ],
+      [
+        1790827200,
+        506
+      ],
+      [
+        1790913600,
+        507
+      ],
+      [
+        1791000000,
+        564
+      ],
+      [
+        1791086400,
+        429
+      ],
+      [
+        1791172800,
+        381
+      ],
+      [
+        1791259200,
+        429
+      ],
+      [
+        1791345600,
+        429
+      ]
+    ]
+  },
+  "airports": [
+    {
+      "departure": [
+        {
+          "airport": {
+            "id": "YYZ",
+            "name": "Toronto Pearson International Airport"
+          },
+          "city": "Toronto",
+          "country": "Canada",
+          "country_code": "CA",
+          "image": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQWPEoHJ9ZdKzv94rrhqqT-m_aOLtacPBnX8s8Fd4GzxCQ8BmgveJ72xmyMfMSLarPprt6XrklbwK-_tw",
+          "thumbnail": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQGhv7dw8LBbMsCv9kv586cMlQBryS9N16uYov7WUD7Mbc1QBEkyd7o1Tf1013cK2ZjzDJu2uYY3WF5w-iQkYUeu4tKg9DR1vjDtJ9vRcA"
+        }
+      ],
+      "arrival": [
+        {
+          "airport": {
+            "id": "SEA",
+            "name": "Seattle-Tacoma International Airport"
+          },
+          "city": "Seattle",
+          "country": "United States",
+          "country_code": "US",
+          "image": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcSSAiBpSv2yUgizRXFmwGP3MTh6M7DGi6u5WgjN5zbRJ9jD42_UzeQNdCTyuPiU5fj8jF1Podav6__a_A",
+          "thumbnail": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcSY5I5L6loeputAIHRWtjOdGurjvRa1ioycHdq2XPS_Io8MuYXvN2ZiixmnVQBWQ_fjPP1A9o9y9-o-yeukkA0ZTCtpBvF4MXtRITUgCs8"
+        }
+      ]
+    },
+    {
+      "departure": [
+        {
+          "airport": {
+            "id": "SEA",
+            "name": "Seattle-Tacoma International Airport"
+          },
+          "city": "Seattle",
+          "country": "United States",
+          "country_code": "US",
+          "image": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcSSAiBpSv2yUgizRXFmwGP3MTh6M7DGi6u5WgjN5zbRJ9jD42_UzeQNdCTyuPiU5fj8jF1Podav6__a_A",
+          "thumbnail": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcSY5I5L6loeputAIHRWtjOdGurjvRa1ioycHdq2XPS_Io8MuYXvN2ZiixmnVQBWQ_fjPP1A9o9y9-o-yeukkA0ZTCtpBvF4MXtRITUgCs8"
+        }
+      ],
+      "arrival": [
+        {
+          "airport": {
+            "id": "YYZ",
+            "name": "Toronto Pearson International Airport"
+          },
+          "city": "Toronto",
+          "country": "Canada",
+          "country_code": "CA",
+          "image": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQWPEoHJ9ZdKzv94rrhqqT-m_aOLtacPBnX8s8Fd4GzxCQ8BmgveJ72xmyMfMSLarPprt6XrklbwK-_tw",
+          "thumbnail": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQGhv7dw8LBbMsCv9kv586cMlQBryS9N16uYov7WUD7Mbc1QBEkyd7o1Tf1013cK2ZjzDJu2uYY3WF5w-iQkYUeu4tKg9DR1vjDtJ9vRcA"
+        }
+      ]
+    }
+  ]
+}
