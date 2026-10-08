@@ -47,6 +47,7 @@
       "price_GBP_VS_RESTRICTED_d" : -1.0,
       "price_GBP_VS_anonymous_d" : -1.0,
       "price_CAD_IN_anonymous_d" : 1999.0,
+      "disembarkPortName" : "Seattle, Washington, US",
       "price_USD_PH_FLEXIBLE_d" : -1.0,
       "price_USD_NS_RESTRICTED_d" : 3024.0,
       "price_USD_IN_anonymous_d" : 1449.0,
@@ -182,6 +183,7 @@
       "price_GBP_VS_RESTRICTED_d" : 1549.0,
       "price_GBP_VS_anonymous_d" : 2004.0,
       "price_CAD_IN_anonymous_d" : 1909.0,
+      "disembarkPortName" : "Vancouver, B.C., CA",
       "price_USD_PH_FLEXIBLE_d" : -1.0,
       "price_USD_NS_RESTRICTED_d" : 3824.0,
       "price_USD_IN_anonymous_d" : 1384.0,
@@ -317,6 +319,7 @@
       "price_GBP_VS_RESTRICTED_d" : 0.0,
       "price_GBP_VS_anonymous_d" : 0.0,
       "price_CAD_IN_anonymous_d" : 5062.0,
+      "disembarkPortName" : "Vancouver, B.C., CA",
       "price_USD_PH_FLEXIBLE_d" : -1.0,
       "price_USD_NS_RESTRICTED_d" : 0.0,
       "price_USD_IN_anonymous_d" : 3669.0,
@@ -452,6 +455,7 @@
       "price_GBP_VS_RESTRICTED_d" : -1.0,
       "price_GBP_VS_anonymous_d" : -1.0,
       "price_CAD_IN_anonymous_d" : 1999.0,
+      "disembarkPortName" : "Seattle, Washington, US",
       "price_USD_PH_FLEXIBLE_d" : -1.0,
       "price_USD_NS_RESTRICTED_d" : 3114.0,
       "price_USD_IN_anonymous_d" : 1449.0,
@@ -587,6 +591,7 @@
       "price_GBP_VS_RESTRICTED_d" : 1699.0,
       "price_GBP_VS_anonymous_d" : 2154.0,
       "price_CAD_IN_anonymous_d" : 1965.0,
+      "disembarkPortName" : "Vancouver, B.C., CA",
       "price_USD_PH_FLEXIBLE_d" : -1.0,
       "price_USD_NS_RESTRICTED_d" : 3134.0,
       "price_USD_IN_anonymous_d" : 1424.0,
@@ -704,6 +709,7 @@
       "price_EUR_VN_RESTRICTED_d" : 1549.0,
       "price_GBP_VS_anonymous_d" : -1.0,
       "price_CAD_IN_anonymous_d" : 1861.0,
+      "disembarkPortName" : "Seattle, Washington, US",
       "price_USD_IN_anonymous_d" : 1349.0,
       "price_USD_VS_anonymous_d" : -1.0,
       "price_GBP_NS_anonymous_d" : 2894.0,
@@ -857,6 +863,7 @@
       "price_GBP_VS_RESTRICTED_d" : -1.0,
       "price_GBP_VS_anonymous_d" : -1.0,
       "price_CAD_IN_anonymous_d" : 2095.0,
+      "disembarkPortName" : "Seattle, Washington, US",
       "price_USD_PH_FLEXIBLE_d" : -1.0,
       "price_USD_NS_RESTRICTED_d" : 3309.0,
       "price_USD_IN_anonymous_d" : 1519.0,
@@ -992,6 +999,7 @@
       "price_GBP_VS_RESTRICTED_d" : -1.0,
       "price_GBP_VS_anonymous_d" : -1.0,
       "price_CAD_IN_anonymous_d" : 2096.0,
+      "disembarkPortName" : "Vancouver, B.C., CA",
       "price_USD_PH_FLEXIBLE_d" : -1.0,
       "price_USD_NS_RESTRICTED_d" : 3989.0,
       "price_USD_IN_anonymous_d" : 1519.0,
@@ -1127,6 +1135,7 @@
       "price_GBP_VS_RESTRICTED_d" : 1799.0,
       "price_GBP_VS_anonymous_d" : 2254.0,
       "price_CAD_IN_anonymous_d" : 2096.0,
+      "disembarkPortName" : "Vancouver, B.C., CA",
       "price_USD_PH_FLEXIBLE_d" : -1.0,
       "price_USD_NS_RESTRICTED_d" : 4419.0,
       "price_USD_IN_anonymous_d" : 1519.0,
@@ -1244,6 +1253,7 @@
       "price_EUR_VN_RESTRICTED_d" : 1549.0,
       "price_GBP_VS_anonymous_d" : -1.0,
       "price_CAD_IN_anonymous_d" : 1882.0,
+      "disembarkPortName" : "Seattle, Washington, US",
       "price_USD_IN_anonymous_d" : 1364.0,
       "price_USD_VS_anonymous_d" : -1.0,
       "price_GBP_NS_anonymous_d" : 2894.0,
@@ -1397,6 +1407,7 @@
       "price_GBP_VS_RESTRICTED_d" : -1.0,
       "price_GBP_VS_anonymous_d" : -1.0,
       "price_CAD_IN_anonymous_d" : 1737.0,
+      "disembarkPortName" : "Whittier, Alaska, US",
       "price_USD_PH_FLEXIBLE_d" : -1.0,
       "price_USD_NS_RESTRICTED_d" : 0.0,
       "price_USD_IN_anonymous_d" : 1259.0,
@@ -1532,6 +1543,7 @@
       "price_AUD_IN_anonymous_d" : 4869.0,
       "price_CAD_VS_FLEXIBLE_d" : -1.0,
       "price_EUR_SS_anonymous_d" : 4524.0,
+      "disembarkPortName" : "Fairbanks, Alaska",
       "price_USD_PH_FLEXIBLE_d" : -1.0,
       "price_EUR_LA_FLEXIBLE_d" : -1.0,
       "price_USD_NS_RESTRICTED_d" : 4104.0,
@@ -1667,6 +1679,7 @@
       "price_AUD_IN_anonymous_d" : 5629.0,
       "price_CAD_VS_FLEXIBLE_d" : -1.0,
       "price_EUR_SS_anonymous_d" : 5154.0,
+      "disembarkPortName" : "Fairbanks, Alaska",
       "price_USD_PH_FLEXIBLE_d" : -1.0,
       "price_EUR_LA_FLEXIBLE_d" : -1.0,
       "price_USD_NS_RESTRICTED_d" : 4654.0,
@@ -1802,6 +1815,7 @@
       "price_AUD_IN_anonymous_d" : 5029.0,
       "price_CAD_VS_FLEXIBLE_d" : -1.0,
       "price_EUR_SS_anonymous_d" : 4704.0,
+      "disembarkPortName" : "Anchorage, Alaska, US",
       "price_USD_PH_FLEXIBLE_d" : -1.0,
       "price_EUR_LA_FLEXIBLE_d" : -1.0,
       "price_USD_NS_RESTRICTED_d" : 4129.0,
@@ -1937,6 +1951,7 @@
       "price_AUD_IN_anonymous_d" : 5329.0,
       "price_CAD_VS_FLEXIBLE_d" : -1.0,
       "price_EUR_SS_anonymous_d" : 5044.0,
+      "disembarkPortName" : "Fairbanks, Alaska",
       "price_USD_PH_FLEXIBLE_d" : -1.0,
       "price_EUR_LA_FLEXIBLE_d" : -1.0,
       "price_USD_NS_RESTRICTED_d" : 4609.0,
@@ -2072,6 +2087,7 @@
       "price_AUD_IN_anonymous_d" : 4929.0,
       "price_CAD_VS_FLEXIBLE_d" : -1.0,
       "price_EUR_SS_anonymous_d" : 4564.0,
+      "disembarkPortName" : "Fairbanks, Alaska",
       "price_USD_PH_FLEXIBLE_d" : -1.0,
       "price_EUR_LA_FLEXIBLE_d" : -1.0,
       "price_USD_NS_RESTRICTED_d" : 4439.0,
@@ -2207,6 +2223,7 @@
       "price_AUD_IN_anonymous_d" : 4529.0,
       "price_CAD_VS_FLEXIBLE_d" : -1.0,
       "price_EUR_SS_anonymous_d" : 4314.0,
+      "disembarkPortName" : "Anchorage, Alaska, US",
       "price_USD_PH_FLEXIBLE_d" : -1.0,
       "price_EUR_LA_FLEXIBLE_d" : -1.0,
       "price_USD_NS_RESTRICTED_d" : 4104.0,
@@ -2342,6 +2359,7 @@
       "price_AUD_IN_anonymous_d" : 3949.0,
       "price_CAD_VS_FLEXIBLE_d" : -1.0,
       "price_EUR_SS_anonymous_d" : 3984.0,
+      "disembarkPortName" : "Fairbanks, Alaska",
       "price_USD_PH_FLEXIBLE_d" : -1.0,
       "price_EUR_LA_FLEXIBLE_d" : -1.0,
       "price_USD_NS_RESTRICTED_d" : 3794.0,
@@ -2477,6 +2495,7 @@
       "price_AUD_IN_anonymous_d" : 3629.0,
       "price_CAD_VS_FLEXIBLE_d" : -1.0,
       "price_EUR_SS_anonymous_d" : 3794.0,
+      "disembarkPortName" : "Fairbanks, Alaska",
       "price_USD_PH_FLEXIBLE_d" : -1.0,
       "price_EUR_LA_FLEXIBLE_d" : -1.0,
       "price_USD_NS_RESTRICTED_d" : 3709.0,
@@ -2612,6 +2631,7 @@
       "price_AUD_IN_anonymous_d" : 4069.0,
       "price_CAD_VS_FLEXIBLE_d" : -1.0,
       "price_EUR_SS_anonymous_d" : 4054.0,
+      "disembarkPortName" : "Anchorage, Alaska, US",
       "price_USD_PH_FLEXIBLE_d" : -1.0,
       "price_EUR_LA_FLEXIBLE_d" : -1.0,
       "price_USD_NS_RESTRICTED_d" : 3864.0,
@@ -2701,20 +2721,20 @@
       "duration" : 10,
       "itineraryId" : "A7N07CD9C"
     } ],
-    "numFound" : 851,
+    "numFound" : 848,
     "start" : 0,
     "numFoundExact" : true
   },
   "responseHeader" : {
     "zkConnected" : true,
-    "QTime" : 4,
-    "totalTime" : 310,
+    "QTime" : 3,
+    "totalTime" : 362,
     "params" : {
       "country" : "us",
       "_stateVer_" : "hal:41525",
       "lw.pipelineId" : "hal_cruisesearch",
       "campid" : "anonymous",
-      "fl" : "cruiseId,tourId,itineraryId,shipName,embarkPortName,departDate,duration,name,cruiseType,destinationIds,contentPath,meta,cruiseOverviewImage,portImages,price_*_RESTRICTED_d,price_*_FLEXIBLE_d,price_*_anonymous_d",
+      "fl" : "cruiseId,tourId,itineraryId,shipName,embarkPortName,disembarkPortName,departDate,duration,name,cruiseType,destinationIds,contentPath,meta,cruiseOverviewImage,portImages,price_*_RESTRICTED_d,price_*_FLEXIBLE_d,price_*_anonymous_d",
       "start" : "0",
       "isFusionQuery" : "true",
       "language" : "en",
@@ -2724,7 +2744,7 @@
       "version" : "2.2",
       "queryProfileID" : "halcruisesearch",
       "soldOut" : "false",
-      "fusionQueryId" : "61dFzsdKKO",
+      "fusionQueryId" : "XoxOtnWpJS",
       "tags" : "cruisesearch,cruisesearch_en_us",
       "json.facet" : "{\"departure\":{\"type\":\"terms\",\"field\":\"en_us_embarkPortName_ss\",\"sort\":{\"index\":\"asc\"},\"limit\":-1,\"domain\":{\"excludeTags\":\"embarkTag,collapse\"},\"mincount\":0},\"duration\":{\"type\":\"range\",\"field\":\"duration\",\"start\":0,\"end\":10000,\"gap\":10000,\"facet\":{\"1-5\":{\"type\":\"query\",\"q\":\"duration:[1 TO 5]\",\"domain\":{\"excludeTags\":\"durationTag,collapse\"}},\"6-8\":{\"type\":\"query\",\"q\":\"duration:[6 TO 8]\",\"domain\":{\"excludeTags\":\"durationTag,collapse\"}},\"9-16\":{\"type\":\"query\",\"q\":\"duration:[9 TO 16]\",\"domain\":{\"excludeTags\":\"durationTag,collapse\"}},\"17-*\":{\"type\":\"query\",\"q\":\"duration:[17 TO *]\",\"domain\":{\"excludeTags\":\"durationTag,collapse\"}}}},\"departDate\":{\"type\":\"range\",\"field\":\"departDate\",\"start\":\"NOW/YEAR\",\"end\":\"NOW/YEAR+4YEAR\",\"gap\":\"+1MONTH\",\"domain\":{\"excludeTags\":\"departTag,collapse\"}},\"regions\":{\"type\":\"terms\",\"field\":\"en_us_regionNames_ss\",\"sort\":{\"index\":\"asc\"},\"limit\":-1,\"domain\":{\"excludeTags\":\"regionTag,collapse\"},\"mincount\":0},\"cruiseType\":{\"type\":\"terms\",\"field\":\"cruiseType\",\"sort\":{\"index\":\"asc\"},\"domain\":{\"excludeTags\":\"cruisetypeTag,collapse\"},\"mincount\":0},\"portOfCalls\":{\"type\":\"terms\",\"field\":\"en_us_portOfCallIds_ss\",\"sort\":{\"index\":\"asc\"},\"limit\":-1,\"domain\":{\"excludeTags\":\"portsTag,collapse\"},\"mincount\":0},\"destinations\":{\"type\":\"terms\",\"field\":\"en_us_destinationNames_ss\",\"sort\":{\"index\":\"asc\"},\"limit\":-1,\"domain\":{\"excludeTags\":\"destinationTag,collapse\"},\"mincount\":0},\"ships\":{\"type\":\"terms\",\"field\":\"shipName\",\"sort\":{\"index\":\"asc\"},\"mincount\":0,\"limit\":-1,\"domain\":{\"excludeTags\":\"shipsTag,collapse\"}},\"offers\":{\"type\":\"terms\",\"field\":\"en_us_promoData_ss\",\"sort\":{\"index\":\"asc\"},\"limit\":-1,\"domain\":{\"excludeTags\":\"offerTag,collapse\"},\"mincount\":0},\"soldOut\":{\"type\":\"terms\",\"field\":\"soldOut\",\"sort\":{\"index\":\"desc\"},\"domain\":{\"excludeTags\":\"soldOutTag,collapse\"},\"mincount\":0},\"roomCategory\":{\"type\":\"query\",\"q\":\"*:*\",\"domain\":{\"excludeTags\":\"roomCategoryTag,collapse\"},\"facet\":{\"IN\":{\"type\":\"query\",\"q\":\"{!frange l=1}price_USD_IN_anonymous_d\"},\"OV\":{\"type\":\"query\",\"q\":\"{!frange l=1}price_USD_OV_anonymous_d\"},\"LA\":{\"type\":\"query\",\"q\":\"{!frange l=1}price_USD_LA_anonymous_d\"},\"VN\":{\"type\":\"query\",\"q\":\"{!frange l=1}price_USD_VN_anonymous_d\"},\"VS\":{\"type\":\"query\",\"q\":\"{!frange l=1}price_USD_VS_anonymous_d\"},\"NS\":{\"type\":\"query\",\"q\":\"{!frange l=1}price_USD_NS_anonymous_d\"},\"SS\":{\"type\":\"query\",\"q\":\"{!frange l=1}price_USD_SS_anonymous_d\"},\"PH\":{\"type\":\"query\",\"q\":\"{!frange l=1}price_USD_PH_anonymous_d\"}}}}",
       "q" : "*:*",
@@ -2738,14 +2758,14 @@
     "status" : 0
   },
   "facets" : {
-    "count" : 851,
+    "count" : 848,
     "departure" : {
       "buckets" : [ {
         "val" : "Amsterdam, The Netherlands#@#AMS",
         "count" : 0
       }, {
         "val" : "Anchorage, Alaska, US#@#ANC",
-        "count" : 118
+        "count" : 117
       }, {
         "val" : "Auckland, New Zealand#@#AKL",
         "count" : 0
@@ -2769,7 +2789,7 @@
         "count" : 0
       }, {
         "val" : "Fairbanks, Alaska#@#FAI",
-        "count" : 131
+        "count" : 129
       }, {
         "val" : "Fort Lauderdale, Florida, US#@#FLL",
         "count" : 0
@@ -2838,7 +2858,7 @@
     "duration" : {
       "buckets" : [ {
         "val" : 0,
-        "count" : 851,
+        "count" : 848,
         "1-5" : {
           "count" : 0
         },
@@ -2846,7 +2866,7 @@
           "count" : 234
         },
         "9-16" : {
-          "count" : 587
+          "count" : 584
         },
         "17-*" : {
           "count" : 30
@@ -2907,10 +2927,10 @@
         "count" : 155
       }, {
         "val" : "2027-06-01T00:00:00Z",
-        "count" : 156
+        "count" : 154
       }, {
         "val" : "2027-07-01T00:00:00Z",
-        "count" : 168
+        "count" : 167
       }, {
         "val" : "2027-08-01T00:00:00Z",
         "count" : 178
@@ -3003,13 +3023,13 @@
     "regions" : {
       "buckets" : [ {
         "val" : "Alaska Denali - 1 Day at Denali#@#4D1",
-        "count" : 93
+        "count" : 92
       }, {
         "val" : "Alaska Denali - 2 Days at Denali#@#4D2",
-        "count" : 185
+        "count" : 184
       }, {
         "val" : "Alaska Denali - 3 Days at Denali#@#4D3",
-        "count" : 101
+        "count" : 100
       }, {
         "val" : "Alaska Denali+Yukon - 2 Days at Denali#@#4Y2",
         "count" : 113
@@ -3075,7 +3095,7 @@
         "count" : 280
       }, {
         "val" : "LAND_FIRST",
-        "count" : 262
+        "count" : 259
       }, {
         "val" : "SEA_FIRST",
         "count" : 309
@@ -3150,7 +3170,7 @@
         "count" : 0
       }, {
         "val" : "Anchorage, Alaska, US#@#ANC",
-        "count" : 471
+        "count" : 469
       }, {
         "val" : "Andalsnes, Norway#@#AN1",
         "count" : 0
@@ -3402,7 +3422,7 @@
         "count" : 0
       }, {
         "val" : "Cruising Hubbard Glacier#@#HUB",
-        "count" : 292
+        "count" : 289
       }, {
         "val" : "Cruising Panama Canal and Gatun Lake#@#204",
         "count" : 0
@@ -3456,7 +3476,7 @@
         "count" : 85
       }, {
         "val" : "Denali National Park, Alaska#@#DNP",
-        "count" : 571
+        "count" : 568
       }, {
         "val" : "Devils Island, French Guiana#@#DI1",
         "count" : 0
@@ -3519,7 +3539,7 @@
         "count" : 0
       }, {
         "val" : "Fairbanks, Alaska#@#FAI",
-        "count" : 468
+        "count" : 466
       }, {
         "val" : "Fakarava, Tuamotu, French Polynesia#@#FAK",
         "count" : 0
@@ -3582,7 +3602,7 @@
         "count" : 0
       }, {
         "val" : "Glacier Bay#@#GB1",
-        "count" : 700
+        "count" : 697
       }, {
         "val" : "Grand Turk, Turks and Caicos#@#GDT",
         "count" : 0
@@ -3717,7 +3737,7 @@
         "count" : 0
       }, {
         "val" : "Juneau, Alaska, US#@#JNU",
-        "count" : 784
+        "count" : 781
       }, {
         "val" : "Kagoshima, Japan#@#KOJ",
         "count" : 0
@@ -3741,7 +3761,7 @@
         "count" : 0
       }, {
         "val" : "Ketchikan, Alaska, US#@#KTN",
-        "count" : 774
+        "count" : 771
       }, {
         "val" : "Key West, Florida, US#@#EYW",
         "count" : 0
@@ -4335,7 +4355,7 @@
         "count" : 0
       }, {
         "val" : "Scenic Cruising The Inside Passage#@#270",
-        "count" : 772
+        "count" : 769
       }, {
         "val" : "Scenic Cruising Torres Strait#@#701",
         "count" : 0
@@ -4461,7 +4481,7 @@
         "count" : 0
       }, {
         "val" : "Skagway, Alaska, US#@#SGY",
-        "count" : 766
+        "count" : 763
       }, {
         "val" : "Skjolden, Norway#@#SKO",
         "count" : 0
@@ -4545,7 +4565,7 @@
         "count" : 0
       }, {
         "val" : "Talkeetna, Alaska#@#TKA",
-        "count" : 33
+        "count" : 32
       }, {
         "val" : "Tallinn, Estonia#@#TLL",
         "count" : 0
@@ -4623,7 +4643,7 @@
         "count" : 0
       }, {
         "val" : "Vancouver, B.C., CA#@#YVR",
-        "count" : 772
+        "count" : 769
       }, {
         "val" : "Vava'u, Tonga#@#VAV",
         "count" : 0
@@ -4653,7 +4673,7 @@
         "count" : 178
       }, {
         "val" : "Whittier, Alaska, US#@#WH1",
-        "count" : 536
+        "count" : 533
       }, {
         "val" : "Willemstad, Curacao#@#CUR",
         "count" : 0
@@ -4677,7 +4697,7 @@
     "destinations" : {
       "buckets" : [ {
         "val" : "ALASKA#@#A",
-        "count" : 851
+        "count" : 848
       }, {
         "val" : "ASIA#@#O",
         "count" : 0
@@ -4758,7 +4778,7 @@
         "count" : 108
       }, {
         "val" : "Nieuw Amsterdam#@#NA",
-        "count" : 238
+        "count" : 236
       }, {
         "val" : "Nieuw Statendam#@#NS",
         "count" : 0
@@ -4776,7 +4796,7 @@
         "count" : 0
       }, {
         "val" : "Westerdam#@#WE",
-        "count" : 271
+        "count" : 270
       }, {
         "val" : "Zaandam#@#AA",
         "count" : 121
@@ -4806,43 +4826,43 @@
         "count" : 0
       }, {
         "val" : "#@#N2_AUD",
-        "count" : 851
+        "count" : 848
       }, {
         "val" : "#@#N2_CAD",
-        "count" : 851
+        "count" : 848
       }, {
         "val" : "#@#N2_EUR",
-        "count" : 851
+        "count" : 848
       }, {
         "val" : "#@#N2_GBP",
-        "count" : 851
+        "count" : 848
       }, {
         "val" : "#@#N2_USD",
-        "count" : 851
+        "count" : 848
       }, {
         "val" : "#@#NH_AUD",
-        "count" : 851
+        "count" : 848
       }, {
         "val" : "#@#NH_CAD",
-        "count" : 851
+        "count" : 848
       }, {
         "val" : "#@#NH_EUR",
-        "count" : 851
+        "count" : 848
       }, {
         "val" : "#@#NH_GBP",
-        "count" : 851
+        "count" : 848
       }, {
         "val" : "#@#NH_USD",
-        "count" : 851
+        "count" : 848
       }, {
         "val" : "#@#QA_AUD",
-        "count" : 851
+        "count" : 848
       }, {
         "val" : "#@#QA_CAD",
-        "count" : 700
+        "count" : 697
       }, {
         "val" : "#@#QA_USD",
-        "count" : 851
+        "count" : 848
       }, {
         "val" : "#@#QC_CAD",
         "count" : 156
@@ -4881,10 +4901,10 @@
         "count" : 138
       }, {
         "val" : "#@#UD_CAD",
-        "count" : 571
+        "count" : 568
       }, {
         "val" : "#@#UD_USD",
-        "count" : 571
+        "count" : 568
       }, {
         "val" : "#@#UF_CAD",
         "count" : 0
@@ -4908,10 +4928,10 @@
         "count" : 0
       }, {
         "val" : "#@#UP_CAD",
-        "count" : 566
+        "count" : 563
       }, {
         "val" : "#@#UP_USD",
-        "count" : 566
+        "count" : 563
       }, {
         "val" : "#@#UR_CAD",
         "count" : 0
@@ -4983,22 +5003,22 @@
         "count" : 0
       }, {
         "val" : false,
-        "count" : 851
+        "count" : 848
       } ]
     },
     "roomCategory" : {
-      "count" : 851,
+      "count" : 848,
       "IN" : {
-        "count" : 851
+        "count" : 848
       },
       "OV" : {
-        "count" : 851
+        "count" : 848
       },
       "LA" : {
         "count" : 0
       },
       "VN" : {
-        "count" : 622
+        "count" : 619
       },
       "VS" : {
         "count" : 228
@@ -5007,7 +5027,7 @@
         "count" : 543
       },
       "SS" : {
-        "count" : 524
+        "count" : 531
       },
       "PH" : {
         "count" : 0

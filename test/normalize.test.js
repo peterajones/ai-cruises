@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { canonicalDestination, canonicalCabin, toIsoDate, normalizeAll, findDestination } from '../normalize.js';
+import { canonicalDestination, canonicalCabin, toIsoDate, normalizeAll, findDestination, addDays } from '../normalize.js';
 
 test('every spelling of Eastern Caribbean canonicalizes the same way', () => {
   for (const raw of ['Eastern Caribbean', 'Caribbean - Eastern', 'E. Caribbean', 'CARIBBEAN EAST']) {
@@ -122,6 +122,8 @@ test('a good row becomes a fully canonical Sailing', () => {
     departurePort: 'Fort Lauderdale',
     destination: 'caribbean-east',
     departureDate: '2027-01-16',
+    endPort: null,
+    endDate: '2027-01-23',
     nights: 7,
     cabin: 'balcony',
     price: 1299,
@@ -215,4 +217,20 @@ test('cabinPrices: an unmappable label is reported, and the rest kept', () => {
 test('cabinPrices: an adapter that supplies none is "not listed"', () => {
   const { sailings } = normalizeAll([goodRow], { source: 'princess', line: 'Princess' });
   assert.equal(sailings[0].cabinPrices, null);
+});
+
+test('endDate is the departure date plus the nights', () => {
+  const { sailings } = normalizeAll([{ ...goodRow, departureDate: '2027-05-09', nights: 7 }], { source: 'princess', line: 'Princess' });
+  assert.equal(sailings[0].endDate, '2027-05-16');
+  assert.equal(addDays('2027-12-30', 3), '2028-01-02');
+  assert.equal(addDays('2027-05-09', -1), '2027-05-08');
+});
+
+test('endPort is kept, and a port with no known airport is reported', () => {
+  const row = { ...goodRow, endPort: ' Whittier, Alaska, US ' };
+  assert.equal(normalizeAll([row], { source: 'holland-america', line: 'Holland America' }).sailings[0].endPort, 'Whittier, Alaska, US');
+  const odd = { ...goodRow, endPort: 'Nowhere Bay' };
+  const { sailings, unrecognised } = normalizeAll([odd], { source: 'princess', line: 'Princess' });
+  assert.equal(sailings.length, 1);
+  assert.deepEqual(unrecognised, [{ field: 'airport', raw: 'Nowhere Bay', count: 1 }]);
 });

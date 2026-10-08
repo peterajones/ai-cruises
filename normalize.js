@@ -1,3 +1,4 @@
+import { airportFor } from './airports.js';
 /**
  * Canonicalizing. No AI here on purpose — every rule below is one you can state,
  * so it is written as a rule you can read and correct.
@@ -218,6 +219,18 @@ const REQUIRED = ['ship', 'departureDate', 'nights', 'price'];
 const TRIP_TYPES = ['cruise', 'cruisetour'];
 
 /**
+ * An ISO date moved by whole days, in UTC so no time zone shifts it.
+ * @param {string} iso - YYYY-MM-DD
+ * @param {number} days
+ * @returns {string}
+ */
+export function addDays(iso, days) {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
  * @param {object[]} rawRows - site-shaped rows straight from an adapter
  * @param {{source: string, line: string}} opts
  * @returns {{sailings: object[], unrecognised: {field: string, raw: string, count: number}[]}}
@@ -242,9 +255,11 @@ export function normalizeAll(rawRows, { source, line }) {
       line: row.line ?? line,
       ship: row.ship ? String(row.ship).trim() : null,
       departurePort: row.departurePort ? String(row.departurePort).trim() : null,
+      endPort: row.endPort ? String(row.endPort).trim() : null,
       destination: null,
       departureDate: toIsoDate(row.departureDate),
       nights: toNumber(row.nights),
+      endDate: null,
       cabin: null,
       price: toNumber(row.price),
       cabinPrices: null,
@@ -272,6 +287,13 @@ export function normalizeAll(rawRows, { source, line }) {
     }
 
     sailing.cabinPrices = canonicalCabinPrices(row.cabinPrices, miss);
+    if (sailing.departureDate && sailing.nights != null) {
+      sailing.endDate = addDays(sailing.departureDate, sailing.nights);
+    }
+    // A port with no airport cannot be priced for flights; the scrape lists it as a to-do.
+    for (const port of new Set([sailing.departurePort, sailing.endPort])) {
+      if (port && airportFor(port) === null) miss('airport', port);
+    }
 
     if (!TRIP_TYPES.includes(sailing.tripType)) {
       miss('tripType', String(sailing.tripType));

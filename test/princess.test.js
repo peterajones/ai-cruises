@@ -156,3 +156,9 @@ test('Princess lists only its cheapest cabin, so its table is "not listed"', () 
   assert.ok(sailings.length > 0);
   assert.ok(sailings.every((s) => s.cabinPrices === null));
 });
+
+test('a round trip ends where it began; every card has an end port', () => {
+  const rows = parseListing(html);
+  assert.equal(rows[0].endPort, rows[0].departurePort);
+  assert.ok(rows.every((r) => r.endPort));
+});

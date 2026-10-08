@@ -110,6 +110,8 @@ export function parseListing(html) {
     // Not every card carries a "Roundtrip from X" line (one-way sailings do not),
     // so fall back to the first port of call rather than emitting null.
     const departurePort = (portLine.split(/\bfrom\b/i)[1] ?? '').trim() || ports[0] || null;
+    // "Roundtrip from X" ends where it began; a one-way card's last port is where it ends.
+    const endPort = /roundtrip/i.test(portLine) ? departurePort : (ports.at(-1) ?? departurePort);
 
     // The detail link carries a real per-departure identifier: ?voyageCode=M634.
     // Preferred over synthesising one from ship+date, because it is the site's own.
@@ -124,6 +126,7 @@ export function parseListing(html) {
       url: absolute(href),
       ship,
       departurePort,
+      endPort,
       // Princess names no region — the itinerary title is the only signal, so the
       // whole title is handed over and normalize.js finds the region inside it.
       // Deriving from port countries was tried and is wrong in the most misleading

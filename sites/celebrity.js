@@ -62,6 +62,9 @@ export function parseListing(payload) {
           .filter((n) => n && n !== 'Cruising'),
       ),
     ];
+    // Where the cruise ends: the port of the day the ship is left. Most return to where they began.
+    const endPort = (it.days ?? []).flatMap((d) => d.ports ?? [])
+      .find((p) => p.activity === 'DEBARK')?.port?.name ?? null;
 
     for (const s of c.sailings) {
       const priced = (s.stateroomClassPricing ?? []).filter((p) => p.price != null);
@@ -79,6 +82,7 @@ export function parseListing(payload) {
         url: `${SITE_ORIGIN}${s.bookingLink}`,
         ship,
         departurePort,
+        endPort,
         destination,
         departureDate: s.sailDate,
         nights,

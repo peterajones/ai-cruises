@@ -29,7 +29,7 @@ const CAP = 750;
 const SORT = 'departDate asc,cruiseId asc,tourId asc';
 const FILTERS = ['departDate:[NOW/DAY+1DAY TO *]', 'destinationIds:A', 'soldOut:false'];
 const FIELDS = [
-  'cruiseId', 'tourId', 'itineraryId', 'shipName', 'embarkPortName', 'departDate',
+  'cruiseId', 'tourId', 'itineraryId', 'shipName', 'embarkPortName', 'disembarkPortName', 'departDate',
   'duration', 'name', 'cruiseType', 'destinationIds', 'contentPath', 'meta',
   // Not in the site's own search query, so easy to miss: the API returns only what
   // is asked for, and these two hold the card's picture and its ports of call.
@@ -196,6 +196,7 @@ export function parseListing(payload) {
       url: doc.contentPath ? `${SITE_ORIGIN}/en/us${doc.contentPath}` : null,
       ship: unpack(doc.shipName).value,
       departurePort: unpack(doc.embarkPortName).value,
+      endPort: unpack(doc.disembarkPortName).value,
       // A missing facets table leaves the raw code, which normalize.js reports.
       destination: destinations[destinationCode] ?? destinationCode,
       departureDate: doc.departDate ? doc.departDate.slice(0, 10) : null,

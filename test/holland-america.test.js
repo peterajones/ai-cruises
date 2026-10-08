@@ -41,6 +41,7 @@ test('the first row reads as the captured sailing', () => {
     url: 'https://www.hollandamerica.com/en/us/find-a-cruise/a6n07b/w656',
     ship: 'Westerdam',
     departurePort: 'Vancouver, B.C., CA',
+    endPort: 'Whittier, Alaska, US',
     destination: 'ALASKA',
     departureDate: '2026-08-16',
     nights: 7,
@@ -232,4 +233,8 @@ test('the search asks for the image and the ports', () => {
   const fl = new URL(searchUrl(0)).searchParams.get('fl').split(',');
   assert.ok(fl.includes('cruiseOverviewImage'));
   assert.ok(fl.includes('portImages'));
+});
+
+test('the search asks for where the cruise ends', () => {
+  assert.ok(new URL(searchUrl(0)).searchParams.get('fl').split(',').includes('disembarkPortName'));
 });
