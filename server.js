@@ -15,11 +15,13 @@ import {
   currencyNote, upcoming, localDate,
 } from './search.js';
 import { deriveValues } from './values.js';
+import { flightsFor } from './flights.js';
 
 // PORT lets a second copy run beside the usual one, e.g. to check a change.
 const PORT = Number(process.env.PORT) || 3030;
 const PUBLIC_DIR = new URL('./public/', import.meta.url).pathname;
 const DATA_FILE = new URL('./data/sailings.json', import.meta.url).pathname;
+const FLIGHTS_CACHE = new URL('./data/flights-cache.json', import.meta.url).pathname;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -167,6 +169,20 @@ const server = createServer(async (req, res) => {
         notice: currency?.note ?? null,
         tookMs: Date.now() - started,
       });
+    }
+
+    if (req.method === 'GET' && req.url.startsWith('/api/flights?')) {
+      const params = new URL(req.url, 'http://localhost').searchParams;
+      const home = (params.get('home') ?? '').trim().toUpperCase();
+      if (!/^[A-Z]{3}$/.test(home)) {
+        return json(res, 400, { reason: 'bad-home', message: 'Use a three-letter airport code, like YYZ.' });
+      }
+      dataset = await loadDataset();
+      const sailing = dataset?.sailings.find((s) => s.id === params.get('id'));
+      if (!sailing) return json(res, 404, { reason: 'not-found', message: 'No such sailing.' });
+      return json(res, 200, await flightsFor(sailing, home, {
+        today: localDate(), apiKey: process.env.SERP_API_KEY, cacheFile: FLIGHTS_CACHE,
+      }));
     }
 
     // The page imports the same filter rules the server uses (priceFor), so the

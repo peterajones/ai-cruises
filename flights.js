@@ -7,7 +7,9 @@
  * docs/superpowers/specs/2026-10-07-flights-panel-design.md.
  */
 
-import { airportFor } from './airports.js';
+import { readFile, writeFile, rename, mkdir } from 'node:fs/promises';
+import { dirname } from 'node:path';
+import { airportFor, airportName } from './airports.js';
 import { addDays } from './normalize.js';
 
 /** Airlines sell about 11 months ahead; a search further out finds nothing. */
@@ -93,4 +95,79 @@ export function summarize(raw) {
     })),
     googleFlightsUrl,
   };
+}
+
+const CACHE_DAYS = 3;
+const TIMEOUT_MS = 30_000;
+const ENDPOINT = 'https://serpapi.com/search.json';
+
+/** Searches in progress, so two asks for one trip share a search. */
+const inFlight = new Map();
+
+const cacheKey = (plan) => {
+  const { outbound: o, inbound: i } = plan.route;
+  return [o?.from, o?.to, o?.date, i?.from, i?.to, i?.date, plan.currency].join('|');
+};
+
+async function readCache(file) {
+  try {
+    return JSON.parse(await readFile(file, 'utf8'));
+  } catch (err) {
+    if (err.code === 'ENOENT') return {};
+    throw err;
+  }
+}
+
+/** Written as the sailings are: a temp file, then a rename, so a crash never leaves half a file. */
+async function writeCache(file, cache) {
+  await mkdir(dirname(file), { recursive: true });
+  const temp = `${file}.tmp`;
+  await writeFile(temp, `${JSON.stringify(cache, null, 2)}\n`, 'utf8');
+  await rename(temp, file);
+}
+
+async function search(plan, { apiKey, fetchImpl }) {
+  try {
+    const res = await fetchImpl(`${ENDPOINT}?${searchParams(plan, apiKey)}`, { signal: AbortSignal.timeout(TIMEOUT_MS) });
+    return summarize(await res.json());
+  } catch {
+    return { reason: 'search-error', message: "Couldn't reach the flight search" };
+  }
+}
+
+/**
+ * Flights for a sailing, from the cache when it is fresh, otherwise one search.
+ * Errors are never cached — the next ask tries again. "No flights found" is.
+ */
+export async function flightsFor(sailing, home, { today, apiKey, cacheFile, fetchImpl = fetch, now = Date.now() }) {
+  const plan = planFlights(sailing, home, today);
+  if (plan.reason) return plan;
+  if (!apiKey) return { reason: 'no-key', message: "Flight search isn't set up: add SERP_API_KEY to .env" };
+
+  // City names for the panel: "Toronto (YYZ) → Vancouver (YVR)".
+  const legs = [plan.route.outbound, plan.route.inbound].filter(Boolean);
+  const names = Object.fromEntries(legs.flatMap((l) => [l.from, l.to]).map((c) => [c, airportName(c)]));
+
+  const key = cacheKey(plan);
+  const cache = await readCache(cacheFile);
+  const hit = cache[key];
+  if (hit && now - Date.parse(hit.fetchedAt) < CACHE_DAYS * 86_400_000) {
+    return { route: plan.route, names, currency: plan.currency, ...hit.result, fetchedAt: hit.fetchedAt, cached: true };
+  }
+
+  if (!inFlight.has(key)) {
+    inFlight.set(key, (async () => {
+      const result = await search(plan, { apiKey, fetchImpl });
+      const fetchedAt = new Date(now).toISOString();
+      if (result.reason !== 'search-error') {
+        const latest = await readCache(cacheFile);
+        latest[key] = { fetchedAt, result };
+        await writeCache(cacheFile, latest);
+      }
+      return { result, fetchedAt };
+    })().finally(() => inFlight.delete(key)));
+  }
+
+  const { result, fetchedAt } = await inFlight.get(key);
+  return { route: plan.route, names, currency: plan.currency, ...result, fetchedAt, cached: false };
 }

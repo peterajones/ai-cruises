@@ -4,6 +4,8 @@ node_modules/
 data/sailings.json
 data/runs/
 data/debug/
+data/flights-cache.json
+data/flights-cache.json.tmp
 
 .DS_Store
 

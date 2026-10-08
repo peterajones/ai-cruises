@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { planFlights, searchParams, summarize, MAX_DAYS_AHEAD } from '../flights.js';
+import { readFile, mkdtemp } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { planFlights, searchParams, summarize, flightsFor, MAX_DAYS_AHEAD } from '../flights.js';
 
 const multicity = JSON.parse(await readFile(new URL('./fixtures/serpapi-multicity.json', import.meta.url), 'utf8'));
 
@@ -103,4 +105,64 @@ test('a round-trip response reduces the same way', () => {
   assert.equal(s.fromPrice, Math.min(...prices));
   assert.equal(s.options.length, 3);
   assert.ok(s.options.every((o, i, all) => i === 0 || all[i - 1].price <= o.price));
+});
+
+// A fake fetch: counts calls, returns a saved response. Tests never reach SerpApi.
+function fakeFetch(body) {
+  const f = async () => { f.calls += 1; return { json: async () => body }; };
+  f.calls = 0;
+  return f;
+}
+const opts = async (fetchImpl, extra = {}) => ({
+  today: TODAY, apiKey: 'test-key', fetchImpl,
+  cacheFile: join(await mkdtemp(join(tmpdir(), 'flights-')), 'cache.json'), ...extra,
+});
+
+test('a search is cached: the second ask is free', async () => {
+  const f = fakeFetch(multicity); const o = await opts(f);
+  const first = await flightsFor(westerdam, 'YYZ', o);
+  const second = await flightsFor(westerdam, 'YYZ', o);
+  assert.equal(f.calls, 1);
+  assert.equal(first.fromPrice, 517);
+  assert.equal(first.cached, false);
+  assert.equal(second.cached, true);
+  assert.equal(second.fromPrice, 517);
+  assert.deepEqual(first.names, { YYZ: 'Toronto', YVR: 'Vancouver', ANC: 'Anchorage' });
+});
+
+test('a cached result older than three days is searched again', async () => {
+  const f = fakeFetch(multicity); const o = await opts(f);
+  await flightsFor(westerdam, 'YYZ', { ...o, now: Date.parse('2026-10-07T12:00:00Z') });
+  await flightsFor(westerdam, 'YYZ', { ...o, now: Date.parse('2026-10-10T11:00:00Z') });
+  assert.equal(f.calls, 1, 'under three days: cached');
+  await flightsFor(westerdam, 'YYZ', { ...o, now: Date.parse('2026-10-10T13:00:00Z') });
+  assert.equal(f.calls, 2, 'over three days: searched again');
+});
+
+test('two asks for the same trip at once make one search', async () => {
+  const f = fakeFetch(multicity); const o = await opts(f);
+  await Promise.all([flightsFor(westerdam, 'YYZ', o), flightsFor(westerdam, 'YYZ', o)]);
+  assert.equal(f.calls, 1);
+});
+
+test('an error is shown and not cached, so the next ask tries again', async () => {
+  const f = fakeFetch({ error: 'Your account has run out of searches.' }); const o = await opts(f);
+  const r = await flightsFor(westerdam, 'YYZ', o);
+  assert.equal(r.reason, 'search-error');
+  await flightsFor(westerdam, 'YYZ', o);
+  assert.equal(f.calls, 2);
+});
+
+test('no key, or a refused plan, spends nothing', async () => {
+  const f = fakeFetch(multicity);
+  assert.equal((await flightsFor(westerdam, 'YYZ', await opts(f, { apiKey: undefined }))).reason, 'no-key');
+  assert.equal((await flightsFor({ ...westerdam, endPort: 'Nowhere Bay' }, 'YYZ', await opts(f))).reason, 'no-airport');
+  assert.equal(f.calls, 0);
+});
+
+test('a network failure becomes a message', async () => {
+  const failing = async () => { throw new Error('ECONNRESET'); };
+  const r = await flightsFor(westerdam, 'YYZ', await opts(failing));
+  assert.equal(r.reason, 'search-error');
+  assert.equal(r.message, "Couldn't reach the flight search");
 });
