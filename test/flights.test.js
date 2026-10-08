@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile, mkdtemp } from 'node:fs/promises';
+import { readFile, writeFile, mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { planFlights, searchParams, summarize, flightsFor, MAX_DAYS_AHEAD } from '../flights.js';
@@ -187,3 +187,27 @@ test('living at the start port of a cruise whose end is not listed is not "start
   assert.equal(plan.reason, 'no-flights-needed');
   assert.doesNotMatch(plan.message, /starts and ends/);
 });
+
+// Review finding: every write used one temp file, read-modify-write, so different trips
+// finishing together lost entries, failed with ENOENT, or could corrupt the file.
+test('different trips finishing together all succeed, and all are cached', async () => {
+  const f = fakeFetch(multicity); const o = await opts(f);
+  const trips = ['2027-05-09', '2027-05-16', '2027-05-23', '2027-05-30']
+    .map((d) => ({ ...westerdam, departureDate: d, endDate: addDaysForTest(d, 7) }));
+  const results = await Promise.all(trips.map((t) => flightsFor(t, 'YYZ', o)));
+  assert.ok(results.every((r) => r.fromPrice === 517));
+  const cache = JSON.parse(await readFile(o.cacheFile, 'utf8'));
+  assert.equal(Object.keys(cache).length, 4);
+});
+
+test('an unreadable cache file is treated as empty, not as a failure', async () => {
+  const f = fakeFetch(multicity); const o = await opts(f);
+  await writeFile(o.cacheFile, '{"half a fi');
+  const r = await flightsFor(westerdam, 'YYZ', o);
+  assert.equal(r.fromPrice, 517);
+  assert.ok(JSON.parse(await readFile(o.cacheFile, 'utf8')));
+});
+
+function addDaysForTest(iso, n) {
+  const d = new Date(`${iso}T00:00:00Z`); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10);
+}

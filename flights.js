@@ -117,11 +117,12 @@ const cacheKey = (plan) => {
   return [o?.from, o?.to, o?.date, i?.from, i?.to, i?.date, plan.currency].join('|');
 };
 
+/** A missing or unreadable cache is an empty one: losing it costs searches, not the panel. */
 async function readCache(file) {
   try {
     return JSON.parse(await readFile(file, 'utf8'));
   } catch (err) {
-    if (err.code === 'ENOENT') return {};
+    if (err.code === 'ENOENT' || err instanceof SyntaxError) return {};
     throw err;
   }
 }
@@ -132,6 +133,22 @@ async function writeCache(file, cache) {
   const temp = `${file}.tmp`;
   await writeFile(temp, `${JSON.stringify(cache, null, 2)}\n`, 'utf8');
   await rename(temp, file);
+}
+
+/**
+ * Cache writes run one at a time. Each is read-modify-write through one temp file, so
+ * two trips finishing together would otherwise lose an entry, fail the rename, or
+ * interleave into a corrupt file (review finding, reproduced). Best-effort: a failed
+ * write costs a later search, never the answer in hand.
+ */
+let writes = Promise.resolve();
+function remember(file, key, entry) {
+  writes = writes.then(async () => {
+    const latest = await readCache(file);
+    latest[key] = entry;
+    await writeCache(file, latest);
+  }).catch(() => {});
+  return writes;
 }
 
 async function search(plan, { apiKey, fetchImpl }) {
@@ -167,11 +184,7 @@ export async function flightsFor(sailing, home, { today, apiKey, cacheFile, fetc
     inFlight.set(key, (async () => {
       const result = await search(plan, { apiKey, fetchImpl });
       const fetchedAt = new Date(now).toISOString();
-      if (result.reason !== 'search-error') {
-        const latest = await readCache(cacheFile);
-        latest[key] = { fetchedAt, result };
-        await writeCache(cacheFile, latest);
-      }
+      if (result.reason !== 'search-error') await remember(cacheFile, key, { fetchedAt, result });
       return { result, fetchedAt };
     })().finally(() => inFlight.delete(key)));
   }
