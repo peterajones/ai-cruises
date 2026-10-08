@@ -126,6 +126,18 @@
   .cabin { font-size: 12px; color: var(--muted); text-transform: capitalize; }
   a.book { color: var(--accent); font-size: 13px; font-weight: 600; text-decoration: none; }
   a.book:hover { text-decoration: underline; }
+  .flights-btn { background: none; border: 1px solid var(--line); border-radius: 999px;
+    padding: 4px 10px; font: inherit; font-size: 13px; font-weight: 600; color: var(--accent); cursor: pointer; }
+  .panel-backdrop { position: fixed; inset: 0; background: rgba(6,20,28,.35); z-index: 20; }
+  .panel { position: fixed; top: 0; right: 0; bottom: 0; width: min(420px, 100vw); background: var(--panel);
+    box-shadow: var(--shadow); padding: 20px; overflow-y: auto; z-index: 21;
+    display: flex; flex-direction: column; gap: 12px; }
+  .panel[hidden], .panel-backdrop[hidden] { display: none; }
+  .panel .close { align-self: flex-end; background: none; border: 0; font-size: 20px; cursor: pointer; color: var(--muted); }
+  .panel h2 { margin: 0; font-size: 18px; }
+  .panel input { width: 4.5em; text-transform: uppercase; font: inherit; padding: 4px 6px; }
+  .leg { font-size: 14px; }
+  .option { font-size: 13px; color: var(--muted); }
   .empty { text-align: center; padding: 70px 20px; color: var(--muted); font-size: 17px; }
 </style>
 </head>
@@ -151,6 +163,8 @@
   <div class="facets" id="facets"></div>
 
   <div id="results" class="grid"></div>
+  <div id="panel-backdrop" class="panel-backdrop" hidden></div>
+  <aside id="panel" class="panel" hidden aria-label="Flights"></aside>
 </main>
 
 <script type="module">
@@ -200,6 +214,94 @@ const chosenCabin = () => state.facets.cabin || state.searchCabin || null;
 
 /** The price a card shows and the slider and sort use — the shared rule. */
 const shownPrice = (s) => priceFor(s, chosenCabin()) ?? priceFor(s, null);
+
+const HOME_KEY = 'ai-cruises.home';
+const readHome = () => { try { return localStorage.getItem(HOME_KEY) || 'YYZ'; } catch { return 'YYZ'; } };
+const saveHome = (code) => { try { localStorage.setItem(HOME_KEY, code); } catch { /* private mode: not remembered */ } };
+const shortDate = (iso) => new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+const hm = (min) => `${Math.floor(min / 60)}h ${String(min % 60).padStart(2, '0')}m`;
+const checkedAgo = (iso) => {
+  const days = Math.floor((Date.now() - Date.parse(iso)) / 86_400_000);
+  return days <= 0 ? 'checked today' : `checked ${days} day${days === 1 ? '' : 's'} ago`;
+};
+
+let panelSailing = null;
+
+function closePanel() {
+  $('#panel').hidden = true;
+  $('#panel-backdrop').hidden = true;
+  panelSailing = null;
+}
+
+function openPanel(s) {
+  panelSailing = s;
+  const panel = $('#panel');
+  panel.textContent = '';
+  const home = el('input', { value: readHome(), maxlength: '3', 'aria-label': 'Home airport code' });
+  const body = el('div', {});
+  const close = el('button', { class: 'close', type: 'button', 'aria-label': 'Close', text: '✕' });
+  close.onclick = closePanel;
+  panel.append(close,
+    el('h2', { text: s.itinerary ?? titleCase(s.destination ?? 'Cruise') }),
+    el('div', { class: 'meta', text: `${s.ship} · ${prettyDate(s.departureDate)} · ${s.nights} nights` }),
+    el('label', { class: 'meta' }, 'Flying from: ', home),
+    body);
+  home.onchange = () => {
+    const code = home.value.trim().toUpperCase();
+    home.value = code;
+    if (!/^[A-Z]{3}$/.test(code)) { body.textContent = 'Use a three-letter airport code, like YYZ.'; return; }
+    saveHome(code);
+    showFlights(s, code, body);
+  };
+  panel.hidden = false;
+  $('#panel-backdrop').hidden = false;
+  close.focus();
+  showFlights(s, home.value, body);
+}
+
+async function showFlights(s, home, body) {
+  body.textContent = '';
+  body.append(el('p', { class: 'meta', text: 'Searching flights… (about 10 seconds)' }));
+  let data;
+  try {
+    const res = await fetch(`/api/flights?id=${encodeURIComponent(s.id)}&home=${encodeURIComponent(home)}`);
+    data = await res.json();
+  } catch {
+    data = { message: "Couldn't reach the flight search" };
+  }
+  if (panelSailing !== s) return; // closed, or another cruise opened meanwhile
+  body.textContent = '';
+
+  const { outbound, inbound } = data.route ?? {};
+  const place = (code) => (data.names?.[code] ? `${data.names[code]} (${code})` : code);
+  for (const leg of [outbound, inbound].filter(Boolean)) {
+    body.append(el('div', { class: 'leg', text: `${place(leg.from)} → ${place(leg.to)} · ${shortDate(leg.date)}` }));
+  }
+
+  const link = safeUrl(data.googleFlightsUrl);
+  const googleLink = link ? el('a', { class: 'book', href: link, target: '_blank', rel: 'noopener', text: 'See all on Google Flights ↗' }) : null;
+
+  if (data.fromPrice == null) {
+    // append() writes a null as the text "null"; el() skips it, so build through el().
+    body.append(el('div', {}, el('p', { text: data.message ?? 'No flights found.' }), googleLink));
+    return;
+  }
+
+  const shown = shownPrice(s);
+  const cruisePrice = shown.notListed ? s.price : shown.price;
+  body.append(
+    el('div', { class: 'price', text: `Flights from about ${money(data.fromPrice)}` }),
+    el('div', { class: 'meta', text: `Cruise + flights from about ${money(cruisePrice + data.fromPrice)}`
+      + (shown.notListed ? ` (cruise at its cheapest, ${cabinName(s.cabin).toLowerCase()} — the ${cabinName(shown.cabin).toLowerCase()} price isn't listed)` : '') }),
+    ...data.options.map((o) => el('div', { class: 'option',
+      text: `${money(o.price)} · ${o.airlines} · ${o.departs.slice(11)} · ${o.stops === 0 ? 'nonstop' : `${o.stops} stop${o.stops === 1 ? '' : 's'}`} · ${hm(o.minutes)}` })),
+    el('div', { class: 'meta', text: 'Prices are for the whole trip, per person; times are for the flight out.' }),
+    ...(googleLink ? [googleLink] : []),
+    el('div', { class: 'meta', text: checkedAgo(data.fetchedAt) }));
+}
+
+$('#panel-backdrop').onclick = closePanel;
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && panelSailing) closePanel(); });
 
 async function boot() {
   const res = await fetch('/api/dataset');
@@ -355,6 +457,12 @@ function applyFacets(list) {
   return out;
 }
 
+function flightsButton(s) {
+  const b = el('button', { class: 'flights-btn', type: 'button', text: '✈ Flights' });
+  b.onclick = () => openPanel(s);
+  return b;
+}
+
 function render() {
   const base = state.subset ?? state.all;
   const list = applyFacets(base);
@@ -398,7 +506,7 @@ function render() {
     const link = safeUrl(s.url);
     const foot = el('div', { class: 'foot' },
       el('div', {}, price, priceLabel),
-      link ? el('a', { class: 'book', href: link, target: '_blank', rel: 'noopener', text: 'View ↗' }) : null);
+      el('div', {}, flightsButton(s), link ? el('a', { class: 'book', href: link, target: '_blank', rel: 'noopener', text: ' View ↗' }) : null));
 
     host.append(el('article', { class: 'card' }, thumb,
       el('div', { class: 'body' },
