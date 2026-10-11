@@ -47,6 +47,19 @@ const IDENTITY_FIELDS = [
  * @returns {{sailings: object[], duplicates: number}}
  * @throws {ConflictingDuplicateError} when two rows share an id but differ
  */
+/**
+ * The previous run's sailings for the lines whose scrape failed this time. Without this a
+ * failed line vanished from data/sailings.json until its next good scrape, because the file
+ * is written from whichever lines succeeded.
+ *
+ * @param {object[]|undefined} previous - sailings from the last written data/sailings.json
+ * @param {Set<string>} failedSources - adapter names that failed this run
+ * @returns {object[]}
+ */
+export function carryOver(previous, failedSources) {
+  return (previous ?? []).filter((s) => failedSources.has(s.source));
+}
+
 export function dedupeById(sailings) {
   const byId = new Map();
   const unique = [];

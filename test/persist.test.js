@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, readFile, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { assertNonEmpty, dedupeById, loadExisting, mergeShips, writeResult } from '../persist.js';
+import { assertNonEmpty, carryOver, dedupeById, loadExisting, mergeShips, writeResult } from '../persist.js';
 import { ConflictingDuplicateError, EmptyResultError } from '../errors.js';
 
 const sampleResult = () => ({
@@ -157,4 +157,16 @@ test('presentation-only differences are not a conflict', () => {
   ]);
   assert.equal(duplicates, 1);
   assert.equal(sailings.length, 1);
+});
+
+// A line whose scrape fails keeps its sailings from the previous run, rather than
+// vanishing from the file until the next good scrape (Peter, 2026-10-11).
+test('carryOver keeps the previous sailings of the lines that failed, and only those', () => {
+  const previous = [
+    { id: 'viking:A', source: 'viking' }, { id: 'viking:B', source: 'viking' },
+    { id: 'princess:C', source: 'princess' },
+  ];
+  assert.deepEqual(carryOver(previous, new Set(['viking'])).map((s) => s.id), ['viking:A', 'viking:B']);
+  assert.deepEqual(carryOver(previous, new Set()), []);
+  assert.deepEqual(carryOver(undefined, new Set(['viking'])), []); // no previous run
 });

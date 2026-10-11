@@ -10,7 +10,7 @@ import { launch, newPage } from './browser.js';
 import { BotWallError, ConflictingDuplicateError, EmptyResultError } from './errors.js';
 import { normalizeAll } from './normalize.js';
 import { deriveValues } from './values.js';
-import { assertNonEmpty, dedupeById, loadExisting, mergeShips, writeResult } from './persist.js';
+import { assertNonEmpty, carryOver, dedupeById, loadExisting, mergeShips, writeResult } from './persist.js';
 import { adaptersFor } from './sites/index.js';
 
 const DATA_DIR = new URL('./data/', import.meta.url).pathname;
@@ -45,6 +45,7 @@ async function main() {
 
   const browser = await launch();
   const allSailings = [];
+  const failedSources = new Set();
   const allMisses = [];
   const freshShips = {};
   const failures = [];
@@ -88,22 +89,34 @@ async function main() {
         console.error(`  This is a block, not a parse failure. Body saved to ${path}`);
       } else if (err instanceof ConflictingDuplicateError) {
         console.error(`${adapter.name}: ${err.message}`);
-        console.error('  Not writing data/sailings.json — the previous run is preserved.');
+        console.error(`  Keeping ${adapter.name}'s sailings from the previous run.`);
       } else if (err instanceof EmptyResultError) {
         const path = await snapshotFailure(await page.content(), `${adapter.name}-empty`);
         console.error(`${adapter.name}: parsed 0 sailings.`);
         console.error(`  Selectors probably broke. Page saved to ${path}`);
-        console.error('  Not writing data/sailings.json — the previous run is preserved.');
+        console.error(`  Keeping ${adapter.name}'s sailings from the previous run.`);
       } else {
         console.error(`${adapter.name}: ${err.message}`);
       }
       failures.push(`${adapter.name} listing: ${err.message}`);
+      failedSources.add(adapter.name);
     } finally {
       await page.close();
     }
   }
 
   const existing = (await loadExisting(DATA_DIR)) ?? { ships: {} };
+
+  // A line that failed keeps its sailings from the previous run (the exit code still says
+  // it failed), rather than vanishing from the file until its next good scrape.
+  const carried = carryOver(existing.sailings, failedSources);
+  if (carried.length > 0) {
+    allSailings.push(...carried);
+    for (const name of failedSources) {
+      const n = carried.filter((s) => s.source === name).length;
+      console.error(`${name}: kept ${n} sailings from the previous run`);
+    }
+  }
 
   // Drop cached entries that carry no description before anything reads them.
   // mergeShips lets `existing` win when not refreshing, so a previously-failed
