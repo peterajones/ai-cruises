@@ -22,7 +22,7 @@ browser ──fetch──▶ HTML/JSON ──parse──▶ RawSailing[] ──n
 Each stage knows only its own inputs and outputs. Adapters live in `sites/`.
 
 - `sites/royal-caribbean.js`, `sites/celebrity.js`, `sites/princess.js`,
-  `sites/holland-america.js` — one file per site, each knowing only its own site.
+  `sites/holland-america.js`, `sites/viking.js` — one file per site, each knowing only its own site.
   Deliberately near-duplicates rather than a shared parser: when one site changes shape,
   the others keep running.
 - `search.js` / `brain.js` / `server.js` / `public/` — the search layer over the scraped data.
@@ -69,10 +69,11 @@ a good dataset.
 
 ## Status
 
-**Four lines working** (scraped 2026-10-07): Royal Caribbean (179), Celebrity (117),
-Princess (198), Holland America (760) — 1,254 sailings, every one with a destination and a
-trip type, 14 ships with descriptions, cheapest prices $298–$6,439 USD and $347–$3,451 CAD.
-Alaska: 773 sailings (Holland America 760, Princess 13). 191 tests.
+**Five lines working** (scraped 2026-10-11): Royal Caribbean (178), Celebrity (117),
+Princess (196), Holland America (760), Viking (330) — 1,581 sailings, every one with a
+destination, a trip type and an end port, 14 ships with descriptions, cheapest prices
+$298–$6,559 USD and $347–$67,699 CAD (the top is a Viking world cruise). Alaska: 790
+sailings. 208 tests.
 
 **Prices per cabin type.** Every sailing has `cabinPrices` — cabin type → that cabin's
 cheapest price, e.g. `{ interior: 959, oceanview: 1009, balcony: 1459, suite: 2164 }` — and
@@ -97,6 +98,24 @@ airlines don't sell that far out. **Princess cards list only the first ports of 
 itinerary**, so a one-way card with 8+ ports has `endPort: null` and the panel prices only the
 flight out, saying why (N731's card ends at Kotor; the cruise ends in Ravenna). Spec:
 `docs/superpowers/specs/2026-10-07-flights-panel-design.md`.
+
+**Viking quirks worth knowing** (spec: `docs/superpowers/specs/2026-10-11-viking-design.md`):
+
+- **Ocean only.** River and expedition cruises (incl. the expedition ships Octantis and
+  Polaris) are out; the 3 "River + Ocean Combinations" itineraries are skipped.
+- **The itinerary list is embedded in the search page** (`window.app.superfac.viewModel`),
+  not fetched. Each itinerary's dated sailings come from one `POST
+  /oceans/Core/DnPCruiseFullInfo`, sent from inside the page so it is same-origin.
+- **The next 10 sailings of each itinerary, within 12 months** (`MAX_SAILINGS_PER_ITINERARY`).
+  Only 69 of 107 itineraries sail in that year, most just 1–4 times, so Viking is ~330 —
+  not the ~3,700 the uncapped busiest routes suggested.
+- **Price is the cheapest listed cabin, never the headline `lowestPrice`** — on 14 of 156
+  sampled sailings the headline was below every listed cabin.
+- **Verandas and suites only** (no interior or ocean view). **CAD**, as served: viking.com
+  redirects to vikingcruisescanada.com.
+- **Directions** read "Barcelona to Rome (Civitavecchia)" or "Roundtrip Athens (Piraeus),
+  Greece"; both give a start and an end port. Port names carry accents (Reykjavík, Tromsø):
+  `airports.js` folds them.
 
 **Celebrity and Royal Caribbean read one results page each**, and the site chooses what is
 on it. Coverage by destination drifts between scrapes: Celebrity had 36 Alaska sailings on
