@@ -28,6 +28,10 @@ const PORTS = {
   'Laem Chabang (for Bangkok),Thailand': 'BKK',
   // Princess one-way seacations, from the 2026-10-07 scrape.
   'Melbourne, Australia': 'MEL', 'Adelaide, Australia': 'ADL', 'Auckland, New Zealand': 'AKL',
+  // Viking, from the 2026-10-11 scrape.
+  'Istanbul': 'IST', 'Lisbon': 'LIS', 'Bergen': 'BGO', 'Stockholm': 'ARN', 'Belfast': 'BFS',
+  'Reykjavík': 'KEF', 'Reykjavík, Iceland': 'KEF', 'Bali (Benoa)': 'DPS', 'Hong Kong': 'HKG',
+  'Panama City (Fuerte Amador)': 'PTY', 'Tromsø': 'TOS', 'Oslo': 'OSL',
 };
 
 test('every known port maps to its airport', () => {
@@ -51,4 +55,10 @@ test('codes have a name for display', () => {
   assert.equal(airportName('YYZ'), 'Toronto');
   assert.equal(airportName('ANC'), 'Anchorage');
   assert.equal(airportName('XXX'), null);
+});
+
+test('accented port names match their plain spellings', () => {
+  assert.equal(airportFor('Reykjavík'), 'KEF');
+  assert.equal(airportFor('Tromsø'), 'TOS');
+  assert.equal(airportFor('Sète'), null); // no airport entry: still null, not an accident
 });

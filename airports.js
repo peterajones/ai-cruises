@@ -46,12 +46,29 @@ const AIRPORTS = {
   MEL: ['Melbourne', 'melbourne'],
   ADL: ['Adelaide', 'adelaide'],
   AKL: ['Auckland', 'auckland'],
+  IST: ['Istanbul', 'istanbul'],
+  LIS: ['Lisbon', 'lisbon'],
+  BGO: ['Bergen', 'bergen'],
+  ARN: ['Stockholm', 'stockholm'],
+  BFS: ['Belfast', 'belfast'],
+  OSL: ['Oslo', 'oslo'],
+  TOS: ['Tromso', 'tromso'],
+  HKG: ['Hong Kong', 'hong kong'],
+  // Benoa is Bali's cruise port.
+  DPS: ['Bali', 'bali', 'benoa'],
+  // Fuerte Amador is Panama City's cruise pier.
+  PTY: ['Panama City', 'panama city', 'fuerte amador'],
   // Deliberately no "san antonio": the Chilean port would match San Antonio, Texas.
   SCL: ['Santiago', 'santiago'],
   EZE: ['Buenos Aires', 'buenos aires'],
 };
 
-const key = (raw) => String(raw ?? '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+// Accents folded first, so "Reykjavík" and "Tromsø" match "reykjavik" and "tromso" — without
+// this they lost the letter entirely ("reykjav k").
+const key = (raw) => String(raw ?? '')
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .replace(/ø/gi, 'o').replace(/æ/gi, 'ae').replace(/ß/g, 'ss')
+  .toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
 const ALIASES = Object.entries(AIRPORTS).flatMap(([code, [, ...names]]) =>
   names.map((name) => [key(name), code]));
