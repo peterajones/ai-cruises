@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import {
   extractItineraries, splitDirection, pickRegion, sailingRows, parseListing, fetchListingPages, name, line, shipDescriptions,
+  MAX_SAILINGS_PER_ITINERARY,
 } from '../sites/viking.js';
 import { normalizeAll } from '../normalize.js';
 
@@ -49,7 +50,10 @@ test('the most specific region wins', () => {
 
 test('one row per sailing in the next 12 months, sold out and unpriced skipped', () => {
   const rows = sailingRows(iwm, pricing, TODAY);
-  assert.equal(rows.length, 52); // 58 in the window, 6 sold out or without cabins
+  // 58 in the window, 6 sold out or without cabins: 52 — capped at the next 10 (Peter, 2026-10-11:
+  // ~35 per itinerary would make Viking ~3,700 sailings, three-quarters of the app).
+  assert.equal(rows.length, 10);
+  assert.deepEqual(rows.map((r) => r.departureDate), [...rows.map((r) => r.departureDate)].sort());
   assert.equal(new Set(rows.map((r) => r.externalId)).size, rows.length);
   assert.deepEqual(rows[0], {
     externalId: 'OMI261014',
@@ -90,13 +94,13 @@ test('the window: today excluded, a year ahead included', () => {
 
 test('parseListing reads one itinerary-and-pricing payload', () => {
   const rows = parseListing(JSON.stringify({ itinerary: iwm, pricing, today: TODAY }));
-  assert.equal(rows.length, 52);
+  assert.equal(rows.length, 10);
   assert.deepEqual(parseListing('{}'), []);
 });
 
 test('every row normalizes: a known destination, both cabin types, an end port', () => {
   const { sailings, unrecognised } = normalizeAll(sailingRows(iwm, pricing, TODAY), { source: 'viking', line: 'Viking' });
-  assert.equal(sailings.length, 52);
+  assert.equal(sailings.length, 10);
   assert.ok(sailings.every((s) => s.destination === 'mediterranean'));
   assert.deepEqual(unrecognised, []);
   assert.deepEqual(sailings.find((s) => s.id === 'viking:OSE261016').cabinPrices, { balcony: 6599, suite: 9799 });
@@ -135,4 +139,12 @@ test('a pricing answer that is not JSON fails loudly', async () => {
   // text as a block), so this exercises the not-JSON path.
   const page = fakePage(() => `<html><p>${"Unexpected server response. ".repeat(60)}</p></html>`);
   await assert.rejects(fetchListingPages(page, { limit: 1 }), /iconic-western-mediterranean/);
+});
+
+test('the cap keeps the earliest sailings, after skipping sold-out ones', () => {
+  const rows = sailingRows(iwm, pricing, TODAY);
+  // 17 Oct 2026 is sold out; it must not use up one of the ten places.
+  assert.ok(!rows.some((r) => r.externalId === 'OSA261017'));
+  assert.equal(rows[0].externalId, 'OMI261014');
+  assert.equal(MAX_SAILINGS_PER_ITINERARY, 10);
 });

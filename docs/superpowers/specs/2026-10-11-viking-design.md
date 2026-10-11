@@ -15,6 +15,7 @@ like every price in this app.
 |---|---|---|
 | Scope | Ocean only | Peter's choice. River and expedition cruises are different trips; out of scope. (Viking's two expedition ships, Octantis and Polaris, are therefore not included.) |
 | Volume | Sailings departing in the next 12 months | Peter's choice. Matches what the flights panel can price (330 days); every itinerary still represented. One itinerary alone has 156 sailings over 2026–2029. |
+| Per itinerary | The next **10** sailings of each itinerary (`MAX_SAILINGS_PER_ITINERARY`) | *Added 2026-10-11, Peter's choice, after the dry run:* ~35 sailings per itinerary in the 12-month window would make Viking ~3,700 sailings — three-quarters of the app. Ten keeps every route at ~1,070. |
 | Price | The cheapest cabin still on offer, from the per-cabin list | The itinerary's headline `lowestPrice` can be stale: 14 Oct 2026 shows $5,999 while its only listed cabin, a suite, is $10,199 (the verandas are gone). On other dates `lowestPrice` equals the cheapest cabin and matches the site (Jan 12 2027 $4,199; Feb 3 2027 $3,899). |
 | Air | Ignored | The second number on the pricing page (e.g. $1,299) is Viking's optional air package from Canadian gateways — not part of the cruise fare. |
 | Currency | CAD, as served | viking.com and vikingcruises.com both redirect to vikingcruisescanada.com; every itinerary `Id` carries `CAD`. |

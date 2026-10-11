@@ -54,6 +54,13 @@ export function extractItineraries(html) {
   };
 }
 
+/**
+ * Each itinerary sails ~35 times in a year; all of them would make Viking ~3,700 sailings,
+ * three-quarters of the app. The next ten keep every route, nearest dates first
+ * (Peter, 2026-10-11). Raise it here to take more.
+ */
+export const MAX_SAILINGS_PER_ITINERARY = 10;
+
 /** Viking's regions, most specific first. The first one an itinerary carries is used. */
 const REGION_PRIORITY = [
   'Alaska', 'Hawaii', 'Caribbean & Central America', 'Mediterranean', 'British Isles & Ireland',
@@ -82,7 +89,7 @@ const isoFrom = (yyyymmdd) => `${yyyymmdd.slice(0, 4)}-${yyyymmdd.slice(4, 6)}-$
 
 /**
  * One row per sailing departing after today and within a year, that is not sold out
- * and lists at least one priced cabin.
+ * and lists at least one priced cabin — the earliest MAX_SAILINGS_PER_ITINERARY of them.
  *
  * The price is the cheapest listed cabin, never the headline `lowestPrice`: on 14 of 156
  * sampled sailings the headline was below every listed cabin (16 Oct 2026: $5,999 against
@@ -125,7 +132,9 @@ export function sailingRows(itinerary, pricing, today) {
     });
   }
 
-  return rows;
+  return rows
+    .sort((a, b) => a.departureDate.localeCompare(b.departureDate))
+    .slice(0, MAX_SAILINGS_PER_ITINERARY);
 }
 
 /**
