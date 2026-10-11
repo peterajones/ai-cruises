@@ -56,7 +56,8 @@ const DESTINATIONS = {
   'antarctica': ['antarctica'],
   // Viking's "North America" itineraries run Montreal -> New York and Montreal -> Fort Lauderdale.
   'canada-new-england': ['canada new england', 'new england canada', 'canada', 'north america'],
-  'world': ['world cruise', 'grand voyage', 'world'],
+  // Viking files its longest voyages under "Grand Journeys" (see pickRegion in sites/viking.js).
+  'world': ['world cruise', 'grand voyage', 'grand journeys', 'world'],
 };
 
 /** Canonical cabin -> the names sites actually use. */

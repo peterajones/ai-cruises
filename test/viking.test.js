@@ -180,3 +180,25 @@ test('an error answer in JSON fails loudly, naming the itinerary', async () => {
     await assert.rejects(fetchListingPages(fakePage(() => answer), { limit: 1 }), /iconic-western-mediterranean/);
   }
 });
+
+// Review finding: world cruises fell to "Hawaii" and a 78-night Australia-Asia-Alaska
+// voyage to "Alaska", because a specific region outranked World Cruises / Grand Journeys.
+test('world cruises and wide-ranging grand journeys are world voyages', () => {
+  const world = ['North America', 'Africa & Middle East', 'Asia', 'Australia & New Zealand', 'Sub-Saharan Africa', 'Hawaii', 'World Cruises'];
+  assert.equal(pickRegion(world, 142), 'World Cruises');
+  assert.equal(pickRegion(['Asia', 'North America', 'Australia & New Zealand', 'Alaska', 'Grand Journeys'], 79), 'Grand Journeys');
+  assert.equal(pickRegion(['Asia', 'North America', 'Alaska', 'Grand Journeys'], 37), 'Grand Journeys'); // 3 regions
+  assert.equal(pickRegion(['Asia', 'Africa & Middle East', 'Europe', 'Grand Journeys'], 65), 'Grand Journeys'); // > 60 days
+  // A grand journey within one area keeps it.
+  assert.equal(pickRegion(['Europe', 'Mediterranean', 'Grand Journeys'], 36), 'Mediterranean');
+  assert.equal(pickRegion(['Asia', 'Grand Journeys'], 29), 'Asia');
+});
+
+test('a world voyage normalizes to the world destination', () => {
+  const row = { ...sailingRows(iwm, pricing, TODAY)[0] };
+  for (const destination of ['Grand Journeys', 'World Cruises']) {
+    const { sailings, unrecognised } = normalizeAll([{ ...row, destination }], { source: 'viking', line: 'Viking' });
+    assert.equal(sailings[0].destination, 'world', destination);
+    assert.deepEqual(unrecognised, []);
+  }
+});

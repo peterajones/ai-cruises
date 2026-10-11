@@ -69,8 +69,22 @@ const REGION_PRIORITY = [
   'World Cruises', 'Grand Journeys', 'Europe',
 ];
 
-/** @returns {string|null} the most specific region; an unknown one passes through for normalize to report */
-export function pickRegion(regions = []) {
+const BROAD = ['Europe', 'Grand Journeys', 'World Cruises'];
+
+/**
+ * The most specific region — except for voyages that cross the world: a world cruise,
+ * or a grand journey spanning 3+ specific regions or longer than 60 days, is a world
+ * voyage (review finding: world cruises fell to "Hawaii", a 78-night Australia-Asia-
+ * Alaska voyage to "Alaska"). An unknown region passes through for normalize to report.
+ *
+ * @param {string[]} regions
+ * @param {number} [days]
+ * @returns {string|null}
+ */
+export function pickRegion(regions = [], days = 0) {
+  if (regions.includes('World Cruises')) return 'World Cruises';
+  const specific = regions.filter((r) => !BROAD.includes(r));
+  if (regions.includes('Grand Journeys') && (specific.length >= 3 || days > 60)) return 'Grand Journeys';
   return REGION_PRIORITY.find((r) => regions.includes(r)) ?? regions[0] ?? null;
 }
 
@@ -129,7 +143,7 @@ export function sailingRows(itinerary, pricing, today) {
       ship: s.shipType,
       departurePort: start,
       endPort: end,
-      destination: pickRegion(itinerary.Regions),
+      destination: pickRegion(itinerary.Regions, itinerary.Days),
       departureDate: date,
       nights: itinerary.Days - 1,
       cabin: cheapest[0],
