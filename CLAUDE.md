@@ -121,7 +121,8 @@ flight out, saying why (N731's card ends at Kotor; the cruise ends in Ravenna). 
 - **World voyages:** a world cruise, or a "Grand Journeys" voyage spanning 3+ regions or
   over 60 days, is filed under `world` — otherwise world cruises fell to "Hawaii".
 - **Any failed pricing request fails the whole Viking scrape** (loudly, naming the
-  itinerary). scrape.js then writes the other lines without Viking — see the open question.
+  itinerary). Like any failed line, Viking then keeps its sailings from the previous run
+  (`carryOver` in persist.js), and the scrape exits 1.
 
 **Celebrity and Royal Caribbean read one results page each**, and the site chooses what is
 on it. Coverage by destination drifts between scrapes: Celebrity had 36 Alaska sailings on
