@@ -137,3 +137,70 @@ export function parseListing(payload) {
   if (!itinerary || !pricing || !today) return [];
   return sailingRows(itinerary, pricing, today);
 }
+
+
+const PRICING_PATH = '/oceans/Core/DnPCruiseFullInfo?v=11';
+
+/**
+ * The search page, then one Dates & Pricing POST per itinerary, sent from inside the
+ * page so it is same-origin with the site's own cookies. `limit` caps itineraries.
+ *
+ * @returns {Promise<string[]>} JSON payloads: { itinerary, pricing, today }
+ */
+export async function fetchListingPages(page, { limit }) {
+  await page.goto(SEARCH_URL, { waitUntil: 'networkidle2', timeout: 60_000 });
+  const html = await page.content();
+  const wall = detectBotWall(html);
+  if (wall) throw new BotWallError(wall, SEARCH_URL);
+
+  const { promoCode, itineraries } = extractItineraries(html);
+  const wanted = Number.isFinite(limit) ? itineraries.slice(0, limit) : itineraries;
+  const today = new Date().toISOString().slice(0, 10);
+  const payloads = [];
+
+  for (const itinerary of wanted) {
+    await politeDelay();
+    const body = {
+      cruiseId: itinerary.TcmId,
+      parameters: itinerary.PageUrl.slice(itinerary.PageUrl.indexOf('?')),
+      offerCode: promoCode,
+    };
+    const text = await page.evaluate(async (path, b) => {
+      const res = await fetch(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json; charset=UTF-8', 'X-Requested-With': 'XMLHttpRequest' },
+        body: JSON.stringify(b),
+      });
+      return res.text();
+    }, PRICING_PATH, body);
+
+    const blocked = detectBotWall(text);
+    if (blocked && !text.trimStart().startsWith('{')) throw new BotWallError(blocked, PRICING_PATH);
+    let pricing;
+    try {
+      pricing = JSON.parse(text);
+    } catch {
+      throw new Error(`Viking pricing for ${itinerary.TcmId} was not JSON: ${text.slice(0, 80)}`);
+    }
+    payloads.push(JSON.stringify({ itinerary, pricing, today }));
+  }
+
+  return payloads;
+}
+
+/** Not used: shipDescriptions is false. Kept so the adapter satisfies the contract. */
+export function parseShip() {
+  return { line, description: '', source: null };
+}
+
+export function shipUrl(ship) {
+  const slug = String(ship).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return `${SITE_ORIGIN}/oceans/ships/${slug}.html`;
+}
+
+export async function fetchShipPage(page, ship) {
+  const url = shipUrl(ship);
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  await politeDelay();
+  return page.content();
+}

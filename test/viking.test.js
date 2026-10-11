@@ -2,8 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import {
-  extractItineraries, splitDirection, pickRegion, sailingRows, parseListing, name, line, shipDescriptions,
+  extractItineraries, splitDirection, pickRegion, sailingRows, parseListing, fetchListingPages, name, line, shipDescriptions,
 } from '../sites/viking.js';
+import { normalizeAll } from '../normalize.js';
 
 const searchHtml = await readFile(new URL('./fixtures/viking-search.html', import.meta.url), 'utf8');
 
@@ -91,4 +92,47 @@ test('parseListing reads one itinerary-and-pricing payload', () => {
   const rows = parseListing(JSON.stringify({ itinerary: iwm, pricing, today: TODAY }));
   assert.equal(rows.length, 52);
   assert.deepEqual(parseListing('{}'), []);
+});
+
+test('every row normalizes: a known destination, both cabin types, an end port', () => {
+  const { sailings, unrecognised } = normalizeAll(sailingRows(iwm, pricing, TODAY), { source: 'viking', line: 'Viking' });
+  assert.equal(sailings.length, 52);
+  assert.ok(sailings.every((s) => s.destination === 'mediterranean'));
+  assert.deepEqual(unrecognised, []);
+  assert.deepEqual(sailings.find((s) => s.id === 'viking:OSE261016').cabinPrices, { balcony: 6599, suite: 9799 });
+});
+
+test('North America itineraries map to a destination', () => {
+  const { sailings } = normalizeAll([{ ...sailingRows(iwm, pricing, TODAY)[0], destination: 'North America' }], { source: 'viking', line: 'Viking' });
+  assert.equal(sailings[0].destination, 'canada-new-england');
+});
+
+// A fake Puppeteer page: serves the captured search page, answers pricing requests from
+// a function, and counts the requests. Tests never reach Viking.
+function fakePage(answer) {
+  const p = {
+    posts: 0,
+    goto: async () => ({ status: () => 200 }),
+    content: async () => searchHtml,
+    // The real call is page.evaluate(fn, path, body).
+    evaluate: async (_fn, _path, body) => { p.posts += 1; return answer(body); },
+  };
+  return p;
+}
+
+test('the fetch POSTs one pricing request per itinerary, up to the limit', async () => {
+  const page = fakePage((body) => JSON.stringify(pricing));
+  const payloads = await fetchListingPages(page, { limit: 2 });
+  assert.equal(page.posts, 2);
+  assert.equal(payloads.length, 2);
+  const first = JSON.parse(payloads[0]);
+  assert.equal(first.itinerary.TcmId, 'iconic-western-mediterranean');
+  assert.match(first.today, /^\d{4}-\d{2}-\d{2}$/);
+});
+
+test('a pricing answer that is not JSON fails loudly', async () => {
+  // Long enough not to read as a bot wall (detectBotWall treats under 1,000 characters of
+  // text as a block), so this exercises the not-JSON path.
+  const page = fakePage(() => `<html><p>${"Unexpected server response. ".repeat(60)}</p></html>`);
+  await assert.rejects(fetchListingPages(page, { limit: 1 }), /iconic-western-mediterranean/);
 });

@@ -54,7 +54,8 @@ const DESTINATIONS = {
   'australia-nz': ['australia new zealand', 'australia', 'new zealand', 'south pacific', 'fiji',
     'tasmania', 'queensland', 'great barrier reef', 'hunter coast', 'sapphire coast', 'coral coast'],
   'antarctica': ['antarctica'],
-  'canada-new-england': ['canada new england', 'new england canada', 'canada'],
+  // Viking's "North America" itineraries run Montreal -> New York and Montreal -> Fort Lauderdale.
+  'canada-new-england': ['canada new england', 'new england canada', 'canada', 'north america'],
   'world': ['world cruise', 'grand voyage', 'world'],
 };
 
