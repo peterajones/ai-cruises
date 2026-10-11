@@ -113,9 +113,15 @@ flight out, saying why (N731's card ends at Kotor; the cruise ends in Ravenna). 
   sampled sailings the headline was below every listed cabin.
 - **Verandas and suites only** (no interior or ocean view). **CAD**, as served: viking.com
   redirects to vikingcruisescanada.com.
-- **Directions** read "Barcelona to Rome (Civitavecchia)" or "Roundtrip Athens (Piraeus),
-  Greece"; both give a start and an end port. Port names carry accents (Reykjavík, Tromsø):
-  `airports.js` folds them.
+- **Each sailing has its own direction.** An itinerary's sailings run both ways (Barcelona →
+  Rome and Rome → Barcelona; 45 of 69 itineraries in the window), so start, end and port
+  order come from the sailing's `cruiseDirection`, not the itinerary's. Directions read
+  "X to Y" or "Roundtrip X". Port names carry accents (Reykjavík, Tromsø): `airports.js`
+  folds them.
+- **World voyages:** a world cruise, or a "Grand Journeys" voyage spanning 3+ regions or
+  over 60 days, is filed under `world` — otherwise world cruises fell to "Hawaii".
+- **Any failed pricing request fails the whole Viking scrape** (loudly, naming the
+  itinerary). scrape.js then writes the other lines without Viking — see the open question.
 
 **Celebrity and Royal Caribbean read one results page each**, and the site chooses what is
 on it. Coverage by destination drifts between scrapes: Celebrity had 36 Alaska sailings on
