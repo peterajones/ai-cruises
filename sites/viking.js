@@ -100,7 +100,7 @@ const isoFrom = (yyyymmdd) => `${yyyymmdd.slice(0, 4)}-${yyyymmdd.slice(4, 6)}-$
  */
 export function sailingRows(itinerary, pricing, today) {
   const until = addDaysIso(today, 365);
-  const { start, end } = splitDirection(itinerary.Direction);
+  const headline = splitDirection(itinerary.Direction);
   const cities = itinerary.Cities ?? [];
   const rows = [];
 
@@ -115,6 +115,13 @@ export function sailingRows(itinerary, pricing, today) {
     );
     const cheapest = Object.entries(cabinPrices).sort((a, b) => a[1] - b[1])[0];
     if (!cheapest) continue;
+
+    // An itinerary's sailings run both ways (Barcelona to Rome, and Rome to Barcelona);
+    // each carries its own direction. Ports follow it: a sailing that starts where the
+    // itinerary ends visits them in reverse.
+    const { start, end } = splitDirection(s.cruiseDirection ?? itinerary.Direction);
+    const reversed = start !== headline.start && start === headline.end;
+    const calls = cities.slice(1, -1);
 
     rows.push({
       externalId: s.PackageCode,
@@ -131,7 +138,7 @@ export function sailingRows(itinerary, pricing, today) {
       cabinPrices,
       itinerary: itinerary.VoyageName,
       image: itinerary.Image ?? null,
-      ports: cities.slice(1, -1),
+      ports: reversed ? [...calls].reverse() : calls,
     });
   }
 

@@ -151,3 +151,16 @@ test('the cap keeps the earliest sailings, after skipping sold-out ones', () => 
   assert.equal(rows[0].externalId, 'OMI261014');
   assert.equal(MAX_SAILINGS_PER_ITINERARY, 10);
 });
+
+// Review finding: an itinerary's sailings run both ways. Each sailing carries its own
+// cruiseDirection; the itinerary's Direction is only the first of them.
+test('each sailing keeps its own direction, and its ports run the same way', () => {
+  const rows = sailingRows(iwm, pricing, TODAY);
+  const back = rows.find((r) => r.externalId === 'OSE261016'); // Rome (Civitavecchia) to Barcelona
+  assert.equal(back.departurePort, 'Rome (Civitavecchia)');
+  assert.equal(back.endPort, 'Barcelona');
+  assert.deepEqual(back.ports, ['Florence/Pisa (Livorno)', 'Monte Carlo', 'Marseille', 'Sète']);
+  const out = rows.find((r) => r.externalId === 'OMI261014'); // Barcelona to Rome
+  assert.equal(out.departurePort, 'Barcelona');
+  assert.deepEqual(out.ports, ['Sète', 'Marseille', 'Monte Carlo', 'Florence/Pisa (Livorno)']);
+});
