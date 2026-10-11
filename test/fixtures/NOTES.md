@@ -400,3 +400,18 @@ https://www.hollandamerica.com/search/halcruisesearch?start=0&rows=20&country=us
 - Dry run 2026-10-02: `node scrape.js --site holland-america --limit 40 --dry-run` → exit 0,
   40 sailings (2 requests), both trip types, destination `alaska` only, no duplicates, no
   unrecognised values.
+
+# Viking
+
+Spec: `docs/superpowers/specs/2026-10-11-viking-design.md`.
+
+- `viking-search.html` — `https://www.vikingcruisescanada.com/oceans/search-cruises/index.html`,
+  captured 2026-10-11 with curl, 448 KB. viking.com and vikingcruises.com redirect here. The
+  results are **embedded** in a script (`window.app.superfac.viewModel = {…}`,
+  `PageData.Value.Results`): 110 itineraries, 3 of them River + Ocean Combinations. No JSON
+  request carries them.
+- `viking-pricing-iconic-western-mediterranean.json` — the Dates & Pricing answer
+  (`POST /oceans/Core/DnPCruiseFullInfo?v=11`, body `{cruiseId, parameters, offerCode}`) for
+  Iconic Western Mediterranean, captured 2026-10-11 from the rendered pricing page: 156
+  sailings, 2026–2029, 14 ships. Contains sold-out sailings and 14 whose headline
+  `lowestPrice` is below every listed cabin.
