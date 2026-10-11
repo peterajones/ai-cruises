@@ -184,13 +184,13 @@ export async function fetchListingPages(page, { limit }) {
       parameters: itinerary.PageUrl.slice(itinerary.PageUrl.indexOf('?')),
       offerCode: promoCode,
     };
-    const text = await page.evaluate(async (path, b) => {
+    const { status, text } = await page.evaluate(async (path, b) => {
       const res = await fetch(path, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json; charset=UTF-8', 'X-Requested-With': 'XMLHttpRequest' },
         body: JSON.stringify(b),
       });
-      return res.text();
+      return { status: res.status, text: await res.text() };
     }, PRICING_PATH, body);
 
     const blocked = detectBotWall(text);
@@ -201,6 +201,12 @@ export async function fetchListingPages(page, { limit }) {
     } catch {
       throw new Error(`Viking pricing for ${itinerary.TcmId} was not JSON: ${text.slice(0, 80)}`);
     }
+    // An error can be valid JSON too; parsing alone would drop the itinerary silently.
+    const problem = status >= 400 ? `HTTP ${status}`
+      : pricing.cruiseErrorFlag ? 'cruiseErrorFlag set'
+        : pricing.errors?.length ? `errors: ${JSON.stringify(pricing.errors).slice(0, 80)}`
+          : !Array.isArray(pricing.cruises) ? 'no cruises list' : null;
+    if (problem) throw new Error(`Viking pricing for ${itinerary.TcmId} failed: ${problem}`);
     payloads.push(JSON.stringify({ itinerary, pricing, today }));
   }
 

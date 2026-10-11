@@ -122,7 +122,11 @@ function fakePage(answer) {
     goto: async () => ({ status: () => 200 }),
     content: async () => searchHtml,
     // The real call is page.evaluate(fn, path, body).
-    evaluate: async (_fn, _path, body) => { p.posts += 1; return answer(body); },
+    evaluate: async (_fn, _path, body) => {
+      p.posts += 1;
+      const a = answer(body);
+      return typeof a === 'string' ? { status: 200, text: a } : a;
+    },
   };
   return p;
 }
@@ -163,4 +167,16 @@ test('each sailing keeps its own direction, and its ports run the same way', () 
   const out = rows.find((r) => r.externalId === 'OMI261014'); // Barcelona to Rome
   assert.equal(out.departurePort, 'Barcelona');
   assert.deepEqual(out.ports, ['Sète', 'Marseille', 'Monte Carlo', 'Florence/Pisa (Livorno)']);
+});
+
+// Review finding: an error that is valid JSON parsed fine and dropped the itinerary
+// silently. It must fail loudly, naming the itinerary.
+test('an error answer in JSON fails loudly, naming the itinerary', async () => {
+  for (const answer of [
+    { status: 500, text: JSON.stringify({ Message: 'An error has occurred.' }) },
+    { status: 200, text: JSON.stringify({ cruises: [], cruiseErrorFlag: true, errors: [] }) },
+    { status: 200, text: JSON.stringify({ cruises: [], cruiseErrorFlag: false, errors: ['Pricing unavailable'] }) },
+  ]) {
+    await assert.rejects(fetchListingPages(fakePage(() => answer), { limit: 1 }), /iconic-western-mediterranean/);
+  }
 });
