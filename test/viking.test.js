@@ -38,7 +38,10 @@ const TODAY = '2026-10-11';
 test('the direction names where the cruise starts and ends', () => {
   assert.deepEqual(splitDirection('Barcelona to Rome (Civitavecchia)'), { start: 'Barcelona', end: 'Rome (Civitavecchia)' });
   assert.deepEqual(splitDirection('Montreal, Quebec to New York City, New York'), { start: 'Montreal, Quebec', end: 'New York City, New York' });
-  assert.deepEqual(splitDirection('Round-trip Bergen'), { start: 'Round-trip Bergen', end: null });
+  // A round trip starts and ends at the same port (found in the 2026-10-11 scrape).
+  assert.deepEqual(splitDirection('Roundtrip Athens (Piraeus), Greece'), { start: 'Athens (Piraeus), Greece', end: 'Athens (Piraeus), Greece' });
+  assert.deepEqual(splitDirection('Round-trip Bergen'), { start: 'Bergen', end: 'Bergen' });
+  assert.deepEqual(splitDirection('Somewhere'), { start: 'Somewhere', end: null });
 });
 
 test('the most specific region wins', () => {

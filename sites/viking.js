@@ -74,9 +74,12 @@ export function pickRegion(regions = []) {
   return REGION_PRIORITY.find((r) => regions.includes(r)) ?? regions[0] ?? null;
 }
 
-/** "Barcelona to Rome (Civitavecchia)" -> start and end. */
+/** "Barcelona to Rome (Civitavecchia)" -> start and end; "Roundtrip Athens …" starts and ends there. */
 export function splitDirection(direction) {
-  const [start, ...rest] = String(direction ?? '').split(' to ');
+  const text = String(direction ?? '').trim();
+  const roundtrip = text.match(/^round-?trip\s+(.+)$/i);
+  if (roundtrip) return { start: roundtrip[1].trim(), end: roundtrip[1].trim() };
+  const [start, ...rest] = text.split(' to ');
   return { start: start.trim() || null, end: rest.length ? rest.join(' to ').trim() : null };
 }
 
