@@ -153,6 +153,8 @@
   .panel h2 { margin: 4px 0 2px; font-size: 22px; line-height: 1.25; text-shadow: 0 1px 12px rgba(0,0,0,.35); }
   .panel .hero-meta { font-size: 14px; opacity: .9; }
   .panel .close { position: absolute; top: 14px; right: 14px; z-index: 2; width: 36px; height: 36px;
+    /* Padding 0 and centred: the page's button padding made it a 44×36 oval. */
+    display: grid; place-items: center; padding: 0; line-height: 1;
     border-radius: 50%; border: 0; cursor: pointer; font-size: 16px; color: #fff;
     background: rgba(4,16,24,.45); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
     transition: background .2s, transform .2s; }
