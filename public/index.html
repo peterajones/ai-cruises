@@ -128,16 +128,109 @@
   a.book:hover { text-decoration: underline; }
   .flights-btn { background: none; border: 1px solid var(--line); border-radius: 999px;
     padding: 4px 10px; font: inherit; font-size: 13px; font-weight: 600; color: var(--accent); cursor: pointer; }
-  .panel-backdrop { position: fixed; inset: 0; background: rgba(6,20,28,.35); z-index: 20; }
-  .panel { position: fixed; top: 0; right: 0; bottom: 0; width: min(420px, 100vw); background: var(--panel);
-    box-shadow: var(--shadow); padding: 20px; overflow-y: auto; z-index: 21;
-    display: flex; flex-direction: column; gap: 12px; }
-  .panel[hidden], .panel-backdrop[hidden] { display: none; }
-  .panel .close { align-self: flex-end; background: none; border: 0; font-size: 20px; cursor: pointer; color: var(--muted); }
-  .panel h2 { margin: 0; font-size: 18px; }
-  .panel input { width: 4.5em; text-transform: uppercase; font: inherit; padding: 4px 6px; }
-  .leg { font-size: 14px; }
-  .option { font-size: 13px; color: var(--muted); }
+  /* Flights panel. It stays in the page and slides: `hidden` (display: none) can't animate.
+     Closed, it waits off-screen and invisible; visibility flips only after the slide out. */
+  .panel-backdrop { position: fixed; inset: 0; z-index: 20; background: rgba(6,20,28,.45);
+    backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+    opacity: 0; visibility: hidden; transition: opacity .25s ease, visibility 0s .25s; }
+  .panel-backdrop.open { opacity: 1; visibility: visible; transition: opacity .35s ease; }
+  .panel { position: fixed; top: 0; right: 0; bottom: 0; z-index: 21; width: min(570px, 100vw);
+    background: var(--panel); box-shadow: -30px 0 80px rgba(6,20,28,.30);
+    overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column;
+    transform: translateX(104%); visibility: hidden;
+    transition: transform .25s cubic-bezier(.55,0,1,.45), visibility 0s .25s; }
+  .panel.open { transform: none; visibility: visible; transition: transform .45s cubic-bezier(.16,1,.3,1); }
+
+  .panel .hero { position: relative; flex: none; height: 210px; overflow: hidden; color: #fff;
+    background: linear-gradient(135deg, #0b6d8f, #0a3d55 60%, #06222d); }
+  .panel .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    transform: scale(1.08); transition: transform 1.4s cubic-bezier(.16,1,.3,1); }
+  .panel.open .hero img { transform: none; }
+  .panel .hero::after { content: ""; position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(4,16,24,.88), rgba(4,16,24,.25) 55%, rgba(4,16,24,.1)); }
+  .panel .hero-text { position: absolute; left: 24px; right: 24px; bottom: 18px; z-index: 1; }
+  .panel .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
+  .panel h2 { margin: 4px 0 2px; font-size: 22px; line-height: 1.25; text-shadow: 0 1px 12px rgba(0,0,0,.35); }
+  .panel .hero-meta { font-size: 14px; opacity: .9; }
+  .panel .close { position: absolute; top: 14px; right: 14px; z-index: 2; width: 36px; height: 36px;
+    border-radius: 50%; border: 0; cursor: pointer; font-size: 16px; color: #fff;
+    background: rgba(4,16,24,.45); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    transition: background .2s, transform .2s; }
+  .panel .close:hover { background: rgba(4,16,24,.7); transform: rotate(90deg); }
+
+  .panel-body { padding: 20px 24px 28px; display: flex; flex-direction: column; gap: 18px; }
+  .home { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); }
+  .panel .home input { width: 4.2em; font: inherit; font-size: 15px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; text-align: center; color: var(--ink); background: var(--chip);
+    border: 1px solid var(--line); border-radius: 999px; padding: 5px 10px; }
+  .panel .home input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .flights { display: flex; flex-direction: column; gap: 18px; }
+
+  .legs { display: flex; flex-direction: column; gap: 10px; }
+  .leg { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px; }
+  .leg-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  .leg-route { display: flex; align-items: center; margin-top: 4px; }
+  .leg .stop { display: flex; flex-direction: column; min-width: 0; }
+  .leg .stop.end { text-align: right; }
+  .leg .stop b { font-size: 22px; letter-spacing: .04em; }
+  .leg .stop span { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .leg .path { flex: 1; position: relative; margin: 0 14px; border-top: 2px dashed var(--line); }
+  .leg .path span { position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    padding: 0 6px; background: var(--panel); color: var(--accent); font-size: 16px; line-height: 1;
+    animation: fly .9s cubic-bezier(.16,1,.3,1) both; animation-delay: calc(var(--i, 0) * 70ms + 120ms); }
+  @keyframes fly { from { left: 8%; opacity: 0; } to { left: 50%; opacity: 1; } }
+
+  .fare { border-radius: var(--radius); padding: 18px 20px; color: var(--ink);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 14%, var(--panel)),
+      color-mix(in srgb, var(--accent) 4%, var(--panel))); border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line)); }
+  .fare-label { font-size: 13px; color: var(--muted); }
+  .fare-amount { font-size: 38px; font-weight: 800; line-height: 1.1; color: var(--accent); letter-spacing: -.01em; }
+  .fare-amount small { font-size: 14px; font-weight: 600; color: var(--muted); letter-spacing: 0; }
+  .fare-total { display: inline-block; margin-top: 10px; padding: 5px 12px; border-radius: 999px; font-size: 14px;
+    background: var(--panel); border: 1px solid var(--line); }
+  .fare-total b { color: var(--ink); }
+  .fare-note { margin-top: 8px; font-size: 12px; color: var(--muted); }
+
+  .options-head { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  .options { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .option { display: grid; grid-template-columns: 5.5em 1fr auto auto; gap: 4px 14px; align-items: baseline;
+    padding: 10px 16px; font-size: 14px; border-top: 1px solid var(--line); transition: background .15s; }
+  .option:first-child { border-top: 0; }
+  .option:hover { background: var(--chip); }
+  .option .o-price { font-weight: 700; }
+  .option .o-air { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .option .o-when, .option .o-stops { color: var(--muted); font-size: 13px; white-space: nowrap; }
+  .option.best .o-price { color: var(--accent); }
+  .panel-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+  .gflights { display: inline-block; padding: 8px 16px; border-radius: 999px; font-size: 14px; font-weight: 600;
+    text-decoration: none; color: var(--accent-ink); background: var(--accent); transition: filter .15s, transform .15s; }
+  .gflights:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .panel .note { font-size: 13px; color: var(--muted); }
+  .panel .message { border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; font-size: 15px; }
+
+  /* Each block rises in after the one before (--i is its place in line). */
+  .rise { animation: rise .5s cubic-bezier(.16,1,.3,1) both; animation-delay: calc(var(--i, 0) * 70ms); }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+
+  /* While searching: a shimmering outline of the answer to come. */
+  .sk { border-radius: var(--radius); background: linear-gradient(90deg, var(--chip) 25%,
+      color-mix(in srgb, var(--chip) 40%, var(--panel)) 50%, var(--chip) 75%);
+    background-size: 300% 100%; animation: shimmer 1.4s linear infinite; }
+  .sk-leg { height: 74px; } .sk-fare { height: 116px; } .sk-row { height: 40px; }
+  @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -200% 0; } }
+
+  @media (max-width: 600px) {
+    .panel .hero { height: 170px; }
+    .panel-body { padding: 16px 16px 24px; }
+    /* Price | airline on one line; time and stops beneath the airline. */
+    .option { grid-template-columns: 4.5em 1fr auto; }
+    .option .o-air { grid-column: 2 / -1; }
+    .option .o-when { grid-column: 2; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .panel, .panel.open, .panel-backdrop, .panel-backdrop.open, .panel .hero img { transition: none; }
+    .rise, .leg .path span, .sk { animation: none; }
+  }
   .empty { text-align: center; padding: 70px 20px; color: var(--muted); font-size: 17px; }
 </style>
 </head>
@@ -163,8 +256,8 @@
   <div class="facets" id="facets"></div>
 
   <div id="results" class="grid"></div>
-  <div id="panel-backdrop" class="panel-backdrop" hidden></div>
-  <aside id="panel" class="panel" hidden aria-label="Flights"></aside>
+  <div id="panel-backdrop" class="panel-backdrop"></div>
+  <aside id="panel" class="panel" role="dialog" aria-label="Flights"></aside>
 </main>
 
 <script type="module">
@@ -226,45 +319,93 @@ const checkedAgo = (iso) => {
 };
 
 let panelSailing = null;
+/** The ✈ button that opened the panel; focus goes back to it on close. */
+let panelOpener = null;
 /** Bumped per search, so a slower, older search never overwrites a newer one's answer. */
 let flightsRequest = 0;
 
+/** Marks a block to rise in as the `i`th in line. */
+const rise = (node, i) => { node.classList.add('rise'); node.style.setProperty('--i', i); return node; };
+
 function closePanel() {
-  $('#panel').hidden = true;
-  $('#panel-backdrop').hidden = true;
+  // Slides out; the CSS hides it once the slide has finished. Content stays until then.
+  $('#panel').classList.remove('open');
+  $('#panel-backdrop').classList.remove('open');
   panelSailing = null;
+  panelOpener?.focus({ preventScroll: true });
+  panelOpener = null;
 }
 
-function openPanel(s) {
+function openPanel(s, opener) {
   panelSailing = s;
+  panelOpener = opener ?? null;
   const panel = $('#panel');
   panel.textContent = '';
-  const home = el('input', { value: readHome(), maxlength: '3', 'aria-label': 'Home airport code' });
-  const body = el('div', {});
+  panel.scrollTop = 0;
+
   const close = el('button', { class: 'close', type: 'button', 'aria-label': 'Close', text: '✕' });
   close.onclick = closePanel;
-  panel.append(close,
-    el('h2', { text: s.itinerary ?? titleCase(s.destination ?? 'Cruise') }),
-    el('div', { class: 'meta', text: `${s.ship} · ${prettyDate(s.departureDate)} · ${s.nights} nights` }),
-    el('label', { class: 'meta' }, 'Flying from: ', home),
-    body);
+  const src = safeUrl(s.image);
+  const photo = src ? el('img', { src, alt: '' }) : null;
+  // A photo that fails to load leaves the plain gradient, not a broken-image icon.
+  if (photo) photo.onerror = () => photo.remove();
+  const hero = el('div', { class: 'hero' },
+    photo,
+    close,
+    el('div', { class: 'hero-text' },
+      el('div', { class: 'eyebrow', text: '✈ Getting there' }),
+      el('h2', { id: 'panel-title', text: s.itinerary ?? titleCase(s.destination ?? 'Cruise') }),
+      el('div', { class: 'hero-meta', text: `${s.ship} · ${prettyDate(s.departureDate)} · ${s.nights} nights` })));
+
+  const home = el('input', { value: readHome(), maxlength: '3', 'aria-label': 'Home airport code' });
+  const flights = el('div', { class: 'flights', 'aria-live': 'polite' });
+  panel.append(hero, el('div', { class: 'panel-body' },
+    rise(el('label', { class: 'home' }, 'Flying from', home), 0),
+    flights));
+  panel.setAttribute('aria-labelledby', 'panel-title');
+
   home.onchange = () => {
     const code = home.value.trim().toUpperCase();
     home.value = code;
-    if (!/^[A-Z]{3}$/.test(code)) { body.textContent = 'Use a three-letter airport code, like YYZ.'; return; }
+    if (!/^[A-Z]{3}$/.test(code)) {
+      flights.textContent = '';
+      flights.append(el('div', { class: 'message', text: 'Use a three-letter airport code, like YYZ.' }));
+      return;
+    }
     saveHome(code);
-    showFlights(s, code, body);
+    showFlights(s, code, flights);
   };
-  panel.hidden = false;
-  $('#panel-backdrop').hidden = false;
-  close.focus();
-  showFlights(s, home.value, body);
+
+  panel.classList.add('open');
+  $('#panel-backdrop').classList.add('open');
+  close.focus({ preventScroll: true });
+  showFlights(s, home.value, flights);
+}
+
+/** A shimmering outline of the answer, while the search runs. */
+function searching(body) {
+  body.textContent = '';
+  body.append(
+    el('div', { class: 'note', text: 'Searching flights… (about 10 seconds)' }),
+    el('div', { class: 'sk sk-leg' }), el('div', { class: 'sk sk-fare' }),
+    el('div', {}, el('div', { class: 'sk sk-row' }), el('div', { class: 'sk sk-row', style: 'margin-top:8px' })));
+}
+
+/** One flight: "Flying out · Fri, May 7" over YYZ Toronto - - ✈ - - YVR Vancouver. */
+function legCard(leg, label, names) {
+  const stop = (code, end) => el('div', { class: end ? 'stop end' : 'stop' },
+    el('b', { text: code }), el('span', { text: names?.[code] ?? '' }));
+  return el('div', { class: 'leg', 'aria-label': `${label}: ${names?.[leg.from] ?? leg.from} (${leg.from}) to ${names?.[leg.to] ?? leg.to} (${leg.to}), ${shortDate(leg.date)}` },
+    el('div', { class: 'leg-label', text: `${label} · ${shortDate(leg.date)}` }),
+    el('div', { class: 'leg-route' },
+      stop(leg.from, false),
+      el('div', { class: 'path', 'aria-hidden': 'true' }, el('span', { text: '✈' })),
+      stop(leg.to, true)));
 }
 
 async function showFlights(s, home, body) {
   const mine = ++flightsRequest;
-  body.textContent = '';
-  body.append(el('p', { class: 'meta', text: 'Searching flights… (about 10 seconds)' }));
+  searching(body);
   let data;
   try {
     const res = await fetch(`/api/flights?id=${encodeURIComponent(s.id)}&home=${encodeURIComponent(home)}`);
@@ -275,34 +416,51 @@ async function showFlights(s, home, body) {
   // Closed, another cruise opened, or a newer search (e.g. a changed home airport) started.
   if (panelSailing !== s || mine !== flightsRequest) return;
   body.textContent = '';
+  let i = 1;
 
   const { outbound, inbound } = data.route ?? {};
-  const place = (code) => (data.names?.[code] ? `${data.names[code]} (${code})` : code);
-  for (const leg of [outbound, inbound].filter(Boolean)) {
-    body.append(el('div', { class: 'leg', text: `${place(leg.from)} → ${place(leg.to)} · ${shortDate(leg.date)}` }));
+  if (outbound || inbound) {
+    body.append(rise(el('div', { class: 'legs' },
+      outbound ? legCard(outbound, 'Flying out', data.names) : null,
+      inbound ? legCard(inbound, 'Flying home', data.names) : null), i++));
   }
 
   const link = safeUrl(data.googleFlightsUrl);
-  const googleLink = link ? el('a', { class: 'book', href: link, target: '_blank', rel: 'noopener', text: 'See all on Google Flights ↗' }) : null;
+  const googleLink = link ? el('a', { class: 'gflights', href: link, target: '_blank', rel: 'noopener', text: 'See all on Google Flights ↗' }) : null;
 
   if (data.fromPrice == null) {
-    // append() writes a null as the text "null"; el() skips it, so build through el().
-    body.append(el('div', {}, el('p', { text: data.message ?? 'No flights found.' }), googleLink));
+    body.append(rise(el('div', { class: 'message', text: data.message ?? 'No flights found.' }), i++));
+    if (googleLink) body.append(rise(el('div', { class: 'panel-foot' }, googleLink), i++));
     return;
   }
 
   const shown = shownPrice(s);
   const cruisePrice = shown.notListed ? s.price : shown.price;
-  body.append(
-    el('div', { class: 'price', text: `Flights from about ${money(data.fromPrice)}` }),
-    el('div', { class: 'meta', text: `Cruise + ${data.route.outbound && data.route.inbound ? 'flights' : (data.route.outbound ? 'flight out' : 'flight home')} from about ${money(cruisePrice + data.fromPrice)}`
-      + (shown.notListed ? ` (cruise at its cheapest, ${cabinName(s.cabin).toLowerCase()} — the ${cabinName(shown.cabin).toLowerCase()} price isn't listed)` : '') }),
-    ...data.options.map((o) => el('div', { class: 'option',
-      text: `${money(o.price)} · ${o.airlines} · ${o.departs.slice(11)} · ${o.stops === 0 ? 'nonstop' : `${o.stops} stop${o.stops === 1 ? '' : 's'}`} · ${hm(o.minutes)}` })),
-    el('div', { class: 'meta', text: 'Prices are for the whole trip, per person; times are for the flight out.' }),
-    data.note ? el('div', { class: 'meta', text: data.note }) : el('span', {}),
-    ...(googleLink ? [googleLink] : []),
-    el('div', { class: 'meta', text: checkedAgo(data.fetchedAt) }));
+  const what = outbound && inbound ? 'flights' : (outbound ? 'flight out' : 'flight home');
+  body.append(rise(el('div', { class: 'fare' },
+    el('div', { class: 'fare-label', text: `${outbound && inbound ? 'Flights' : 'Flight'} from ${home}, from about` }),
+    el('div', { class: 'fare-amount' }, money(data.fromPrice), el('small', { text: ' per person' })),
+    el('div', { class: 'fare-total' }, `Cruise + ${what} from about `, el('b', { text: money(cruisePrice + data.fromPrice) })),
+    shown.notListed
+      ? el('div', { class: 'fare-note', text: `Cruise at its cheapest, ${cabinName(s.cabin).toLowerCase()} — the ${cabinName(shown.cabin).toLowerCase()} price isn't listed.` })
+      : null), i++));
+
+  if (data.options.length > 0) {
+    body.append(rise(el('div', {},
+      el('div', { class: 'options-head', text: 'Cheapest options' }),
+      el('div', { class: 'options', style: 'margin-top:8px' },
+        data.options.map((o, n) => el('div', { class: n === 0 ? 'option best' : 'option' },
+          el('span', { class: 'o-price', text: money(o.price) }),
+          el('span', { class: 'o-air', text: o.airlines }),
+          el('span', { class: 'o-when', text: `${o.departs.slice(11)} · ${hm(o.minutes)}` }),
+          el('span', { class: 'o-stops', text: o.stops === 0 ? 'nonstop' : `${o.stops} stop${o.stops === 1 ? '' : 's'}` }))))), i++));
+  }
+
+  body.append(rise(el('div', { class: 'note' },
+    'Prices are for the whole trip, per person; times are for the flight out.',
+    data.note ? el('div', { text: data.note }) : null), i++));
+  body.append(rise(el('div', { class: 'panel-foot' },
+    googleLink, el('span', { class: 'note', text: checkedAgo(data.fetchedAt) })), i++));
 }
 
 $('#panel-backdrop').onclick = closePanel;
@@ -464,7 +622,7 @@ function applyFacets(list) {
 
 function flightsButton(s) {
   const b = el('button', { class: 'flights-btn', type: 'button', text: '✈ Flights' });
-  b.onclick = () => openPanel(s);
+  b.onclick = () => openPanel(s, b);
   return b;
 }
 
