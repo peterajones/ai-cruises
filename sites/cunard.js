@@ -66,6 +66,27 @@ export function pickDestination(ids = []) {
   return ids.find((id) => id !== SHORT_BREAK) ?? ids[0] ?? null;
 }
 
+/**
+ * Each cabin's cheapest price from a price answer. A price of 0 means that cabin is not on
+ * offer. An unknown code is keyed by its name ("Sky Loft"), so normalize maps it if it can
+ * and reports it if not — never guessed here. Null when the answer is not a price answer.
+ *
+ * @param {object|null} answer - GET /api/v2/price/cruise/<id>
+ * @returns {object|null}
+ */
+export function cabinPricesFrom(answer) {
+  const types = answer?.data?.roomTypes;
+  if (!Array.isArray(types)) return null;
+  const table = {};
+  for (const t of types) {
+    const price = t.lowestPrice?.price;
+    if (!(typeof price === 'number' && price > 0)) continue;
+    const cabin = ROOM_TYPES[t.id] ?? t.name ?? t.id;
+    if (table[cabin] === undefined || price < table[cabin]) table[cabin] = price;
+  }
+  return table;
+}
+
 /** The photo is 2048×1536; Cunard's image server resizes on `imwidth` (475 KB -> 100 KB). */
 const smaller = (url) => (url ? `${url}${url.includes('?') ? '&' : '?'}imwidth=600` : null);
 
@@ -75,9 +96,18 @@ const smaller = (url) => (url ? `${url}${url.includes('?') ? '&' : '?'}imwidth=6
  */
 export function sailingRow(result, detail, priceAnswer) {
   const names = Object.fromEntries((detail?.portsImage ?? []).map((p) => [p.id, p.txName]));
-  const code = result.cabins?.[0]?.roomTypeId;
-  const cabin = ROOM_TYPES[code] ?? code ?? null;
-  const price = result.minimumPrice;
+  // From the price answer when there is one: the cheapest cabin still on offer. Without
+  // one (its call failed), the search's cheapest cabin stands and cabinPrices is null.
+  const cabinPrices = cabinPricesFrom(priceAnswer);
+  let cabin;
+  let price;
+  if (cabinPrices) {
+    [cabin, price] = Object.entries(cabinPrices).sort((a, b) => a[1] - b[1])[0] ?? [];
+  } else {
+    const code = result.cabins?.[0]?.roomTypeId;
+    cabin = ROOM_TYPES[code] ?? code ?? null;
+    price = result.minimumPrice;
+  }
   if (!(typeof price === 'number' && price > 0)) return null;
 
   return {
@@ -91,8 +121,8 @@ export function sailingRow(result, detail, priceAnswer) {
     nights: result.duration,
     cabin,
     price,
-    currency: 'CAD',
-    cabinPrices: null,
+    currency: priceAnswer?.data?.currencyCode ?? 'CAD',
+    cabinPrices,
     itinerary: itineraryName(result.name),
     image: smaller(detail?.overviewImage?.[0]?._publishUrl),
     ports: portsOf(result.portOfCallIds, names),
