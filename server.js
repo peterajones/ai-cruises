@@ -16,12 +16,16 @@ import {
 } from './search.js';
 import { deriveValues } from './values.js';
 import { flightsFor } from './flights.js';
+import { openSelections, handleSelections, DEFAULT_FILE as SELECTIONS_DEFAULT } from './selections.js';
 
 // PORT lets a second copy run beside the usual one, e.g. to check a change.
 const PORT = Number(process.env.PORT) || 3030;
 const PUBLIC_DIR = new URL('./public/', import.meta.url).pathname;
 const DATA_FILE = new URL('./data/sailings.json', import.meta.url).pathname;
 const FLIGHTS_CACHE = new URL('./data/flights-cache.json', import.meta.url).pathname;
+// SELECTIONS_FILE points a second copy (port 3031) at a scratch database, so checks never
+// touch Peter's ratings.
+const SELECTIONS_FILE = process.env.SELECTIONS_FILE || SELECTIONS_DEFAULT;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -171,6 +175,17 @@ const server = createServer(async (req, res) => {
       });
     }
 
+    if (req.url.startsWith('/api/selections')) {
+      dataset = await loadDataset();
+      let body = '';
+      if (req.method !== 'GET') for await (const chunk of req) body += chunk;
+      const out = handleSelections(
+        { method: req.method, path: req.url.split('?')[0], body },
+        { store: selections, sailings: dataset ? current(dataset).sailings : [] },
+      );
+      return json(res, out.status, out.body);
+    }
+
     if (req.method === 'GET' && req.url.startsWith('/api/flights?')) {
       const params = new URL(req.url, 'http://localhost').searchParams;
       const home = (params.get('home') ?? '').trim().toUpperCase();
@@ -212,6 +227,7 @@ const server = createServer(async (req, res) => {
 });
 
 dataset = await loadDataset();
+const selections = await openSelections(SELECTIONS_FILE);
 
 // The likeliest way to fail on startup is a server you already have running.
 // Node's default is an unhandled 'error' event: a 20-line stack trace whose
@@ -236,5 +252,6 @@ server.listen(PORT, () => {
   } else {
     console.log(`${dataset.sailings.length} sailings loaded, scraped ${dataset.scrapedAt}`);
   }
+  console.log(selections.ok ? `Ratings: ${SELECTIONS_FILE}` : `Ratings unavailable: ${selections.reason}`);
   console.log(`Cruise search running at http://localhost:${PORT}`);
 });

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { openSelections, nodeSupportsSqlite, snapshotOf, selectionMap } from '../selections.js';
+import { openSelections, nodeSupportsSqlite, snapshotOf, selectionMap, handleSelections } from '../selections.js';
 
 const tmp = () => join(mkdtempSync(join(tmpdir(), 'sel-')), 'selections.db');
 const sailing = (over = {}) => ({
@@ -120,4 +120,78 @@ test('the data survives closing and reopening', async () => {
   a.close();
   const b = await openSelections(path);
   assert.equal(b.get('cunard:M626C').rating, 4);
+});
+
+const listed = [sailing(), sailing({ id: 'viking:X', line: 'Viking' })];
+const call = (store, method, path, body) =>
+  handleSelections({ method, path, body: body === undefined ? '' : JSON.stringify(body) },
+    { store, sailings: listed, now: () => 'NOW' });
+
+test('the handler ignores other paths', async () => {
+  assert.equal(call(await openSelections(tmp()), 'GET', '/api/dataset'), null);
+});
+
+test('GET lists, POST view records, PUT rating sets and clears', async () => {
+  const store = await openSelections(tmp());
+  assert.deepEqual(call(store, 'GET', '/api/selections'), { status: 200, body: { selections: [] } });
+  const viewed = call(store, 'POST', '/api/selections/view', { id: 'cunard:M626C' });
+  assert.equal(viewed.status, 200);
+  assert.equal(viewed.body.selection.views, 1);
+  assert.equal(viewed.body.selection.lastViewed, 'NOW');
+  const rated = call(store, 'PUT', '/api/selections/rating', { id: 'viking:X', rating: 5 });
+  assert.equal(rated.body.selection.rating, 5);
+  const cleared = call(store, 'PUT', '/api/selections/rating', { id: 'viking:X', rating: null });
+  assert.deepEqual(cleared, { status: 200, body: { selection: null } });
+  assert.equal(call(store, 'GET', '/api/selections').body.selections.length, 1);
+});
+
+test('bad input is a 400 with a message', async () => {
+  const store = await openSelections(tmp());
+  const cases = [
+    ['PUT', '/api/selections/rating', { id: 'cunard:M626C', rating: 0 }],
+    ['PUT', '/api/selections/rating', { id: 'cunard:M626C', rating: 6 }],
+    ['PUT', '/api/selections/rating', { id: 'cunard:M626C', rating: 2.5 }],
+    ['PUT', '/api/selections/rating', { id: 'cunard:M626C', rating: '4' }],
+    ['PUT', '/api/selections/rating', { id: 'cunard:M626C' }],
+    ['PUT', '/api/selections/rating', { rating: 4 }],
+    ['POST', '/api/selections/view', {}],
+    ['POST', '/api/selections/view', [1, 2]],
+  ];
+  for (const [m, p, b] of cases) {
+    const out = call(store, m, p, b);
+    assert.equal(out.status, 400, JSON.stringify(b));
+    assert.equal(typeof out.body.error, 'string');
+  }
+  const notJson = handleSelections({ method: 'POST', path: '/api/selections/view', body: '{nope' },
+    { store, sailings: listed });
+  assert.equal(notJson.status, 400);
+  assert.deepEqual(store.all(), []);
+});
+
+test('an unknown sailing is a 404; a view of an unlisted one too', async () => {
+  const store = await openSelections(tmp());
+  assert.equal(call(store, 'POST', '/api/selections/view', { id: 'cunard:GONE' }).status, 404);
+  assert.equal(call(store, 'PUT', '/api/selections/rating', { id: 'cunard:GONE', rating: 3 }).status, 404);
+});
+
+test('an unlisted sailing that has a row can still be re-rated', async () => {
+  const store = await openSelections(tmp());
+  store.setRating('cunard:GONE', 2, 'T1', sailing({ id: 'cunard:GONE' }));
+  const out = call(store, 'PUT', '/api/selections/rating', { id: 'cunard:GONE', rating: 4 });
+  assert.equal(out.status, 200);
+  assert.equal(out.body.selection.rating, 4);
+});
+
+test('an unknown method or sub-path is a 404', async () => {
+  const store = await openSelections(tmp());
+  assert.equal(call(store, 'DELETE', '/api/selections').status, 404);
+  assert.equal(call(store, 'GET', '/api/selections/rating').status, 404);
+});
+
+test('when the store is unavailable every route is a 503 saying why', () => {
+  const store = { ok: false, reason: 'Ratings need Node 24.15 or later' };
+  for (const [m, p] of [['GET', '/api/selections'], ['POST', '/api/selections/view'], ['PUT', '/api/selections/rating']]) {
+    assert.deepEqual(call(store, m, p, { id: 'cunard:M626C', rating: 3 }),
+      { status: 503, body: { error: 'Ratings need Node 24.15 or later' } });
+  }
 });

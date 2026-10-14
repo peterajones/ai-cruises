@@ -138,6 +138,47 @@ export function selectionMap(store) {
   return Object.fromEntries(store.all().map((r) => [r.sailingId, { rating: r.rating, views: r.views }]));
 }
 
+const bad = (error) => ({ status: 400, body: { error } });
+
+/**
+ * The /api/selections routes, as a plain function the server calls (and tests call
+ * directly). `sailings` are the currently listed ones: a view needs one; a rating needs one
+ * or an existing row.
+ *
+ * @returns {{status: number, body: object}|null} null when the path is not ours
+ */
+export function handleSelections({ method, path, body }, { store, sailings, now = () => new Date().toISOString() }) {
+  if (!path.startsWith('/api/selections')) return null;
+  if (!store?.ok) return { status: 503, body: { error: store?.reason ?? 'Ratings are unavailable.' } };
+
+  if (method === 'GET' && path === '/api/selections') return { status: 200, body: { selections: store.all() } };
+  const isView = method === 'POST' && path === '/api/selections/view';
+  const isRate = method === 'PUT' && path === '/api/selections/rating';
+  if (!isView && !isRate) return { status: 404, body: { error: 'Not found' } };
+
+  let input;
+  try {
+    input = JSON.parse(body || '{}');
+  } catch {
+    return bad('The request body is not JSON.');
+  }
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return bad('Send a JSON object.');
+  if (typeof input.id !== 'string' || !input.id) return bad('Which sailing? Send { "id": "…" }.');
+
+  const sailing = sailings.find((s) => s.id === input.id) ?? null;
+
+  if (isView) {
+    if (!sailing) return { status: 404, body: { error: `No listed sailing ${input.id} to view.` } };
+    return { status: 200, body: { selection: store.recordView(sailing, now()) } };
+  }
+
+  if (!('rating' in input)) return bad('Send { "id", "rating" }: a rating from 1 to 5, or null to clear it.');
+  const { rating } = input;
+  if (rating !== null && !isRating(rating)) return bad('A rating is a whole number from 1 to 5, or null to clear it.');
+  if (!sailing && !store.get(input.id)) return { status: 404, body: { error: `No sailing ${input.id}.` } };
+  return { status: 200, body: { selection: store.setRating(input.id, rating, now(), sailing) } };
+}
+
 // npm run export-selections — a readable copy, for backups.
 if (import.meta.url === `file://${process.argv[1]}` && process.argv.includes('--export')) {
   const store = await openSelections(process.env.SELECTIONS_FILE || DEFAULT_FILE);
