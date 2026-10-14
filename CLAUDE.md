@@ -55,7 +55,10 @@ a good dataset.
 
 ## Environment
 
-- Node 22. Dependencies: `puppeteer` (scraping) and `@anthropic-ai/sdk` (search). Nothing else.
+- Node 24.15+ (`.nvmrc`; `nvm use` in this folder — the nvm default on this machine is still 22).
+  24.15 is where built-in `node:sqlite` became a release candidate; My cruises stores ratings
+  with it. On Node 24 the test runner prints its summary as `ℹ tests N`, not `# tests N`.
+  Dependencies: `puppeteer` (scraping) and `@anthropic-ai/sdk` (search). Nothing else.
 - Ollama at `http://localhost:11434`, `qwen2.5-coder:latest` (7B) is the default.
   `qwen2.5-coder:1.5b-base` is a *base* model — not for chat or tool roles.
   `/api/chat` is POST-only; a 405 in the browser means it's running.
