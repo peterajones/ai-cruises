@@ -12,7 +12,7 @@ publishes, and every card links to the line's own page for the real details.
 
 ## What's in it
 
-Sailings from four cruise lines, gathered by a scraper that runs on your machine:
+Sailings from six cruise lines, gathered by a scraper that runs on your machine:
 
 | Line | Source | Notes |
 |---|---|---|
@@ -20,6 +20,8 @@ Sailings from four cruise lines, gathered by a scraper that runs on your machine
 | Celebrity Cruises | the site's search API | USD |
 | Princess Cruises | the rendered results page | CAD (the site geolocates) |
 | Holland America | the site's search API | USD, Alaska only, cruises and cruisetours |
+| Viking | the itinerary list embedded in the search page, then a pricing request per itinerary | CAD, ocean cruises only, the next 12 months |
+| Cunard | the site's search, details and price APIs | CAD, the next 12 months, all four Queens |
 
 A *cruisetour* is a cruise plus land days (Denali, the Yukon) sold as one package. These
 are marked on their cards, and you can ask for them ("Denali land tour") or leave them

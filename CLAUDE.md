@@ -22,7 +22,7 @@ browser ──fetch──▶ HTML/JSON ──parse──▶ RawSailing[] ──n
 Each stage knows only its own inputs and outputs. Adapters live in `sites/`.
 
 - `sites/royal-caribbean.js`, `sites/celebrity.js`, `sites/princess.js`,
-  `sites/holland-america.js`, `sites/viking.js` — one file per site, each knowing only its own site.
+  `sites/holland-america.js`, `sites/viking.js`, `sites/cunard.js` — one file per site, each knowing only its own site.
   Deliberately near-duplicates rather than a shared parser: when one site changes shape,
   the others keep running.
 - `search.js` / `brain.js` / `server.js` / `public/` — the search layer over the scraped data.
@@ -69,11 +69,11 @@ a good dataset.
 
 ## Status
 
-**Five lines working** (scraped 2026-10-11): Royal Caribbean (178), Celebrity (117),
-Princess (196), Holland America (760), Viking (330) — 1,581 sailings, every one with a
-destination, a trip type and an end port, 14 ships with descriptions, cheapest prices
-$298–$6,559 USD and $347–$67,699 CAD (the top is a Viking world cruise). Alaska: 790
-sailings. 208 tests.
+**Six lines working** (scraped 2026-10-14): Royal Caribbean (184), Celebrity (113),
+Princess (197), Holland America (760), Viking (328), Cunard (275) — 1,857 sailings, every one
+with a destination, a trip type and an end port with an airport, 15 ships with descriptions,
+cheapest prices $249–$6,559 USD and $347–$110,999 CAD (the top is a 30-night Viking
+voyage). Alaska: 787 sailings. 239 tests.
 
 **Prices per cabin type.** Every sailing has `cabinPrices` — cabin type → that cabin's
 cheapest price, e.g. `{ interior: 959, oceanview: 1009, balcony: 1459, suite: 2164 }` — and
@@ -123,6 +123,31 @@ flight out, saying why (N731's card ends at Kotor; the cruise ends in Ravenna). 
 - **Any failed pricing request fails the whole Viking scrape** (loudly, naming the
   itinerary). Like any failed line, Viking then keeps its sailings from the previous run
   (`carryOver` in persist.js), and the scrape exits 1.
+
+**Cunard quirks worth knowing** (spec: `docs/superpowers/specs/2026-10-14-cunard-design.md`):
+
+- **Sailings in the next 12 months**, all four Queens (Mary 2, Anne, Victoria, Elizabeth) —
+  ~275 of the 590 Cunard lists.
+- **Everything is requested from inside the find-a-cruise page** (same-origin): the cruise ID
+  list, search pages, a details call per page, a price call per sailing. ~300 requests,
+  ~9 minutes — the heaviest line. The site sets Akamai bot-manager cookies; none blocked us.
+- **Search pages are fixed at 10** and must carry the full ID list (`availableCruiseList`) —
+  HTTP 500 without it. Paging is `filters.start`.
+- **The search carries only the cheapest cabin**, and its cabin filter changes *which*
+  sailings come back, not the price. Per-cabin prices come only from
+  `GET /api/v2/price/cruise/<id>`, one per sailing. A price of 0 means not on offer.
+- **Two currency headers.** The search reads `currency`, the price API `currencycode` —
+  without it, HTTP 412 "Currency Code Header is missing" (valid JSON, so it looks like an
+  answer). Both are sent on every request.
+- **A failed price call falls back** to the search's cheapest cabin (`cabinPrices: null`);
+  **more than 10% failing fails the line** — that is a block or a changed API, not bad luck.
+- **Room types come in two code styles** (BI/BO/BB on Queen Mary 2, I/O/B on Queen Anne);
+  Club Balcony → balcony, Princess and Queens Grill → suite. An unknown code passes its name
+  to normalize, which maps or reports it.
+- **"Short Break" is a trip length, not a place:** → `europe`, unless the sailing also names a
+  real region. **Africa & Indian Ocean** → `africa`, a destination added for Cunard.
+- **Segments of long voyages are their own sailings** (M627 Hamburg → New York, and M627B
+  Southampton → New York, the same voyage). CAD, as served. Photos `?imwidth=600`.
 
 **Celebrity and Royal Caribbean read one results page each**, and the site chooses what is
 on it. Coverage by destination drifts between scrapes: Celebrity had 36 Alaska sailings on
