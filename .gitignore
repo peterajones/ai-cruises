@@ -7,6 +7,10 @@ data/debug/
 data/flights-cache.json
 data/flights-cache.json.tmp
 
+# My cruises — Peter's ratings; back up with `npm run export-selections`
+data/selections.db*
+data/selections-export-*.json
+
 .DS_Store
 
 # SDD scratch — see CLAUDE.md; delete when the work lands

@@ -8,7 +8,8 @@
   "scripts": {
     "test": "node --test 'test/*.test.js'",
     "scrape": "node scrape.js",
-    "serve": "node --env-file-if-exists=.env server.js"
+    "serve": "node --env-file-if-exists=.env server.js",
+    "export-selections": "node selections.js --export"
   },
   "keywords": [],
   "author": "",
