@@ -69,6 +69,8 @@
     border-radius: 10px; overflow-x: auto; font-size: 12.5px; line-height: 1.55;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted);
   }
+  .filter-json summary { cursor: pointer; font-size: 13px; color: var(--muted); margin: 6px 0; }
+  .filter-json[open] summary { margin-bottom: 8px; }
   .warn {
     background: var(--warn-bg); border: 1px solid var(--warn-line);
     border-radius: 10px; padding: 10px 13px; margin-bottom: 10px; font-size: 14px;
@@ -776,7 +778,10 @@ $('#form').addEventListener('submit', async (e) => {
     // as-is. Worth saying, not worth withholding the results over.
     if (data.notice) box.append(el('div', { class: 'warn', text: data.notice }));
 
-    box.append(el('pre', { text: JSON.stringify(data.filter, null, 2) }));
+    // The plain-English line above is for everyone; the raw filter is the developer's view.
+    box.append(el('details', { class: 'filter-json' },
+      el('summary', { text: 'Show the filter' }),
+      el('pre', { text: JSON.stringify(data.filter, null, 2) })));
 
     // A year chip and a dated search are two answers to the same question. If the
     // request named dates ("in 2027", "next spring"), that is the more specific
