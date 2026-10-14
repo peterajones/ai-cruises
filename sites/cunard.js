@@ -142,3 +142,168 @@ export function parseListing(payload) {
     .map((r) => sailingRow(r, byId.get(r.cruiseId), prices?.[r.cruiseId] ?? null))
     .filter(Boolean);
 }
+
+
+const SEARCH_URL = `${SITE_ORIGIN}/en-us/find-a-cruise`;
+const CABINS_PARAM = 'IFt7InBhcnR5IjoyfV0='; // base64 of ' [{"party":2}]', as the site sends
+const LIST_PATH = `/orchestrator/cruise-query-processor/cruisesearch/cruiselist?sort=availableCruiseList&cabins=${CABINS_PARAM}`;
+const SEARCH_PATH = '/orchestrator/cruise-query-processor/cruisesearch';
+const DETAILS_PATH = '/orchestrator/api/cruise/getCruiseDetails';
+const PRICE_PATH = '/api/v2/price/cruise/';
+const PAGE_SIZE = 10; // fixed by the site: rows and pageSize are ignored
+
+/**
+ * The search API reads `currency`, the price API `currencycode` (without it: HTTP 412,
+ * "Currency Code Header is missing"). Both go on every request.
+ */
+const HEADERS = {
+  brand: 'cunard', locale: 'en_US', country: 'CA', currency: 'CAD', currencycode: 'CAD',
+  accept: 'application/json', 'content-type': 'application/json',
+};
+
+/** More failed price calls than this, and it is a block, not bad luck (spec). */
+export const MAX_PRICE_FAILURE_RATE = 0.1;
+/** Check the failure rate this early, so a block is not 300 slow failures. */
+const EARLY_CHECK_AFTER = 20;
+
+const localToday = () => new Date().toLocaleDateString('en-CA');
+
+/**
+ * One request from inside the page. HTML or HTTP 403 is a bot wall; anything else that is
+ * not JSON fails loudly.
+ *
+ * @returns {Promise<{status: number, json: object}>}
+ */
+async function call(page, path, method = 'GET', body = undefined) {
+  const { status, text } = await page.evaluate(async (p, m, h, b) => {
+    const res = await fetch(p, { method: m, headers: h, body: b });
+    return { status: res.status, text: await res.text() };
+  }, path, method, HEADERS, body === undefined ? undefined : JSON.stringify(body));
+
+  if (status === 403) throw new BotWallError('HTTP 403', path);
+  const trimmed = String(text ?? '').trimStart();
+  if (!trimmed.startsWith('{')) {
+    throw new BotWallError(detectBotWall(text) ?? 'HTML where JSON was expected', path);
+  }
+  try {
+    return { status, json: JSON.parse(trimmed) };
+  } catch {
+    throw new Error(`Cunard ${path} answered invalid JSON (HTTP ${status}): ${trimmed.slice(0, 80)}`);
+  }
+}
+
+/** A price answer, or null if this call failed. A bot wall still throws. */
+async function priceFor(page, cruiseId) {
+  try {
+    const { status, json } = await call(page, `${PRICE_PATH}${encodeURIComponent(cruiseId)}`);
+    const ok = status < 400 && !(json.errors?.length) && Array.isArray(json.data?.roomTypes);
+    return ok ? json : null;
+  } catch (err) {
+    if (err instanceof BotWallError) throw err;
+    return null;
+  }
+}
+
+function tooManyFailures(failed, priced) {
+  return new Error(
+    `${failed} of ${priced} Cunard price requests failed — more than ${MAX_PRICE_FAILURE_RATE * 100}%, ` +
+      'so this looks like a block or a changed API, not bad luck.',
+  );
+}
+
+/**
+ * The find-a-cruise page, then — from inside it — the cruise IDs, search pages of 10 in
+ * departure order, one details call per page, and one price call per sailing in the
+ * window. Stops at the first page entirely past the window. `limit` caps sailings priced.
+ *
+ * @param {import('puppeteer').Page} page
+ * @param {{limit: number, today?: string, pause?: () => Promise<void>}} options
+ * @returns {Promise<string[]>} JSON payloads: { results, details, prices, today }
+ */
+export async function fetchListingPages(page, { limit, today = localToday(), pause = politeDelay }) {
+  await page.goto(SEARCH_URL, { waitUntil: 'networkidle2', timeout: 90_000 });
+  const html = await page.content();
+  const wall = detectBotWall(html);
+  if (wall) throw new BotWallError(wall, SEARCH_URL);
+
+  await pause();
+  const list = await call(page, LIST_PATH);
+  const ids = list.json.availableCruiseList;
+  if (list.status >= 400 || typeof ids !== 'string' || !ids) {
+    throw new Error(`Cunard cruise ID list failed (HTTP ${list.status}): ${JSON.stringify(list.json).slice(0, 80)}`);
+  }
+
+  const cap = Number.isFinite(limit) ? limit : Infinity;
+  const until = addDaysIso(today, 365);
+  const payloads = [];
+  let kept = 0;
+  let priced = 0;
+  let failed = 0;
+
+  for (let start = 0; kept < cap; start += PAGE_SIZE) {
+    await pause();
+    const { status, json } = await call(page, SEARCH_PATH, 'POST', {
+      filters: { start: String(start) }, cabins: CABINS_PARAM, availableCruiseList: ids,
+    });
+    if (status >= 400 || !Array.isArray(json.searchResults)) {
+      throw new Error(`Cunard search page at ${start} failed (HTTP ${status}): ${JSON.stringify(json).slice(0, 80)}`);
+    }
+    const results = json.searchResults;
+    if (results.length === 0) break;
+
+    const wanted = results
+      .filter((r) => inWindow(dateOf(r), today) && !r.isSoldOut)
+      .slice(0, cap - kept);
+
+    if (wanted.length > 0) {
+      await pause();
+      const detailPath = `${DETAILS_PATH}?ids=${encodeURIComponent(JSON.stringify(wanted.map((r) => r.cruiseId)))}&forceRCOne=true`;
+      const det = await call(page, detailPath);
+      const items = det.json?.data?.cruiseList?.items;
+      if (det.status >= 400 || !Array.isArray(items)) {
+        throw new Error(`Cunard details for page at ${start} failed (HTTP ${det.status}): ${JSON.stringify(det.json).slice(0, 80)}`);
+      }
+
+      const prices = {};
+      for (const r of wanted) {
+        await pause();
+        const answer = await priceFor(page, r.cruiseId);
+        priced += 1;
+        if (!answer) failed += 1;
+        prices[r.cruiseId] = answer;
+        if (priced >= EARLY_CHECK_AFTER && failed / priced > MAX_PRICE_FAILURE_RATE) {
+          throw tooManyFailures(failed, priced);
+        }
+      }
+      kept += wanted.length;
+      payloads.push(JSON.stringify({ results: wanted, details: items, prices, today }));
+    }
+
+    const pastWindow = results.every((r) => dateOf(r) > until);
+    const lastPage = start + PAGE_SIZE >= (json.results ?? 0);
+    if (pastWindow || lastPage) break;
+  }
+
+  if (priced > 0 && failed / priced > MAX_PRICE_FAILURE_RATE) throw tooManyFailures(failed, priced);
+  if (failed > 0) {
+    console.log(`cunard: ${failed} of ${priced} price requests failed; those sailings show only their cheapest cabin`);
+  }
+  return payloads;
+}
+
+/** Not used: shipDescriptions is false. Kept so the adapter satisfies the contract. */
+export function parseShip() {
+  return { line, description: '', source: null };
+}
+
+export function shipUrl(ship) {
+  const slug = String(ship).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return `${SITE_ORIGIN}/en-us/our-ships/${slug}`;
+}
+
+export async function fetchShipPage(page, ship) {
+  const url = shipUrl(ship);
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  await politeDelay();
+  return page.content();
+}

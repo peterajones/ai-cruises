@@ -3,13 +3,14 @@ import * as celebrity from './celebrity.js';
 import * as princess from './princess.js';
 import * as hollandAmerica from './holland-america.js';
 import * as viking from './viking.js';
+import * as cunard from './cunard.js';
 
-// Royal Caribbean, Celebrity, Holland America and Viking read JSON (Viking's itinerary
+// Royal Caribbean, Celebrity, Holland America, Viking and Cunard read JSON (Viking's itinerary
 // list is embedded in its search page); Princess parses the rendered results page,
 // because its API cannot produce a dated price. Each
 // adapter is a standalone file on purpose — when one site changes shape, the
 // others keep running.
-export const ADAPTERS = [royalCaribbean, celebrity, princess, hollandAmerica, viking];
+export const ADAPTERS = [royalCaribbean, celebrity, princess, hollandAmerica, viking, cunard];
 
 /**
  * @param {string[]} names - empty means all
