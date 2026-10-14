@@ -304,3 +304,22 @@ test('a missing ID list, a failed search page or a failed details call fails lou
   const badDetails = fakePage((path, m, b) => (path.startsWith(DETAILS_PATH) ? '{"data":{}}' : standard()(path, m, b)));
   await assert.rejects(run(badDetails), /Cunard details/);
 });
+
+test('a transient non-JSON price answer (an empty 502) is one failed call, not a bot wall', async () => {
+  const page = fakePage(standard({
+    price: (id) => (id === 'Q629' ? { status: 502, text: '' } : JSON.stringify(okPrice)),
+  }));
+  const rows = parseListing((await run(page))[0]);
+  assert.equal(rows.find((r) => r.externalId === 'Q629').cabinPrices, null);
+  assert.equal(rows.length, 10);
+});
+
+test('a search answer without its results total keeps paging rather than stopping at page one', async () => {
+  const strip = ({ results, ...rest }) => rest;
+  const page = fakePage((path, method, body) => {
+    const answer = standard()(path, method, body);
+    return path === SEARCH_PATH ? JSON.stringify(strip(JSON.parse(answer))) : answer;
+  });
+  await run(page);
+  assert.equal(page.calls.filter((c) => c.path === SEARCH_PATH).length, 2);
+});

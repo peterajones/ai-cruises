@@ -169,8 +169,9 @@ const EARLY_CHECK_AFTER = 20;
 const localToday = () => new Date().toLocaleDateString('en-CA');
 
 /**
- * One request from inside the page. HTML or HTTP 403 is a bot wall; anything else that is
- * not JSON fails loudly.
+ * One request from inside the page. HTTP 403, or a page carrying a block's signature, is a
+ * bot wall; any other answer that is not JSON (an empty 502, a gateway's error text) is an
+ * ordinary failure — for a price call that is one failed call, counted toward the 10%.
  *
  * @returns {Promise<{status: number, json: object}>}
  */
@@ -183,7 +184,11 @@ async function call(page, path, method = 'GET', body = undefined) {
   if (status === 403) throw new BotWallError('HTTP 403', path);
   const trimmed = String(text ?? '').trimStart();
   if (!trimmed.startsWith('{')) {
-    throw new BotWallError(detectBotWall(text) ?? 'HTML where JSON was expected', path);
+    // detectBotWall calls any short body a block; here a short body is just a bad answer,
+    // so only a real signature (a vendor marker, or "Access Denied" in the title) counts.
+    const reason = detectBotWall(text);
+    if (reason && !reason.startsWith('response too small')) throw new BotWallError(reason, path);
+    throw new Error(`Cunard ${path} answered HTTP ${status} with no JSON: ${trimmed.slice(0, 80) || '(empty)'}`);
   }
   try {
     return { status, json: JSON.parse(trimmed) };
@@ -280,7 +285,9 @@ export async function fetchListingPages(page, { limit, today = localToday(), pau
     }
 
     const pastWindow = results.every((r) => dateOf(r) > until);
-    const lastPage = start + PAGE_SIZE >= (json.results ?? 0);
+    // Without a total, never assume this is the last page: an empty page or one past the
+    // window still ends the loop. Assuming it would quietly cut Cunard to its first 10.
+    const lastPage = typeof json.results === 'number' && start + PAGE_SIZE >= json.results;
     if (pastWindow || lastPage) break;
   }
 
