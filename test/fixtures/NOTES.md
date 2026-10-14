@@ -415,3 +415,19 @@ Spec: `docs/superpowers/specs/2026-10-11-viking-design.md`.
   Iconic Western Mediterranean, captured 2026-10-11 from the rendered pricing page: 156
   sailings, 2026–2029, 14 ships. Contains sold-out sailings and 14 whose headline
   `lowestPrice` is below every listed cabin.
+
+# Cunard
+
+Spec: `docs/superpowers/specs/2026-10-14-cunard-design.md`. Captured 2026-10-14 from inside
+`https://www.cunard.com/en-us/find-a-cruise` (headers `country: CA`, `currency: CAD`).
+
+- `cunard-search.json` — the first search page: `POST /orchestrator/cruise-query-processor/cruisesearch`,
+  body `{filters:{}, cabins, availableCruiseList: <590 IDs>}`. 10 sailings (M626C … Q630,
+  18 Oct – 5 Nov 2026), `results: 590`. Each carries only its cheapest cabin.
+- `cunard-details.json` — `GET /orchestrator/api/cruise/getCruiseDetails?ids=[…]` for those 10,
+  in a different order from the search. Port names, ship names, photos.
+- `cunard-price-M626C.json` — `GET /api/v2/price/cruise/M626C`: Inside 504.74, Ocean View 586.81,
+  Balcony 587.20, Club Balcony 860.60, Queens Grills 1134.39, Princess Grills 0. Matches the
+  voyage page to the cent.
+- `cunard-price-H627.json` — the same for H627 (Queen Anne, single-letter codes): only Inside
+  (1285.67) above 0.
