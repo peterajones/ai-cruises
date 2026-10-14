@@ -243,11 +243,13 @@ layout judgement made only at that size is suspect in both directions — proble
 than they are, and real small-screen problems stay invisible. Check at ~800×600 before calling
 a layout question settled.
 
-**Lazy loading.** Images already carry `loading="lazy"`, but the API ships all sailings in one
-response and the page builds every card up front. Fine at ~320, not at 2,000. The 13 distinct
-images are 900 KB–2.7 MB each (full 4K heroes rendered in ~290px cards). Celebrity's CDN honours
-`?imwidth=600` (1043 KB → 75 KB); Royal Caribbean's ignores it, and its own parameter was not
-found. Nothing is downloaded locally — image URLs are hotlinked.
+**Lazy loading.** Cards are built 60 at a time as you scroll (`BATCH` in `public/index.html`) —
+building all 1,857 took ~0.6 s on a desktop and ~2 s on a slowed phone on every filter or sort
+change; now ~25 ms and ~85 ms (measured 2026-10-14). "Show all" builds the rest, e.g. for ⌘F.
+Images carry `loading="lazy"`, so only those in view load. Still open: Royal Caribbean's
+photos are full 4K heroes (0.9–2.7 MB) in ~290px cards — Celebrity, Holland America and Cunard
+honour `?imwidth=600`, Royal Caribbean ignores it, and its own parameter was not found.
+Nothing is downloaded locally — image URLs are hotlinked.
 
 ## Working style
 
