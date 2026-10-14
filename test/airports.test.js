@@ -30,7 +30,7 @@ const PORTS = {
   'Melbourne, Australia': 'MEL', 'Adelaide, Australia': 'ADL', 'Auckland, New Zealand': 'AKL',
   // Viking, from the 2026-10-11 scrape.
   'Istanbul': 'IST', 'Lisbon': 'LIS', 'Bergen': 'BGO', 'Stockholm': 'ARN', 'Belfast': 'BFS',
-  'Reykjavík': 'KEF', 'Reykjavík, Iceland': 'KEF', 'Bali (Benoa)': 'DPS', 'Hong Kong': 'HKG',
+  'Hamburg, Germany': 'HAM', 'Reykjavík': 'KEF', 'Reykjavík, Iceland': 'KEF', 'Bali (Benoa)': 'DPS', 'Hong Kong': 'HKG',
   'Panama City (Fuerte Amador)': 'PTY', 'Tromsø': 'TOS', 'Oslo': 'OSL',
 };
 

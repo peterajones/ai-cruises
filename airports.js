@@ -29,6 +29,7 @@ const AIRPORTS = {
   LHR: ['London', 'london', 'southampton'],
   AMS: ['Amsterdam', 'amsterdam', 'rotterdam'],
   CPH: ['Copenhagen', 'copenhagen'],
+  HAM: ['Hamburg', 'hamburg'],
   HEL: ['Helsinki', 'helsinki'],
   BCN: ['Barcelona', 'barcelona'],
   FCO: ['Rome', 'rome', 'civitavecchia'],
