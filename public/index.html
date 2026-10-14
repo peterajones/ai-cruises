@@ -117,6 +117,18 @@
     position: absolute; left: 12px; top: 44px; background: var(--accent); color: var(--accent-ink);
     font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px;
   }
+  .viewed {
+    position: absolute; right: 12px; top: 12px; background: rgba(6,20,28,.82); color: #fff;
+    font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px;
+  }
+  .stars { display: flex; gap: 2px; }
+  .stars .star { background: none; border: 0; padding: 0 1px; font-size: 19px; line-height: 1;
+    color: var(--muted); cursor: pointer; }
+  .stars .star.on { color: #e8a317; }
+  .stars .star:focus-visible { outline: 2px solid var(--accent); border-radius: 4px; }
+  .panel .hero-text .stars { margin-top: 6px; }
+  .panel .hero-text .star { color: rgba(255,255,255,.75); }
+  .panel .hero-text .star.on { color: #ffc940; }
   .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
   .title { font-size: 16px; font-weight: 650; line-height: 1.3; letter-spacing: -.01em; }
   .meta { font-size: 13px; color: var(--muted); }
@@ -295,7 +307,8 @@ const el = (tag, props = {}, ...kids) => {
 
 /** Only http(s) may reach an href or src — blocks javascript: and data: URLs. */
 const safeUrl = (u) => (typeof u === 'string' && /^https?:\/\//i.test(u) ? u : null);
-const state = { all: [], subset: null, message: null, values: {}, facets: {}, searchCabin: null };
+const state = { all: [], subset: null, message: null, values: {}, facets: {}, searchCabin: null,
+  selections: {}, selectionsOk: true, selectionsWhy: null };
 
 const EXAMPLES = [
   'a 4-night Bahamas cruise with a balcony under $700',
@@ -348,6 +361,7 @@ function closePanel() {
 }
 
 function openPanel(s, opener) {
+  recordView(s);
   panelSailing = s;
   panelOpener = opener ?? null;
   const panel = $('#panel');
@@ -366,7 +380,8 @@ function openPanel(s, opener) {
     el('div', { class: 'hero-text' },
       el('div', { class: 'eyebrow', text: '✈ Getting there' }),
       el('h2', { id: 'panel-title', text: s.itinerary ?? titleCase(s.destination ?? 'Cruise') }),
-      el('div', { class: 'hero-meta', text: `${s.ship} · ${prettyDate(s.departureDate)} · ${s.nights} nights` })));
+      el('div', { class: 'hero-meta', text: `${s.ship} · ${prettyDate(s.departureDate)} · ${s.nights} nights` }),
+      starsFor(s)));
 
   const home = el('input', { value: readHome(), maxlength: '3', 'aria-label': 'Home airport code' });
   const flights = el('div', { class: 'flights', 'aria-live': 'polite' });
@@ -484,6 +499,17 @@ async function boot() {
 
   state.all = data.sailings;
   state.values = data.values;
+  // Ratings load once; each change updates them in place. Unavailable is not an error page:
+  // search works, and one notice says why (see buildYearChips).
+  try {
+    const sres = await fetch('/api/selections');
+    const sdata = await sres.json();
+    if (!sres.ok) throw new Error(sdata.error);
+    state.selections = Object.fromEntries(sdata.selections.map((r) => [r.sailingId, r]));
+  } catch (err) {
+    state.selectionsOk = false;
+    state.selectionsWhy = `Ratings are unavailable: ${err.message}`;
+  }
   $('#sub').textContent =
     `${data.sailings.length} sailings · ${data.values.line.length} line(s) · ` +
     `scraped ${new Date(data.scrapedAt).toLocaleString()}`;
@@ -637,6 +663,97 @@ function flightsButton(s) {
   return b;
 }
 
+/** Called when the My cruises count changes; buildYearChips replaces it. */
+let updateMineCount = () => {};
+/** Bumped per rating click, per sailing, so a slow earlier answer never repaints over a later one. */
+const rateTickets = {};
+
+/** Five buttons; clicking the current rating clears it. One group per copy of the cruise on screen. */
+function starsFor(s) {
+  if (!state.selectionsOk) return null;
+  const group = el('div', { class: 'stars', role: 'group', 'aria-label': 'Your rating', 'data-stars': s.id });
+  for (let n = 1; n <= 5; n += 1) {
+    const b = el('button', { type: 'button', 'aria-label': `Rate ${n} star${n === 1 ? '' : 's'}` });
+    b.onclick = (e) => {
+      e.stopPropagation();
+      rate(s, (state.selections[s.id]?.rating ?? 0) === n ? null : n);
+    };
+    group.append(b);
+  }
+  paintGroup(group, state.selections[s.id]?.rating ?? 0);
+  return group;
+}
+
+function paintGroup(group, rating) {
+  [...group.children].forEach((b, i) => {
+    b.className = i < rating ? 'star on' : 'star';
+    b.textContent = i < rating ? '★' : '☆';
+    b.setAttribute('aria-pressed', String(i + 1 === rating));
+  });
+}
+
+function paintStars(id) {
+  const rating = state.selections[id]?.rating ?? 0;
+  for (const g of document.querySelectorAll(`[data-stars="${CSS.escape(id)}"]`)) paintGroup(g, rating);
+}
+
+async function rate(s, rating) {
+  const ticket = (rateTickets[s.id] = (rateTickets[s.id] ?? 0) + 1);
+  const before = state.selections[s.id];
+  state.selections[s.id] = { ...(before ?? { sailingId: s.id, views: 0, snapshot: s }), rating };
+  paintStars(s.id);
+  try {
+    const res = await fetch('/api/selections/rating', {
+      method: 'PUT', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id: s.id, rating }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    if (ticket !== rateTickets[s.id]) return; // a later click owns the display now
+    if (data.selection) state.selections[s.id] = data.selection;
+    else delete state.selections[s.id];
+  } catch (err) {
+    if (ticket !== rateTickets[s.id]) return;
+    if (before) state.selections[s.id] = before;
+    else delete state.selections[s.id];
+    console.error('Rating not saved:', err.message);
+  }
+  paintStars(s.id);
+  updateMineCount();
+}
+
+/** In the background: the link and the panel never wait for it. Unlisted cruises can't be viewed. */
+function recordView(s) {
+  if (!state.selectionsOk || s.unlisted) return;
+  fetch('/api/selections/view', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ id: s.id }), keepalive: true,
+  })
+    .then((res) => (res.ok ? res.json() : null))
+    .then((data) => {
+      if (!data?.selection) return;
+      state.selections[s.id] = data.selection;
+      markViewed(s);
+      updateMineCount();
+    })
+    .catch(() => {});
+}
+
+function viewedTag(s) {
+  const r = state.selections[s.id];
+  if (!r?.views) return null;
+  const last = r.lastViewed ? new Date(r.lastViewed).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+  return el('span', { class: 'viewed', title: `Viewed ${r.views}× · last ${last}`, text: 'Viewed' });
+}
+
+function markViewed(s) {
+  for (const t of document.querySelectorAll(`[data-thumb="${CSS.escape(s.id)}"]`)) {
+    t.querySelector('.viewed')?.remove();
+    const tag = viewedTag(s);
+    if (tag) t.append(tag);
+  }
+}
+
 function render() {
   const base = state.subset ?? state.all;
   const list = applyFacets(base);
@@ -691,10 +808,12 @@ moreObserver.observe($('#more'));
 $('#show-all').onclick = () => appendCards(Infinity);
 
 function cardFor(s) {
-  const thumb = el('div', { class: 'thumb' });
+  const thumb = el('div', { class: 'thumb', 'data-thumb': s.id });
   const img = safeUrl(s.image);
   if (img) thumb.append(el('img', { loading: 'lazy', alt: '', src: img }));
   thumb.append(el('span', { class: 'nights', text: `${s.nights} nights` }));
+  const tag = viewedTag(s);
+  if (tag) thumb.append(tag);
   if (s.tripType === 'cruisetour') {
     thumb.append(el('span', { class: 'tour', text: 'Cruisetour · includes land days' }));
   }
@@ -712,9 +831,11 @@ function cardFor(s) {
     : null;
 
   const link = safeUrl(s.url);
+  const view = link ? el('a', { class: 'book', href: link, target: '_blank', rel: 'noopener', text: ' View ↗' }) : null;
+  if (view) view.onclick = () => recordView(s);
   const foot = el('div', { class: 'foot' },
     el('div', {}, price, priceLabel),
-    el('div', {}, flightsButton(s), link ? el('a', { class: 'book', href: link, target: '_blank', rel: 'noopener', text: ' View ↗' }) : null));
+    el('div', {}, flightsButton(s), view));
 
   return el('article', { class: 'card' }, thumb,
     el('div', { class: 'body' },
@@ -723,7 +844,8 @@ function cardFor(s) {
       el('div', { class: 'meta', text: `${prettyDate(s.departureDate)} · from ${s.departurePort}` }),
       s.ports?.length ? el('div', { class: 'ports', text: `Calls at ${s.ports.join(' · ')}` }) : null,
       cabinRow,
-      foot));
+      foot,
+      starsFor(s)));
 }
 
 $('#form').addEventListener('submit', async (e) => {
