@@ -102,6 +102,12 @@ const server = createServer(async (req, res) => {
       return res.end(html);
     }
 
+    if (req.method === 'GET' && (req.url === '/mine' || req.url === '/mine.html')) {
+      const html = await readFile(join(PUBLIC_DIR, 'mine.html'));
+      res.writeHead(200, { 'content-type': MIME['.html'] });
+      return res.end(html);
+    }
+
     // What the page needs on load: the facets, and the whole dataset to render.
     if (req.method === 'GET' && req.url === '/api/dataset') {
       dataset = await loadDataset();

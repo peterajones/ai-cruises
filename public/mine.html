@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My cruises</title>
+<style>
+  :root { --bg: #f6f7f9; --panel: #fff; --ink: #16202b; --muted: #63707e; --line: #e2e6ea;
+    --accent: #0b6d8f; --chip: #eef2f5; --up: #b3261e; --down: #1b7f4b; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f1418; --panel: #161d23; --ink: #e8edf1; --muted: #9aa8b4; --line: #26313a;
+      --accent: #4bb3d4; --chip: #1e272f; --up: #ff8a80; --down: #6fdc9c; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.45 ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { margin: 0 0 4px; font-size: 24px; }
+  .sub { color: var(--muted); font-size: 14px; margin-bottom: 18px; }
+  .sub a { color: var(--accent); font-weight: 600; text-decoration: none; }
+  .box { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 880px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); white-space: nowrap; }
+  th button { all: inherit; border: 0; padding: 0; cursor: pointer; }
+  th button[aria-sort]::after { content: " ▾"; }
+  th button[aria-sort="ascending"]::after { content: " ▴"; }
+  td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  td a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .gone { color: var(--muted); font-size: 13px; }
+  .up { color: var(--up); font-size: 12px; } .down { color: var(--down); font-size: 12px; }
+  .stars { display: flex; gap: 1px; }
+  .star { background: none; border: 0; padding: 0 1px; font-size: 18px; line-height: 1; color: var(--muted); cursor: pointer; }
+  .star.on { color: #e8a317; }
+  .empty { padding: 40px 16px; text-align: center; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>My cruises</h1>
+  <div class="sub" id="sub">Loading… · <a href="/">Back to search</a></div>
+  <div class="box"><div id="table"></div></div>
+</div>
+<script type="module">
+const $ = (q) => document.querySelector(q);
+const el = (tag, props = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (v == null) continue;
+    if (k === 'class') n.className = v; else if (k === 'text') n.textContent = v; else n.setAttribute(k, v);
+  }
+  for (const kid of kids.flat()) if (kid != null) n.append(kid);
+  return n;
+};
+const safeUrl = (u) => (typeof u === 'string' && /^https?:\/\//i.test(u) ? u : null);
+const money = (n, cur) => `$${Math.round(n).toLocaleString('en-US')}${cur && cur !== 'USD' ? ` ${cur}` : ''}`;
+const day = (iso) => (iso ? new Date(iso.length === 10 ? `${iso}T00:00:00` : iso)
+  .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '');
+
+let rows = [];
+let sortKey = null;
+let sortDir = -1;
+
+const COLUMNS = [
+  ['Date', (r) => r.s.departureDate],
+  ['Line', (r) => r.s.line],
+  ['Ship', (r) => r.s.ship],
+  ['Itinerary', (r) => r.s.itinerary ?? ''],
+  ['Stars', (r) => r.sel.rating ?? 0],
+  ['Price then', (r) => r.sel.snapshot.price ?? 0],
+  ['Price now', (r) => r.now?.price ?? Infinity],
+  ['Views', (r) => r.sel.views],
+  ['Last viewed', (r) => r.sel.lastViewed ?? ''],
+];
+
+/** The chip's order: rated first, highest first; then most recently viewed. */
+const defaultOrder = (a, b) => (b.sel.rating ?? 0) - (a.sel.rating ?? 0)
+  || String(b.sel.lastViewed ?? '').localeCompare(String(a.sel.lastViewed ?? ''));
+
+function starsFor(r) {
+  const group = el('div', { class: 'stars', role: 'group', 'aria-label': 'Your rating' });
+  const paint = () => [...group.children].forEach((b, i) => {
+    const on = i < (r.sel.rating ?? 0);
+    b.className = on ? 'star on' : 'star';
+    b.textContent = on ? '★' : '☆';
+    b.setAttribute('aria-pressed', String(i + 1 === r.sel.rating));
+  });
+  for (let n = 1; n <= 5; n += 1) {
+    const b = el('button', { type: 'button', 'aria-label': `Rate ${n} star${n === 1 ? '' : 's'}` });
+    b.onclick = async () => {
+      const rating = r.sel.rating === n ? null : n;
+      const res = await fetch('/api/selections/rating', {
+        method: 'PUT', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ id: r.sel.sailingId, rating }),
+      });
+      const data = await res.json();
+      if (!res.ok) { console.error('Rating not saved:', data.error); return; }
+      if (data.selection) r.sel = data.selection;
+      else { rows = rows.filter((x) => x !== r); draw(); return; }
+      paint();
+    };
+    group.append(b);
+  }
+  paint();
+  return group;
+}
+
+function draw() {
+  const host = $('#table');
+  host.textContent = '';
+  if (rows.length === 0) {
+    host.append(el('div', { class: 'empty', text: "Nothing here yet — open a cruise's View ↗ or ✈ Flights, or give it stars." }));
+    return;
+  }
+  const getter = sortKey == null ? null : COLUMNS[sortKey][1];
+  const sorted = [...rows].sort(getter
+    ? (a, b) => { const x = getter(a); const y = getter(b); return (x < y ? -1 : x > y ? 1 : 0) * sortDir; }
+    : defaultOrder);
+
+  const head = el('tr', {}, COLUMNS.map(([label], i) => {
+    const b = el('button', { type: 'button', text: label });
+    if (i === sortKey) b.setAttribute('aria-sort', sortDir === 1 ? 'ascending' : 'descending');
+    b.onclick = () => { sortDir = sortKey === i ? -sortDir : 1; sortKey = i; draw(); };
+    return el('th', {}, b);
+  }));
+
+  const body = sorted.map((r) => {
+    const link = safeUrl(r.s.url);
+    const then = r.sel.snapshot.price;
+    let nowCell;
+    if (!r.now) nowCell = el('span', { class: 'gone', text: 'No longer listed' });
+    else {
+      const diff = then != null ? Math.round(r.now.price - then) : 0;
+      nowCell = el('span', {}, money(r.now.price, r.now.currency),
+        diff ? el('div', { class: diff > 0 ? 'up' : 'down', text: `${diff > 0 ? '+' : '−'}$${Math.abs(diff).toLocaleString('en-US')}` }) : null);
+    }
+    return el('tr', {},
+      el('td', { text: day(r.s.departureDate) }),
+      el('td', { text: r.s.line }),
+      el('td', { text: r.s.ship }),
+      el('td', {}, link ? el('a', { href: link, target: '_blank', rel: 'noopener', text: r.s.itinerary ?? 'Cruise' }) : (r.s.itinerary ?? 'Cruise')),
+      el('td', {}, starsFor(r)),
+      el('td', { class: 'num', text: then != null ? money(then, r.sel.snapshot.currency) : '' }),
+      el('td', { class: 'num' }, nowCell),
+      el('td', { class: 'num', text: String(r.sel.views) }),
+      el('td', { text: day(r.sel.lastViewed) }));
+  });
+
+  host.append(el('table', {}, el('thead', {}, head), el('tbody', {}, body)));
+}
+
+async function boot() {
+  const [dres, sres] = await Promise.all([fetch('/api/dataset'), fetch('/api/selections')]);
+  const sdata = await sres.json();
+  if (!sres.ok) { $('#sub').firstChild.textContent = `Ratings are unavailable: ${sdata.error} · `; return; }
+  const listed = dres.ok ? (await dres.json()).sailings : [];
+  const byId = new Map(listed.map((s) => [s.id, s]));
+  rows = sdata.selections.map((sel) => {
+    const now = byId.get(sel.sailingId) ?? null;
+    return { sel, now, s: now ?? sel.snapshot };
+  });
+  $('#sub').firstChild.textContent = `${rows.length} viewed or rated · `;
+  draw();
+}
+
+boot();
+</script>
+</body>
+</html>
