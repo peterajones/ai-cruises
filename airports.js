@@ -24,12 +24,18 @@ const AIRPORTS = {
   JFK: ['New York', 'new york'],
   BOS: ['Boston', 'boston'],
   YUL: ['Montreal', 'montreal'],
-  YQB: ['Quebec City', 'quebec city'],
+  // 'quebec qc', never a bare 'quebec': "Montreal, Quebec" must stay Montreal.
+  YQB: ['Quebec City', 'quebec city', 'quebec qc'],
   KEF: ['Reykjavik', 'reykjavik'],
   LHR: ['London', 'london', 'southampton'],
   AMS: ['Amsterdam', 'amsterdam', 'rotterdam'],
   CPH: ['Copenhagen', 'copenhagen'],
-  HAM: ['Hamburg', 'hamburg'],
+  // Kiel has no airlines worth pricing; Hamburg is an hour away, as Heathrow is for Southampton.
+  HAM: ['Hamburg', 'hamburg', 'kiel'],
+  // Le Havre is Paris's cruise port.
+  CDG: ['Paris', 'paris', 'le havre'],
+  GIG: ['Rio de Janeiro', 'rio de janeiro'],
+  CPT: ['Cape Town', 'cape town'],
   HEL: ['Helsinki', 'helsinki'],
   BCN: ['Barcelona', 'barcelona'],
   FCO: ['Rome', 'rome', 'civitavecchia'],
