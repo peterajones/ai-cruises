@@ -12,11 +12,13 @@ import { extname, join } from 'node:path';
 import { understand } from './brain.js';
 import {
   searchSailings, emptyMessage, describeFilter, hasNoConstraints, applyPriceDirection,
-  currencyNote, upcoming, localDate,
+  currencyNote, upcoming, localDate, usesSelections,
 } from './search.js';
 import { deriveValues } from './values.js';
 import { flightsFor } from './flights.js';
-import { openSelections, handleSelections, DEFAULT_FILE as SELECTIONS_DEFAULT } from './selections.js';
+import {
+  openSelections, handleSelections, selectionMap, DEFAULT_FILE as SELECTIONS_DEFAULT,
+} from './selections.js';
 
 // PORT lets a second copy run beside the usual one, e.g. to check a change.
 const PORT = Number(process.env.PORT) || 3030;
@@ -155,7 +157,11 @@ const server = createServer(async (req, res) => {
       // lie dressed as an answer — return nothing and say why instead.
       const understoodNothing = hasNoConstraints(filter);
 
-      const results = understoodNothing ? [] : searchSailings(view.sailings, filter);
+      const mine = selectionMap(selections);
+      // Asked about ratings while they can't be read: say so, rather than ignore the ask.
+      const ratingsMissing = !selections.ok && usesSelections(filter);
+
+      const results = understoodNothing || ratingsMissing ? [] : searchSailings(view.sailings, filter, mine);
 
       // A price filter spanning currencies is imprecise, not invalid. Say so
       // alongside the results rather than withholding them — this is a tool for
@@ -167,7 +173,7 @@ const server = createServer(async (req, res) => {
       // goes quiet at the one moment it matters.
       const candidates = understoodNothing
         ? []
-        : searchSailings(view.sailings, { ...filter, minPrice: null, maxPrice: null });
+        : searchSailings(view.sailings, { ...filter, minPrice: null, maxPrice: null }, mine);
       const currency = currencyNote(candidates, filter);
 
       return json(res, 200, {
@@ -175,7 +181,9 @@ const server = createServer(async (req, res) => {
         results,
         understood: describeFilter(filter),
         understoodNothing,
-        message: results.length === 0 ? emptyMessage(filter) : null,
+        message: ratingsMissing
+          ? 'Ratings are unavailable right now.'
+          : results.length === 0 ? emptyMessage(filter) : null,
         notice: currency?.note ?? null,
         tookMs: Date.now() - started,
       });

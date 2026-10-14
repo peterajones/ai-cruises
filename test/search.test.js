@@ -1,15 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  searchSailings,
-  hasNoConstraints,
-  applyPriceDirection,
-  currencyNote,
-  describeFilter,
-  emptyMessage,
-  upcoming,
-  localDate,
-  priceFor,
+  searchSailings, hasNoConstraints, applyPriceDirection, currencyNote, describeFilter, emptyMessage, upcoming, localDate, priceFor, usesSelections,
 } from '../search.js';
 
 const sailings = [
@@ -288,4 +280,46 @@ test('a not-listed cabin is excluded when even the cheapest cabin is over the li
   assert.equal(searchSailings(princess, { cabin: 'balcony', maxPrice: 2000 }).length, 1);
   // A minimum cannot rule it out: the balcony could cost more than the cheapest cabin.
   assert.equal(searchSailings(princess, { cabin: 'balcony', minPrice: 5000 }).length, 1);
+});
+
+const rated = (id) => ({ id, line: 'L', ship: 'S', destination: 'alaska', departurePort: 'P',
+  departureDate: '2027-06-01', nights: 7, price: 500, cabin: 'interior' });
+const pool = ['a', 'b', 'c', 'd'].map(rated);
+const mine = { a: { rating: 5, views: 2 }, b: { rating: 2, views: 0 }, c: { rating: null, views: 1 } };
+const ids = (list) => list.map((s) => s.id);
+
+test('minRating keeps only sailings rated that high', () => {
+  assert.deepEqual(ids(searchSailings(pool, { minRating: 4 }, mine)), ['a']);
+  assert.deepEqual(ids(searchSailings(pool, { minRating: 2 }, mine)), ['a', 'b']);
+});
+
+test('hideRatedAtMost drops low ratings and keeps unrated sailings', () => {
+  assert.deepEqual(ids(searchSailings(pool, { hideRatedAtMost: 2 }, mine)), ['a', 'c', 'd']);
+});
+
+test('viewed true and false', () => {
+  assert.deepEqual(ids(searchSailings(pool, { viewed: true }, mine)), ['a', 'c']);
+  assert.deepEqual(ids(searchSailings(pool, { viewed: false }, mine)), ['b', 'd']);
+});
+
+test("'ones I haven't seen' with nothing viewed yet is everything, not nothing", () => {
+  assert.deepEqual(ids(searchSailings(pool, { viewed: false }, {})), ['a', 'b', 'c', 'd']);
+  assert.deepEqual(ids(searchSailings(pool, { viewed: false })), ['a', 'b', 'c', 'd']);
+});
+
+test('rating filters combine with the others', () => {
+  const pricey = [...pool, { ...rated('e'), price: 3000 }];
+  const withE = { ...mine, e: { rating: 5, views: 1 } };
+  assert.deepEqual(ids(searchSailings(pricey, { minRating: 5, maxPrice: 1000 }, withE)), ['a']);
+});
+
+test('the rating fields count as constraints and are described', () => {
+  assert.equal(hasNoConstraints({ viewed: false }), false);
+  assert.equal(hasNoConstraints({ minRating: 4 }), false);
+  assert.equal(describeFilter({ minRating: 4 }), 'rated 4★ or more');
+  assert.equal(describeFilter({ hideRatedAtMost: 2 }), 'hiding 2★ or less');
+  assert.equal(describeFilter({ viewed: false, destination: 'alaska' }), 'Alaska and not yet viewed');
+  assert.equal(describeFilter({ viewed: true }), 'viewed');
+  assert.equal(usesSelections({ viewed: false }), true);
+  assert.equal(usesSelections({ destination: 'alaska' }), false);
 });

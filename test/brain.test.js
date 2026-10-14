@@ -21,3 +21,21 @@ test('the prompt says what a cruisetour is called', () => {
   assert.match(prompt, /cruisetour/);
   assert.match(prompt, /Denali/);
 });
+
+test('the model can express ratings and views, and only whole stars 1 to 5', () => {
+  const schema = buildSchema(values);
+  for (const f of ['minRating', 'hideRatedAtMost']) {
+    assert.deepEqual(schema.properties[f], {
+      anyOf: [{ type: 'integer', enum: [1, 2, 3, 4, 5] }, { type: 'null' }],
+    });
+    assert.ok(schema.required.includes(f));
+  }
+  assert.deepEqual(schema.properties.viewed, { anyOf: [{ type: 'boolean' }, { type: 'null' }] });
+});
+
+test("the prompt explains the shopper's own ratings", () => {
+  const prompt = buildSystemPrompt({ from: '2027-04-24', to: '2027-09-30' });
+  assert.match(prompt, /minRating/);
+  assert.match(prompt, /hideRatedAtMost/);
+  assert.match(prompt, /haven't seen/);
+});

@@ -40,6 +40,9 @@ export function buildSchema(values) {
     maxPrice: orNull({ type: 'number' }),
     dateFrom: orNull({ type: 'string', format: 'date' }),
     dateTo: orNull({ type: 'string', format: 'date' }),
+    minRating: oneOf([1, 2, 3, 4, 5], 'integer'),
+    hideRatedAtMost: oneOf([1, 2, 3, 4, 5], 'integer'),
+    viewed: orNull({ type: 'boolean' }),
     unrecognised: {
       type: 'array',
       items: { type: 'string' },
@@ -76,6 +79,12 @@ Vocabulary:
   cruise plus land days, sold as one package. "cruise only", "no land tour" mean
   tripType "cruise". Otherwise tripType is null: show both.
 - "next January" means dateFrom the 1st and dateTo the 31st of that January.
+- The shopper has rated some cruises 1–5 stars and viewed some. "my 4- and 5-star
+  cruises", "rated 4 or more" mean minRating 4; "ones I loved", "my favourites" mean
+  minRating 5. "hide the ones I rated 2 or less", "nothing I disliked" mean
+  hideRatedAtMost 2. "ones I haven't seen", "new to me" mean viewed false; "ones I've
+  looked at" means viewed true. Words like "best" or "top-rated" are NOT the shopper's
+  ratings — leave these fields null unless the shopper speaks of their own.
 
 Put into "unrecognised" any requirement you could not express with the other
 fields — a specific restaurant, a kids' club, a spa, an adults-only ship, or

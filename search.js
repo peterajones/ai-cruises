@@ -17,7 +17,7 @@
  * @param {object} filter
  * @returns {object[]}
  */
-export function searchSailings(sailings, filter = {}) {
+export function searchSailings(sailings, filter = {}, selections = {}) {
   return sailings.filter((s) => {
     if (filter.line && s.line !== filter.line) return false;
     if (filter.ship && s.ship !== filter.ship) return false;
@@ -44,6 +44,12 @@ export function searchSailings(sailings, filter = {}) {
     if (filter.maxNights != null && s.nights > filter.maxNights) return false;
     if (filter.dateFrom && s.departureDate < filter.dateFrom) return false;
     if (filter.dateTo && s.departureDate > filter.dateTo) return false;
+    // The shopper's own ratings and views (selections.js), by sailing id.
+    const mine = selections[s.id];
+    if (filter.minRating != null && !((mine?.rating ?? 0) >= filter.minRating)) return false;
+    if (filter.hideRatedAtMost != null && mine?.rating != null && mine.rating <= filter.hideRatedAtMost) return false;
+    if (filter.viewed === true && !((mine?.views ?? 0) > 0)) return false;
+    if (filter.viewed === false && (mine?.views ?? 0) > 0) return false;
     return true;
   });
 }
@@ -203,6 +209,7 @@ export function currencyNote(sailings, filter = {}) {
 const CONSTRAINTS = [
   'line', 'ship', 'destination', 'departurePort', 'cabin', 'tripType',
   'nights', 'minNights', 'maxNights', 'minPrice', 'maxPrice', 'dateFrom', 'dateTo',
+  'minRating', 'hideRatedAtMost', 'viewed',
 ];
 
 /**
@@ -216,6 +223,11 @@ const CONSTRAINTS = [
  */
 export function hasNoConstraints(filter = {}) {
   return !CONSTRAINTS.some((k) => filter[k] !== null && filter[k] !== undefined);
+}
+
+/** True when the filter asks about the shopper's ratings or views. */
+export function usesSelections(filter = {}) {
+  return ['minRating', 'hideRatedAtMost', 'viewed'].some((k) => filter[k] != null);
 }
 
 /**
@@ -263,6 +275,11 @@ export function describeFilter(filter = {}) {
   if (filter.dateFrom || filter.dateTo) {
     parts.push(`${filter.dateFrom ?? 'any'} to ${filter.dateTo ?? 'any'}`);
   }
+
+  if (filter.minRating != null) parts.push(`rated ${filter.minRating}★ or more`);
+  if (filter.hideRatedAtMost != null) parts.push(`hiding ${filter.hideRatedAtMost}★ or less`);
+  if (filter.viewed === true) parts.push('viewed');
+  if (filter.viewed === false) parts.push('not yet viewed');
 
   if (parts.length === 0) return '';
   if (parts.length === 1) return parts[0];
