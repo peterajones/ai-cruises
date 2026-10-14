@@ -27,6 +27,19 @@ A *cruisetour* is a cruise plus land days (Denali, the Yukon) sold as one packag
 are marked on their cards, and you can ask for them ("Denali land tour") or leave them
 out ("cruise only").
 
+## My cruises
+
+Rate any cruise with 1–5 stars, on its card or in its ✈ Flights panel. Opening a cruise's
+**View ↗** or **✈ Flights** marks it *Viewed*. The **My cruises** chip shows everything you've
+viewed or rated, best-rated first, and **Table view** (`/mine`) lists them with the price then
+and now. Cruises that have sailed or left the listings stay, greyed out.
+
+Search knows about them too: "my 5-star cruises", "Alaska ones I haven't seen", "hide the ones
+I rated 2 or less".
+
+Your ratings live only on this machine, in `data/selections.db` (not in git). Back them up with
+`npm run export-selections`.
+
 ## How it works
 
 ```text
@@ -44,7 +57,7 @@ search:  your sentence ─Claude─▶ a structured filter ─plain code─▶ m
 
 ## Running it
 
-Requires **Node 22** or later and an [Anthropic API key](https://console.anthropic.com/)
+Requires **Node 24.15** or later (`nvm use` reads `.nvmrc`) and an [Anthropic API key](https://console.anthropic.com/)
 for the search. A search costs a fraction of a cent.
 
 ```bash
@@ -61,6 +74,7 @@ Other commands:
 npm test                              # unit tests; no network
 node scrape.js --limit 5 --dry-run    # quick smoke test that writes nothing
 node scrape.js --site princess        # scrape one line only
+npm run export-selections             # back up your ratings as readable JSON
 ```
 
 A scrape that finds no sailings exits with code 1 and leaves the previous data file

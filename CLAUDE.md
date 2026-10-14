@@ -32,6 +32,8 @@ Each stage knows only its own inputs and outputs. Adapters live in `sites/`.
 - `values.js` — derive the enumeration of every unique destination/cabin/port/nights/price
   across the dataset.
 - `persist.js` — write atomically to `data/sailings.json` (write to temp file, move on success).
+- `selections.js` — viewed and rated sailings in `data/selections.db` (`node:sqlite`); the only
+  file that touches the database.
 
 **Rule of thumb:** if you can specify the rule, write the rule. Field validation, normalization,
 and enumeration are conditionals, not model calls. The model belongs only in the search layer
@@ -43,6 +45,7 @@ and enumeration are conditionals, not model calls. The model belongs only in the
 npm test                                  # unit tests, no network
 node scrape.js --limit 5 --dry-run        # smoke test, writes nothing
 node scrape.js                            # real run, writes data/sailings.json
+npm run export-selections                 # a readable JSON copy of your ratings
 ```
 
 Fixtures in `test/fixtures/` are real captured payloads. When a site changes shape,
@@ -77,7 +80,7 @@ Princess (197), Holland America (760), Viking (328), Cunard (275) — 1,857 sail
 with a destination and a trip type. All but 18 have an end port — those 18 are long Princess
 itineraries whose cards stop short (see the flights panel below) — and every departure and end
 port maps to an airport. 15 ships with descriptions, cheapest prices $249–$6,559 USD and
-$347–$110,999 CAD (the top is a 30-night Viking voyage). Alaska: 787 sailings. 241 tests.
+$347–$110,999 CAD (the top is a 30-night Viking voyage). Alaska: 787 sailings. 269 tests.
 
 **Prices per cabin type.** Every sailing has `cabinPrices` — cabin type → that cabin's
 cheapest price, e.g. `{ interior: 959, oceanview: 1009, balcony: 1459, suite: 2164 }` — and
@@ -163,6 +166,18 @@ them). `normalize.js` defaults it to `"cruise"`, so adapters that sell only crui
 set it. Search returns both unless asked; "Denali", "land tour" or "cruisetour" narrow to
 cruisetours, "cruise only" excludes them. Cards are labelled "Cruisetour · includes land
 days", because a cruisetour's `nights` is the whole package, land included.
+
+**My cruises** (spec: `docs/superpowers/specs/2026-10-14-my-cruises-design.md`). Opening a
+cruise's View ↗ or ✈ Flights records a view; cards and the ✈ panel carry 1–5 stars (click the
+current star to clear). The "My cruises" chip shows everything viewed or rated — rated first,
+then most recently viewed — and `/mine` is the same as a sortable table with price then and now.
+Each row keeps a snapshot of the sailing, so a cruise that departs or leaves the scrape still
+shows, greyed, "No longer listed". Search understands `minRating` ("my 5-star cruises"),
+`hideRatedAtMost` ("hide the ones I rated 2 or less" — unrated stay) and `viewed` ("ones I
+haven't seen"); "best-rated" is not the shopper's own rating and stays null. Ratings live only
+in `data/selections.db` (gitignored) — `npm run export-selections` for a backup. If the database
+can't open (Node < 24.15, a bad path), the app runs without ratings and says why.
+`SELECTIONS_FILE=…` points a second copy at a scratch database; checks always use one.
 
 **Departed sailings are hidden.** `upcoming()` in `search.js` drops anything that left
 before today (local time). The server applies it per request, not at load, so a running
