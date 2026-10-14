@@ -234,3 +234,24 @@ test('endPort is kept, and a port with no known airport is reported', () => {
   assert.equal(sailings.length, 1);
   assert.deepEqual(unrecognised, [{ field: 'airport', raw: 'Nowhere Bay', count: 1 }]);
 });
+
+test("Cunard's destinations map onto ours", () => {
+  const ids = [
+    'Short-Break', 'Canary-Islands', 'Spain-France-And-Portugal', 'Africa-and-Indian-Ocean',
+    'Usa-and-Canada', 'World-Voyage', 'Norwegian-Fjords', 'Northern-Europe',
+    'Panama-Canal-and-Central-America', 'Australia-and-New-Zealand', 'Transatlantic',
+    'Mediterranean', 'Caribbean', 'South-America', 'Asia', 'Alaska',
+  ];
+  const rows = ids.map((destination, i) => ({
+    externalId: `C${i}`, ship: 'Queen Mary 2', departurePort: 'Southampton (tours to London)',
+    departureDate: '2027-01-05', nights: 7, cabin: 'interior', price: 500, currency: 'CAD', destination,
+  }));
+  const { sailings, unrecognised } = normalizeAll(rows, { source: 'cunard', line: 'Cunard' });
+  assert.deepEqual(sailings.map((s) => s.destination), [
+    'europe', 'europe', 'europe', 'africa',
+    'canada-new-england', 'world', 'northern-europe', 'northern-europe',
+    'panama-canal', 'australia-nz', 'transatlantic',
+    'mediterranean', 'caribbean', 'south-america', 'asia', 'alaska',
+  ]);
+  assert.equal(unrecognised.filter((u) => u.field === 'destination').length, 0);
+});

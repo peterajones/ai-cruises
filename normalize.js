@@ -36,7 +36,11 @@ const DESTINATIONS = {
   // "Spanish Passage" cannot be resolved to a specific sea without guessing.
   // "European Capitals" is coarse for the same reason — its ports happen to be North
   // Sea ones, but the title names no sea.
-  'europe': ['europe', 'spain', 'spanish', 'spanish passage', 'portugal', 'european capitals'],
+  // Cunard's "Short Break" is a trip length, not a place: 2–7 nights out of Southampton to
+  // Hamburg, Rotterdam, Zeebrugge, Amsterdam, Cherbourg or Le Havre (sampled 2026-10-14). The
+  // adapter prefers any real region a sailing also carries. The Canaries are Spain's.
+  'europe': ['europe', 'spain', 'spanish', 'spanish passage', 'portugal', 'european capitals',
+    'short break', 'canary islands'],
   'british-isles': ['british isles', 'ireland britain', 'irish counties', 'scottish shores'],
   // "Moroccan Passage" sails Rome to Fort Lauderdale via Morocco and Tenerife. Princess
   // uses "Passage" for repositioning voyages; the title never says "transatlantic".
@@ -54,6 +58,8 @@ const DESTINATIONS = {
   'australia-nz': ['australia new zealand', 'australia', 'new zealand', 'south pacific', 'fiji',
     'tasmania', 'queensland', 'great barrier reef', 'hunter coast', 'sapphire coast', 'coral coast'],
   'antarctica': ['antarctica'],
+  // Cunard's "Africa & Indian Ocean" (Peter, 2026-10-14). Viking's Africa regions match too.
+  'africa': ['africa', 'africa and indian ocean', 'indian ocean'],
   // Viking's "North America" itineraries run Montreal -> New York and Montreal -> Fort Lauderdale.
   'canada-new-england': ['canada new england', 'new england canada', 'canada', 'north america'],
   // Viking files its longest voyages under "Grand Journeys" (see pickRegion in sites/viking.js).
