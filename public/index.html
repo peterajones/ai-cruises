@@ -565,7 +565,7 @@ function buildYearChips() {
     b.append(el('span', { class: 'yearcount', text: String(count) }));
     b.onclick = () => {
       state.facets.year = value;
-      for (const c of chips) c.el.classList.toggle('on', c.value === value);
+      syncYearChips();
       render();
     };
     chips.push({ el: b, value });
@@ -587,6 +587,11 @@ function buildYearChips() {
 
   syncYearChips = () => {
     for (const c of chips) c.el.classList.toggle('on', c.value === state.facets.year);
+    // Until a sort is chosen, the box names the order shown: My cruises keeps its own
+    // (rated first), so "Cheapest first" would be wrong there — and picking it, already
+    // selected, would fire no change. Review finding.
+    const sort = $('#f-sort');
+    if (sort && !state.facets.sort) sort.value = state.facets.year === 'mine' ? 'mine' : 'price';
   };
   syncYearChips();
 
@@ -653,7 +658,8 @@ function buildFacets() {
   sortWrap.innerHTML = `<label for="f-sort">Sort</label>`;
   const sort = document.createElement('select');
   sort.id = 'f-sort';
-  sort.innerHTML = `<option value="price">Cheapest first</option>
+  sort.innerHTML = `<option value="mine" hidden>Rated first</option>
+                    <option value="price" selected>Cheapest first</option>
                     <option value="date">Soonest first</option>
                     <option value="nights">Longest first</option>`;
   sort.onchange = () => { state.facets.sort = sort.value; render(); };
@@ -944,6 +950,12 @@ $('#form').addEventListener('submit', async (e) => {
     // request named dates ("in 2027", "next spring"), that is the more specific
     // intent — clear the chip rather than silently intersecting them to zero.
     if (data.filter.dateFrom || data.filter.dateTo) {
+      state.facets.year = null;
+      syncYearChips();
+    }
+    // Results replace the view, so a search run from My cruises shows what it found
+    // (the chip would otherwise keep showing My cruises over them). Review finding.
+    if (state.facets.year === 'mine') {
       state.facets.year = null;
       syncYearChips();
     }
