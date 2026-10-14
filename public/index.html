@@ -126,6 +126,15 @@
     color: var(--muted); cursor: pointer; }
   .stars .star.on { color: #e8a317; }
   .stars .star:focus-visible { outline: 2px solid var(--accent); border-radius: 4px; }
+  .card.unlisted { filter: grayscale(.7); opacity: .72; }
+  .card.unlisted:hover, .card.unlisted:focus-within { opacity: 1; }
+  .gone {
+    position: absolute; left: 12px; top: 44px; background: #6b7580; color: #fff;
+    font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px;
+  }
+  .table-link { align-self: center; margin-left: 6px; font-size: 13px; font-weight: 600;
+    color: var(--accent); text-decoration: none; }
+  .ratings-off { align-self: center; margin-left: 6px; font-size: 13px; color: var(--muted); }
   .panel .hero-text .stars { margin-top: 6px; }
   .panel .hero-text .star { color: rgba(255,255,255,.75); }
   .panel .hero-text .star.on { color: #ffc940; }
@@ -564,8 +573,17 @@ function buildYearChips() {
     return b;
   };
 
+  if (state.selectionsOk) {
+    const mine = chip('mine', 'My cruises', Object.keys(state.selections).length);
+    updateMineCount = () => {
+      mine.querySelector('.yearcount').textContent = String(Object.keys(state.selections).length);
+    };
+  }
   chip(null, 'All', state.all.length);
   for (const y of years) chip(y, y, counts.get(y));
+  host.append(state.selectionsOk
+    ? el('a', { class: 'table-link', href: '/mine', text: 'Table view ↗' })
+    : el('span', { class: 'ratings-off', text: state.selectionsWhy }));
 
   syncYearChips = () => {
     for (const c of chips) c.el.classList.toggle('on', c.value === state.facets.year);
@@ -576,6 +594,18 @@ function buildYearChips() {
 }
 
 let syncYearChips = () => {};
+
+/**
+ * Everything viewed or rated: rated first, highest first; then by most recent view. A
+ * sailing no longer listed (departed, or gone from the scrape) comes from its snapshot.
+ */
+function mineList() {
+  const byId = new Map(state.all.map((s) => [s.id, s]));
+  return Object.values(state.selections)
+    .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)
+      || String(b.lastViewed ?? '').localeCompare(String(a.lastViewed ?? '')))
+    .map((r) => byId.get(r.sailingId) ?? { ...r.snapshot, id: r.sailingId, unlisted: true });
+}
 
 function buildFacets() {
   const v = state.values;
@@ -644,11 +674,12 @@ function applyFacets(list) {
     (!f.departurePort || s.departurePort === f.departurePort) &&
     (!f.nights || s.nights === +f.nights) &&
     (!f.ship || s.ship === f.ship) &&
-    (!f.year || s.departureDate.startsWith(f.year)) &&
+    (!f.year || f.year === 'mine' || s.departureDate.startsWith(f.year)) &&
     // A not-listed cabin costs at least the cheapest one, so that is its floor.
     (f.maxPrice == null || (shownPrice(s).notListed ? s.price : shownPrice(s).price) <= f.maxPrice));
 
-  const by = f.sort ?? 'price';
+  const by = f.sort ?? (f.year === 'mine' ? null : 'price');
+  if (!by) return out;
   out = [...out].sort((a, b) =>
     by === 'date' ? a.departureDate.localeCompare(b.departureDate)
     : by === 'nights' ? b.nights - a.nights
@@ -755,7 +786,8 @@ function markViewed(s) {
 }
 
 function render() {
-  const base = state.subset ?? state.all;
+  const mine = state.facets.year === 'mine';
+  const base = mine ? mineList() : (state.subset ?? state.all);
   const list = applyFacets(base);
   const countEl = $('#count');
   if (countEl) {
@@ -766,7 +798,9 @@ function render() {
   host.textContent = '';
 
   if (list.length === 0) {
-    const why = state.message ?? "Nothing matches those filters — you've had enough sun anyway.";
+    const why = mine
+      ? "Nothing here yet — open a cruise's View ↗ or ✈ Flights, or give it stars."
+      : (state.message ?? "Nothing matches those filters — you've had enough sun anyway.");
     const box = el('div', { class: 'empty', text: why });
     box.style.gridColumn = '1/-1';
     host.append(box);
@@ -814,6 +848,7 @@ function cardFor(s) {
   thumb.append(el('span', { class: 'nights', text: `${s.nights} nights` }));
   const tag = viewedTag(s);
   if (tag) thumb.append(tag);
+  if (s.unlisted) thumb.append(el('span', { class: 'gone', text: 'No longer listed' }));
   if (s.tripType === 'cruisetour') {
     thumb.append(el('span', { class: 'tour', text: 'Cruisetour · includes land days' }));
   }
@@ -835,9 +870,9 @@ function cardFor(s) {
   if (view) view.onclick = () => recordView(s);
   const foot = el('div', { class: 'foot' },
     el('div', {}, price, priceLabel),
-    el('div', {}, flightsButton(s), view));
+    el('div', {}, s.unlisted ? null : flightsButton(s), view));
 
-  return el('article', { class: 'card' }, thumb,
+  return el('article', { class: s.unlisted ? 'card unlisted' : 'card' }, thumb,
     el('div', { class: 'body' },
       el('div', { class: 'title', text: s.itinerary ?? titleCase(s.destination ?? 'Cruise') }),
       el('div', { class: 'meta', text: `${s.ship} · ${s.line}` }),
