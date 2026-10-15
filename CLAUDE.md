@@ -57,9 +57,9 @@ Viking, Cunard — rewritten in place in a terminal, every 15 s into a log), eac
 "Done in m:ss". Adapters report through `onProgress(text)`; only `progress.js` prints. A full run is
 ~15–20 minutes, Cunard ~9 of them.
 
-**`--site` writes only the lines named.** `node scrape.js --site royal-caribbean` without
-`--dry-run` replaces `data/sailings.json` with that line's sailings alone — only *failed* lines
-are carried over. Use it with `--dry-run`, or run the whole scrape.
+**`--site` refreshes only the lines named.** `node scrape.js --site royal-caribbean` scrapes Royal
+Caribbean and keeps every other line's sailings from the previous run ("not scraped — kept N"),
+as a failed line's are. Before 2026-10-15 it wrote that one line alone and the rest were gone.
 
 A scrape that yields zero parsed rows is treated as a failure and exits with code 1,
 leaving the previous `data/sailings.json` untouched — a broken selector cannot overwrite
@@ -94,7 +94,7 @@ Princess (197), Holland America (760), Viking (328), Cunard (275) — 1,857 sail
 with a destination and a trip type. All but 18 have an end port — those 18 are long Princess
 itineraries whose cards stop short (see the flights panel below) — and every departure and end
 port maps to an airport. 15 ships with descriptions, cheapest prices $249–$6,559 USD and
-$347–$110,999 CAD (the top is a 30-night Viking voyage). Alaska: 787 sailings. 294 tests.
+$347–$110,999 CAD (the top is a 30-night Viking voyage). Alaska: 787 sailings. 297 tests.
 
 **Prices per cabin type.** Every sailing has `cabinPrices` — cabin type → that cabin's
 cheapest price, e.g. `{ interior: 959, oceanview: 1009, balcony: 1459, suite: 2164 }` — and

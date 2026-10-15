@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseFlags, describeMisses } from '../scrape.js';
+import { parseFlags, describeMisses, linesToKeep } from '../scrape.js';
 import { ADAPTERS, adaptersFor } from '../sites/index.js';
 
 test('the registered adapter is royal-caribbean', () => {
@@ -72,4 +72,31 @@ test('unknown labels point at normalize.js and unknown ports at airports.js', ()
 
 test('nothing missed prints nothing', () => {
   assert.deepEqual(describeMisses([]), []);
+});
+
+const ALL = ['royal-caribbean', 'celebrity', 'princess', 'holland-america', 'viking', 'cunard'];
+
+test('a full run that worked keeps nothing from the previous run', () => {
+  assert.deepEqual(linesToKeep(ALL, ALL, new Set()), []);
+});
+
+test('a line that failed keeps its previous sailings', () => {
+  assert.deepEqual(linesToKeep(ALL, ALL, new Set(['viking'])), [{ name: 'viking', reason: 'failed' }]);
+});
+
+test('--site keeps every line it did not scrape, so one line cannot wipe the others', () => {
+  assert.deepEqual(linesToKeep(ALL, ['royal-caribbean'], new Set()), [
+    { name: 'celebrity', reason: 'not scraped' },
+    { name: 'princess', reason: 'not scraped' },
+    { name: 'holland-america', reason: 'not scraped' },
+    { name: 'viking', reason: 'not scraped' },
+    { name: 'cunard', reason: 'not scraped' },
+  ]);
+  assert.deepEqual(linesToKeep(ALL, ['viking', 'cunard'], new Set(['cunard'])), [
+    { name: 'royal-caribbean', reason: 'not scraped' },
+    { name: 'celebrity', reason: 'not scraped' },
+    { name: 'princess', reason: 'not scraped' },
+    { name: 'holland-america', reason: 'not scraped' },
+    { name: 'cunard', reason: 'failed' },
+  ]);
 });

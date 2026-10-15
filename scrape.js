@@ -11,7 +11,7 @@ import { BotWallError, ConflictingDuplicateError, EmptyResultError } from './err
 import { normalizeAll } from './normalize.js';
 import { deriveValues } from './values.js';
 import { assertNonEmpty, carryOver, dedupeById, loadExisting, mergeShips, writeResult } from './persist.js';
-import { adaptersFor } from './sites/index.js';
+import { ADAPTERS, adaptersFor } from './sites/index.js';
 import { createReporter } from './progress.js';
 
 const DATA_DIR = new URL('./data/', import.meta.url).pathname;
@@ -56,6 +56,20 @@ export function describeMisses(misses) {
     (n) => `${plural(n, 'port', 'ports')} with no airport — add ${n === 1 ? 'it' : 'them'} to airports.js:`,
     value);
   return lines;
+}
+
+/**
+ * The lines whose sailings come from the previous run: those that failed, and — with
+ * --site — those not scraped at all. Before the second, `--site royal-caribbean` wrote a
+ * file holding Royal Caribbean alone and every other line's sailings were gone.
+ * A line no longer registered is in neither list, so its sailings drop out.
+ */
+export function linesToKeep(registered, ran, failed) {
+  return registered.flatMap((name) => {
+    if (failed.has(name)) return [{ name, reason: 'failed' }];
+    if (!ran.includes(name)) return [{ name, reason: 'not scraped' }];
+    return [];
+  });
 }
 
 async function snapshotFailure(body, label) {
@@ -142,14 +156,15 @@ async function main() {
   const existing = (await loadExisting(DATA_DIR)) ?? { ships: {} };
 
   // A line that failed keeps its sailings from the previous run (the exit code still says
-  // it failed), rather than vanishing from the file until its next good scrape.
-  const carried = carryOver(existing.sailings, failedSources);
-  if (carried.length > 0) {
-    allSailings.push(...carried);
-    for (const name of failedSources) {
-      const n = carried.filter((s) => s.source === name).length;
-      console.error(`${name}: kept ${n} sailings from the previous run`);
-    }
+  // it failed), rather than vanishing from the file until its next good scrape; so does a
+  // line this run didn't ask for (--site).
+  const kept = linesToKeep(ADAPTERS.map((a) => a.name), adapters.map((a) => a.name), failedSources);
+  const carried = carryOver(existing.sailings, new Set(kept.map((k) => k.name)));
+  allSailings.push(...carried);
+  for (const { name, reason } of kept) {
+    const n = carried.filter((s) => s.source === name).length;
+    if (reason === 'failed') console.error(`${name}: kept ${n} sailings from the previous run`);
+    else console.log(`${name}: not scraped — kept ${n} sailings from the previous run`);
   }
 
   // Drop cached entries that carry no description before anything reads them.
