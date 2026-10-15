@@ -9,7 +9,7 @@
  */
 
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { dirname, join } from 'node:path';
 
 export const DEFAULT_FILE = new URL('./data/selections.db', import.meta.url).pathname;
 
@@ -179,16 +179,22 @@ export function handleSelections({ method, path, body }, { store, sailings, now 
   return { status: 200, body: { selection: store.setRating(input.id, rating, now(), sailing) } };
 }
 
+/** Beside the database it came from, so a scratch database's export stays in scratch. */
+export function exportPath(dbFile = DEFAULT_FILE, day) {
+  return join(dirname(dbFile), `selections-export-${day}.json`);
+}
+
 // npm run export-selections — a readable copy, for backups.
 if (import.meta.url === `file://${process.argv[1]}` && process.argv.includes('--export')) {
-  const store = await openSelections(process.env.SELECTIONS_FILE || DEFAULT_FILE);
+  const file = process.env.SELECTIONS_FILE || DEFAULT_FILE;
+  const store = await openSelections(file);
   if (!store.ok) {
     console.error(store.reason);
     process.exit(1);
   }
   const rows = store.all();
   const day = new Date().toLocaleDateString('en-CA');
-  const out = new URL(`./data/selections-export-${day}.json`, import.meta.url).pathname;
+  const out = exportPath(file, day);
   writeFileSync(out, JSON.stringify({ exportedAt: new Date().toISOString(), selections: rows }, null, 2));
   console.log(`Wrote ${rows.length} selections to ${out}`);
 }

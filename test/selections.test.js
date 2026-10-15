@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { openSelections, nodeSupportsSqlite, snapshotOf, selectionMap, handleSelections } from '../selections.js';
+import { openSelections, nodeSupportsSqlite, snapshotOf, selectionMap, handleSelections, exportPath } from '../selections.js';
 
 const tmp = () => join(mkdtempSync(join(tmpdir(), 'sel-')), 'selections.db');
 const sailing = (over = {}) => ({
@@ -194,4 +194,9 @@ test('when the store is unavailable every route is a 503 saying why', () => {
     assert.deepEqual(call(store, m, p, { id: 'cunard:M626C', rating: 3 }),
       { status: 503, body: { error: 'Ratings need Node 24.15 or later' } });
   }
+});
+
+test('the export is written beside the database it came from', () => {
+  assert.equal(exportPath('/scratch/sel-check.db', '2026-10-15'), '/scratch/selections-export-2026-10-15.json');
+  assert.match(exportPath(undefined, '2026-10-15'), /\/ai-cruises\/data\/selections-export-2026-10-15\.json$/);
 });
