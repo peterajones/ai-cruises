@@ -209,14 +209,15 @@ async function loadAllCards(page) {
  *   17-ship crawl.
  * @returns {Promise<string[]>}
  */
-export async function fetchListingPages(page, { limit }) {
+export async function fetchListingPages(page, { limit, onProgress = () => {} }) {
   const codes = await shipCodes();
   const wanted = Number.isFinite(limit)
     ? codes.slice(0, Math.max(1, Math.ceil(limit / 20)))
     : codes;
   const pages = [];
 
-  for (const code of wanted) {
+  for (const [i, code] of wanted.entries()) {
+    onProgress(`ship ${i + 1}/${wanted.length}`);
     const url = `${RESULTS_URL}?ship=${code}`;
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 60_000 });
     await politeDelay();

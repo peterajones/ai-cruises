@@ -12,6 +12,7 @@ import { normalizeAll } from './normalize.js';
 import { deriveValues } from './values.js';
 import { assertNonEmpty, carryOver, dedupeById, loadExisting, mergeShips, writeResult } from './persist.js';
 import { adaptersFor } from './sites/index.js';
+import { createReporter } from './progress.js';
 
 const DATA_DIR = new URL('./data/', import.meta.url).pathname;
 
@@ -31,6 +32,32 @@ export function parseFlags(argv) {
   return flags;
 }
 
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+
+/**
+ * The end-of-run to-do list, by what fixes each kind. A skipped sailing is not a missing
+ * alias: Princess drops a few unpriced sailings every run, and "add aliases to
+ * normalize.js" above them sent you looking for a fix that doesn't exist.
+ */
+export function describeMisses(misses) {
+  const lines = [];
+  const group = (items, heading, format) => {
+    if (items.length === 0) return;
+    lines.push(heading(items.length), ...items.map(format));
+  };
+  const value = (m) => `  ${m.field}: "${m.raw}" (${m.count}x)`;
+  group(misses.filter((m) => m.field === 'row'),
+    (n) => `${plural(n, 'sailing', 'sailings')} skipped — a required field is missing (Princess drops a few unpriced ones every run):`,
+    (m) => `  ${m.raw}`);
+  group(misses.filter((m) => m.field !== 'row' && m.field !== 'airport'),
+    (n) => `${plural(n, 'unrecognised value', 'unrecognised values')} — add ${n === 1 ? 'an alias' : 'aliases'} to normalize.js:`,
+    value);
+  group(misses.filter((m) => m.field === 'airport'),
+    (n) => `${plural(n, 'port', 'ports')} with no airport — add ${n === 1 ? 'it' : 'them'} to airports.js:`,
+    value);
+  return lines;
+}
+
 async function snapshotFailure(body, label) {
   await mkdir(join(DATA_DIR, 'debug'), { recursive: true });
   const stamp = new Date().toISOString().replace(/:/g, '-');
@@ -42,6 +69,7 @@ async function snapshotFailure(body, label) {
 async function main() {
   const flags = parseFlags(process.argv.slice(2));
   const adapters = adaptersFor(flags.sites);
+  const report = createReporter();
 
   const browser = await launch();
   const allSailings = [];
@@ -52,8 +80,13 @@ async function main() {
 
   for (const adapter of adapters) {
     const page = await newPage(browser);
+    report.start(adapter.name);
     try {
-      const payloads = await adapter.fetchListingPages(page, { limit: flags.limit });
+      const payloads = await adapter.fetchListingPages(page, {
+        limit: flags.limit,
+        onProgress: (text) => report.progress(adapter.name, text),
+        log: report.log,
+      });
       const rows = payloads.flatMap((p) => adapter.parseListing(p));
 
       // Zero rows means something broke. Never let it become an empty file.
@@ -68,19 +101,20 @@ async function main() {
       // --limit N would spend its budget on repeats.
       const { sailings: unique, duplicates } = dedupeById(normalized);
       if (duplicates > 0) {
-        console.log(`${adapter.name}: dropped ${duplicates} duplicate sailings`);
+        report.log(`${adapter.name}: dropped ${duplicates} duplicate sailings`);
       }
 
       const sailings = unique.slice(0, flags.limit);
       if (sailings.length < unique.length) {
-        console.log(
+        report.log(
           `${adapter.name}: --limit ${flags.limit} truncated ${unique.length} sailings to ${sailings.length}`,
         );
       }
       allSailings.push(...sailings);
       allMisses.push(...unrecognised);
-      console.log(`${adapter.name}: ${sailings.length} sailings`);
+      report.end(adapter.name, `${sailings.length} sailings`);
     } catch (err) {
+      report.clear();
       // Both of these abort without writing, and both save the page that caused
       // them — but they need different fixes, so they must not read alike.
       if (err instanceof BotWallError) {
@@ -133,13 +167,15 @@ async function main() {
     ? wantedShips
     : wantedShips.filter((ship) => !cachedShips[ship]);
 
-  for (const ship of needed) {
-    const adapter = adapters.find((a) => allSailings.some((s) => s.ship === ship && s.source === a.name));
-    if (!adapter) continue;
-    // An adapter that declares it has no ship descriptions is not asked for them.
-    // Fetching anyway only produces a "failure" that is really a known gap.
-    if (adapter.shipDescriptions === false) continue;
+  const adapterFor = (ship) => adapters.find((a) => allSailings.some((s) => s.ship === ship && s.source === a.name));
+  // An adapter that declares it has no ship descriptions is not asked for them.
+  // Fetching anyway only produces a "failure" that is really a known gap.
+  const toFetch = needed.filter((ship) => adapterFor(ship) && adapterFor(ship).shipDescriptions !== false);
+  if (toFetch.length > 0) report.start('ships');
 
+  for (const [i, ship] of toFetch.entries()) {
+    const adapter = adapterFor(ship);
+    report.progress('ships', `${i + 1}/${toFetch.length} ${ship}`);
     const page = await newPage(browser);
     try {
       const html = await adapter.fetchShipPage(page, ship);
@@ -148,6 +184,7 @@ async function main() {
       // An empty description is a parse failure wearing a success costume. Record
       // it and do NOT cache it, so the next run retries instead of inheriting it.
       if (!parsed.description) {
+        report.clear();
         console.error(`ship "${ship}": fetched ${html.length} bytes but parsed no description`);
         failures.push(`ship "${ship}": no description parsed`);
       } else {
@@ -155,6 +192,7 @@ async function main() {
       }
     } catch (err) {
       // A failed ship page must not kill the run — the sailing is still good.
+      report.clear();
       console.error(`ship "${ship}": ${err.message}`);
       failures.push(`ship "${ship}": ${err.message}`);
     } finally {
@@ -162,6 +200,7 @@ async function main() {
     }
   }
 
+  if (toFetch.length > 0) report.end('ships', `${plural(Object.keys(freshShips).length, 'description', 'descriptions')} fetched`);
   await browser.close();
 
   const result = {
@@ -192,18 +231,16 @@ async function main() {
     }
   }
 
-  if (result.unrecognised.length > 0) {
-    console.log(`\n${result.unrecognised.length} unrecognised values — add aliases to normalize.js:`);
-    for (const miss of result.unrecognised) {
-      console.log(`  ${miss.field}: "${miss.raw}" (${miss.count}x)`);
-    }
-  }
+  const misses = describeMisses(result.unrecognised);
+  if (misses.length > 0) console.log(`\n${misses.join('\n')}`);
 
   if (failures.length > 0) {
     console.error(`\n${failures.length} failure(s):`);
     for (const f of failures) console.error(`  ${f}`);
     process.exitCode = 1;
   }
+  console.log('');
+  report.done();
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

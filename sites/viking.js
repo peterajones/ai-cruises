@@ -180,7 +180,7 @@ const PRICING_PATH = '/oceans/Core/DnPCruiseFullInfo?v=11';
  *
  * @returns {Promise<string[]>} JSON payloads: { itinerary, pricing, today }
  */
-export async function fetchListingPages(page, { limit }) {
+export async function fetchListingPages(page, { limit, onProgress = () => {} }) {
   await page.goto(SEARCH_URL, { waitUntil: 'networkidle2', timeout: 60_000 });
   const html = await page.content();
   const wall = detectBotWall(html);
@@ -191,7 +191,8 @@ export async function fetchListingPages(page, { limit }) {
   const today = new Date().toISOString().slice(0, 10);
   const payloads = [];
 
-  for (const itinerary of wanted) {
+  for (const [i, itinerary] of wanted.entries()) {
+    onProgress(`itinerary ${i + 1}/${wanted.length}`);
     await politeDelay();
     const body = {
       cruiseId: itinerary.TcmId,

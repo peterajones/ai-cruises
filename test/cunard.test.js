@@ -323,3 +323,20 @@ test('a search answer without its results total keeps paging rather than stoppin
   await run(page);
   assert.equal(page.calls.filter((c) => c.path === SEARCH_PATH).length, 2);
 });
+
+test('the fetch reports each search page and each price as it goes', async () => {
+  const seen = [];
+  await run(fakePage(standard()), { onProgress: (text) => seen.push(text) });
+  assert.equal(seen[0], 'page 1 · 0 priced');
+  assert.ok(seen.includes('page 1 · 10 priced'));
+  assert.equal(seen.at(-1), 'page 2 · 10 priced');
+});
+
+test('a few failed price calls are reported through log, not printed directly', async () => {
+  const logged = [];
+  const page = fakePage(standard({
+    price: (id) => (id === 'Q629' ? { status: 412, text: '{}' } : JSON.stringify(okPrice)),
+  }));
+  await run(page, { log: (text) => logged.push(text) });
+  assert.deepEqual(logged, ['cunard: 1 of 10 price requests failed; those sailings show only their cheapest cabin']);
+});

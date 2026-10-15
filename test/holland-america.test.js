@@ -238,3 +238,10 @@ test('the search asks for the image and the ports', () => {
 test('the search asks for where the cruise ends', () => {
   assert.ok(new URL(searchUrl(0)).searchParams.get('fl').split(',').includes('disembarkPortName'));
 });
+
+test('the fetch reports each page as it goes', async () => {
+  const seen = [];
+  const body = pad({ response: { docs: [] } });   // a short page ends the loop
+  await fetchListingPages(fakePage(200, body), { limit: 750, onProgress: (text) => seen.push(text) });
+  assert.deepEqual(seen, ['page 1/38']);
+});

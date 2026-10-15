@@ -222,10 +222,13 @@ function tooManyFailures(failed, priced) {
  * window. Stops at the first page entirely past the window. `limit` caps sailings priced.
  *
  * @param {import('puppeteer').Page} page
- * @param {{limit: number, today?: string, pause?: () => Promise<void>}} options
+ * @param {{limit: number, today?: string, pause?: () => Promise<void>,
+ *   onProgress?: (text: string) => void, log?: (text: string) => void}} options
  * @returns {Promise<string[]>} JSON payloads: { results, details, prices, today }
  */
-export async function fetchListingPages(page, { limit, today = localToday(), pause = politeDelay }) {
+export async function fetchListingPages(page, {
+  limit, today = localToday(), pause = politeDelay, onProgress = () => {}, log = console.log,
+}) {
   await page.goto(SEARCH_URL, { waitUntil: 'networkidle2', timeout: 90_000 });
   const html = await page.content();
   const wall = detectBotWall(html);
@@ -244,6 +247,7 @@ export async function fetchListingPages(page, { limit, today = localToday(), pau
   let kept = 0;
   let priced = 0;
   let failed = 0;
+  let pageNo = 0;
 
   for (let start = 0; kept < cap; start += PAGE_SIZE) {
     await pause();
@@ -255,6 +259,8 @@ export async function fetchListingPages(page, { limit, today = localToday(), pau
     }
     const results = json.searchResults;
     if (results.length === 0) break;
+    pageNo += 1;
+    onProgress(`page ${pageNo} · ${priced} priced`);
 
     const wanted = results
       .filter((r) => inWindow(dateOf(r), today) && !r.isSoldOut)
@@ -275,6 +281,7 @@ export async function fetchListingPages(page, { limit, today = localToday(), pau
         const answer = await priceFor(page, r.cruiseId);
         priced += 1;
         if (!answer) failed += 1;
+        onProgress(`page ${pageNo} · ${priced} priced`);
         prices[r.cruiseId] = answer;
         if (priced >= EARLY_CHECK_AFTER && failed / priced > MAX_PRICE_FAILURE_RATE) {
           throw tooManyFailures(failed, priced);
@@ -293,7 +300,7 @@ export async function fetchListingPages(page, { limit, today = localToday(), pau
 
   if (priced > 0 && failed / priced > MAX_PRICE_FAILURE_RATE) throw tooManyFailures(failed, priced);
   if (failed > 0) {
-    console.log(`cunard: ${failed} of ${priced} price requests failed; those sailings show only their cheapest cabin`);
+    log(`cunard: ${failed} of ${priced} price requests failed; those sailings show only their cheapest cabin`);
   }
   return payloads;
 }

@@ -223,11 +223,13 @@ export function parseListing(payload) {
  * @param {{limit: number}} options - caps rows fetched, below CAP
  * @returns {Promise<string[]>} raw JSON text, one per page
  */
-export async function fetchListingPages(page, { limit }) {
+export async function fetchListingPages(page, { limit, onProgress = () => {} }) {
   const wanted = Math.min(CAP, Number.isFinite(limit) ? limit : CAP);
+  const pages = Math.ceil(wanted / PAGE_ROWS);
   const payloads = [];
 
   for (let start = 0; start < wanted; start += PAGE_ROWS) {
+    onProgress(`page ${start / PAGE_ROWS + 1}/${pages}`);
     const url = searchUrl(start);
     const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60_000 });
     const body = await response.text();
