@@ -64,7 +64,7 @@ for the search. A search costs a fraction of a cent.
 npm install
 echo "ANTHROPIC_API_KEY=sk-ant-..." > .env   # gitignored
 
-npm run scrape     # gather sailings into data/sailings.json (takes several minutes)
+npm run scrape     # gather sailings into data/sailings.json (about 20 minutes)
 npm run serve      # then open http://localhost:3030
 ```
 

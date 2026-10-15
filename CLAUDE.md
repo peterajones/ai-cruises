@@ -89,13 +89,14 @@ a good dataset.
 
 ## Status
 
-**Six lines working**, each to the next 12 months (dry run 2026-10-15): Royal Caribbean (2,076),
-Celebrity (836), Princess (98), Holland America (683), Viking (326), Cunard (276) — 4,295
-sailings, every one with a trip type, and all but ~11 "Repositioning" sailings with a destination.
-The rest of this paragraph is from the 2026-10-14 scrape of 1,857: all but 18 had an end port —
-those 18 are long Princess itineraries whose cards stop short (see the flights panel below) — and
-every departure and end port maps to an airport (still true on the 2026-10-15 dry run). 15 ships with descriptions, cheapest prices $249–$6,559 USD and
-$347–$110,999 CAD (the top is a 30-night Viking voyage). Alaska: 787 sailings. 330 tests.
+**Six lines working**, each to the next 12 months (scraped 2026-10-15): Royal Caribbean (2,078),
+Celebrity (831), Princess (98), Holland America (682), Viking (326), Cunard (276) — 4,291
+sailings departing 2026-10-16 → 2027-10-15, every one with a trip type (544 cruisetours, all
+Holland America) and all but 4 with a destination (the unmapped "Repositioning" ones). All but
+12 have an end port — those are long Princess itineraries whose cards stop short (see the flights
+panel below) — and every departure and end port maps to an airport. 46 ships with descriptions,
+cheapest prices $199–$30,155 USD (the top is Celebrity's 7-night Galápagos Outer Loop and Machu
+Picchu) and $395–$80,999 CAD (a 28-night Viking voyage). Alaska: 1,213 sailings. 330 tests.
 
 **Prices per cabin type.** Every sailing has `cabinPrices` — cabin type → that cabin's
 cheapest price, e.g. `{ interior: 959, oceanview: 1009, balcony: 1459, suite: 2164 }` — and
