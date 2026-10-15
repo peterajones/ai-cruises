@@ -205,3 +205,47 @@ test('the export is written beside the database it came from', () => {
   assert.equal(exportPath('/scratch/sel-check.db', '2026-10-15'), '/scratch/selections-export-2026-10-15.json');
   assert.match(exportPath(undefined, '2026-10-15'), /\/ai-cruises\/data\/selections-export-2026-10-15\.json$/);
 });
+
+test('clearing views: an unrated cruise leaves, a rated one keeps its rating', async () => {
+  const store = await openSelections(tmp());
+  store.recordView(sailing(), 'T1');
+  store.recordView(sailing(), 'T2');
+  // Viewed only: nothing left to keep.
+  assert.equal(store.clearViews('cunard:M626C'), null);
+  assert.deepEqual(store.all(), []);
+
+  store.recordView(sailing(), 'T3');
+  store.setRating('cunard:M626C', 4, 'T4', sailing());
+  const row = store.clearViews('cunard:M626C');
+  assert.equal(row.rating, 4);
+  assert.equal(row.views, 0);
+  assert.equal(row.firstViewed, null);
+  assert.equal(row.lastViewed, null);
+});
+
+test('forgetting removes a cruise entirely, rating and views', async () => {
+  const store = await openSelections(tmp());
+  store.recordView(sailing(), 'T1');
+  store.setRating('cunard:M626C', 5, 'T2', sailing());
+  store.forget('cunard:M626C');
+  assert.deepEqual(store.all(), []);
+});
+
+test('POST unview and forget, by id; a cruise with no row is a 404', async () => {
+  const store = await openSelections(tmp());
+  call(store, 'POST', '/api/selections/view', { id: 'cunard:M626C' });
+  call(store, 'PUT', '/api/selections/rating', { id: 'cunard:M626C', rating: 3 });
+  const unviewed = call(store, 'POST', '/api/selections/unview', { id: 'cunard:M626C' });
+  assert.equal(unviewed.status, 200);
+  assert.equal(unviewed.body.selection.views, 0);
+  assert.equal(unviewed.body.selection.rating, 3);
+  assert.deepEqual(call(store, 'POST', '/api/selections/forget', { id: 'cunard:M626C' }), { status: 200, body: { selection: null } });
+  assert.deepEqual(store.all(), []);
+  // Works for a cruise no longer listed too: it is the row that matters, not the listing.
+  store.setRating('cunard:GONE', 2, 'T1', sailing({ id: 'cunard:GONE' }));
+  assert.equal(call(store, 'POST', '/api/selections/forget', { id: 'cunard:GONE' }).status, 200);
+  for (const p of ['/api/selections/unview', '/api/selections/forget']) {
+    assert.equal(call(store, 'POST', p, { id: 'cunard:NEVER' }).status, 404, p);
+    assert.equal(call(store, 'POST', p, {}).status, 400, p);
+  }
+});

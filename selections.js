@@ -67,6 +67,7 @@ function storeFor(db) {
       ON CONFLICT(sailing_id) DO UPDATE SET
         rating = excluded.rating, rated_at = excluded.rated_at, snapshot = excluded.snapshot`),
     remove: db.prepare('DELETE FROM selections WHERE sailing_id = ?'),
+    unview: db.prepare('UPDATE selections SET views = 0, first_viewed = NULL, last_viewed = NULL WHERE sailing_id = ?'),
   };
 
   const store = {
@@ -102,6 +103,27 @@ function storeFor(db) {
       const snapshot = sailing ? snapshotOf(sailing) : existing.snapshot;
       q.rate.run(id, rating, rating === null ? null : at, JSON.stringify(snapshot));
       return store.get(id);
+    },
+
+    /**
+     * Undoes the views (an accidental View ↗). A rated cruise keeps its rating; an unrated one
+     * has nothing left to keep, and its row goes — the same rule as clearing a rating.
+     */
+    clearViews(id) {
+      const existing = store.get(id);
+      if (!existing) return null;
+      if (existing.rating === null) {
+        q.remove.run(id);
+        return null;
+      }
+      q.unview.run(id);
+      return store.get(id);
+    },
+
+    /** Forgets a cruise entirely: its rating, its views and its snapshot. */
+    forget(id) {
+      q.remove.run(id);
+      return null;
     },
 
     close: () => db.close(),
@@ -154,7 +176,9 @@ export function handleSelections({ method, path, body }, { store, sailings, now 
   if (method === 'GET' && path === '/api/selections') return { status: 200, body: { selections: store.all() } };
   const isView = method === 'POST' && path === '/api/selections/view';
   const isRate = method === 'PUT' && path === '/api/selections/rating';
-  if (!isView && !isRate) return { status: 404, body: { error: 'Not found' } };
+  const isUnview = method === 'POST' && path === '/api/selections/unview';
+  const isForget = method === 'POST' && path === '/api/selections/forget';
+  if (!isView && !isRate && !isUnview && !isForget) return { status: 404, body: { error: 'Not found' } };
 
   let input;
   try {
@@ -164,6 +188,12 @@ export function handleSelections({ method, path, body }, { store, sailings, now 
   }
   if (!input || typeof input !== 'object' || Array.isArray(input)) return bad('Send a JSON object.');
   if (typeof input.id !== 'string' || !input.id) return bad('Which sailing? Send { "id": "…" }.');
+
+  // Undoing works on the row, listed or not: a departed cruise can still be tidied away.
+  if (isUnview || isForget) {
+    if (!store.get(input.id)) return { status: 404, body: { error: `Nothing saved for ${input.id}.` } };
+    return { status: 200, body: { selection: isUnview ? store.clearViews(input.id) : store.forget(input.id) } };
+  }
 
   const sailing = sailings.find((s) => s.id === input.id) ?? null;
 
