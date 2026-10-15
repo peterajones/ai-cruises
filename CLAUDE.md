@@ -96,7 +96,7 @@ Holland America) and a destination. All but
 12 have an end port — those are long Princess itineraries whose cards stop short (see the flights
 panel below) — and every departure and end port maps to an airport. 46 ships with descriptions,
 cheapest prices $199–$30,155 USD (the top is Celebrity's 7-night Galápagos Outer Loop and Machu
-Picchu) and $395–$80,999 CAD (a 28-night Viking voyage). Alaska: 1,213 sailings. 331 tests.
+Picchu) and $395–$80,999 CAD (a 28-night Viking voyage). Alaska: 1,213 sailings. 334 tests.
 
 **Prices per cabin type.** Every sailing has `cabinPrices` — cabin type → that cabin's
 cheapest price, e.g. `{ interior: 959, oceanview: 1009, balcony: 1459, suite: 2164 }` — and
@@ -200,7 +200,9 @@ days", because a cruisetour's `nights` is the whole package, land included.
 
 **My cruises** (spec: `docs/superpowers/specs/2026-10-14-my-cruises-design.md`). Opening a
 cruise's View ↗ or ✈ Flights records a view; cards and the ✈ panel carry 1–5 stars (click the
-current star to clear). The "My cruises" chip shows everything viewed or rated — rated first,
+current star to clear). Every action can be undone on its own: the "Viewed ✕" tag clears a
+cruise's views (an unrated one then leaves My cruises), and each `/mine` row has a two-click
+"Remove" that forgets the cruise entirely. The "My cruises" chip shows everything viewed or rated — rated first,
 then most recently viewed — and `/mine` is the same as a sortable table with price then and now.
 Each row keeps a snapshot of the sailing, so a cruise that departs or leaves the scrape still
 shows, greyed, "No longer listed". Search understands `minRating` ("my 5-star cruises"),

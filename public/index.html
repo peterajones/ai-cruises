@@ -126,8 +126,9 @@
   }
   .viewed {
     position: absolute; right: 12px; top: 12px; background: rgba(6,20,28,.82); color: #fff;
-    font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px;
+    font: 600 12px/normal inherit; padding: 5px 10px; border-radius: 999px; border: 0; cursor: pointer;
   }
+  .viewed:hover, .viewed:focus-visible { background: rgba(6,20,28,.95); }
   .stars { display: flex; gap: 2px; }
   .stars .star { background: none; border: 0; padding: 0 1px; font-size: 19px; line-height: 1;
     color: var(--muted); cursor: pointer; }
@@ -787,7 +788,35 @@ function viewedTag(s) {
   const r = state.selections[s.id];
   if (!r?.views) return null;
   const last = r.lastViewed ? new Date(r.lastViewed).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-  return el('span', { class: 'viewed', title: `Viewed ${r.views}× · last ${last}`, text: 'Viewed' });
+  // A button: clicking it undoes the views, for an accidental View ↗.
+  const b = el('button', {
+    type: 'button', class: 'viewed', text: 'Viewed ✕',
+    title: `Viewed ${r.views}× · last ${last} — click to mark as not viewed`,
+    'aria-label': 'Viewed — mark as not viewed',
+  });
+  b.onclick = (e) => { e.stopPropagation(); unview(s); };
+  return b;
+}
+
+/** Undoes the views. A rated cruise stays in My cruises, unviewed; an unrated one leaves it. */
+async function unview(s) {
+  try {
+    const res = await fetch('/api/selections/unview', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id: s.id }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    if (data.selection) state.selections[s.id] = data.selection;
+    else delete state.selections[s.id];
+  } catch (err) {
+    console.error('View not undone:', err.message);
+    return;
+  }
+  markViewed(s);
+  updateMineCount();
+  // On My cruises, a cruise that has just left it goes from the list too.
+  if (state.facets.year === 'mine' && !state.selections[s.id]) render();
 }
 
 function markViewed(s) {
