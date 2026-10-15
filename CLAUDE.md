@@ -68,7 +68,12 @@ a good dataset.
 - `ANTHROPIC_API_KEY` lives in `.env` (gitignored) and is loaded natively by
   `node --env-file-if-exists=.env` — no `dotenv` dependency. `npm run serve` does this.
   The search layer uses `claude-haiku-4-5` (~$0.002/query). No `ant` CLI installed.
-- Server runs on port 3030 (`PORT=3031` runs a second copy beside it, e.g. to check a change).
+- Server runs on port 3030 (`PORT=3031` runs a second copy beside it, e.g. to check a change),
+  listening on `127.0.0.1` only — this Mac, not the Wi-Fi. `HOST=0.0.0.0` for a container.
+- `guard.js` stands in front of every `/api/` route: requests another site sent (including another
+  app on localhost) get 403, writes that aren't JSON 415, bodies over 64 KB 413. Every route spends
+  something — ratings, Anthropic credit, the SerpApi quota. Tools like `curl` send no browser
+  headers and still get in, so a public deployment needs a login as well.
 - `SERP_API_KEY` in `.env` is SerpApi's Google Flights API, for the flights panel. Free plan:
   250 searches a month. Results are cached in `data/flights-cache.json` (gitignored) for 3 days.
   Tests never call it; they use saved responses in `test/fixtures/serpapi-*.json`.
@@ -80,7 +85,7 @@ Princess (197), Holland America (760), Viking (328), Cunard (275) — 1,857 sail
 with a destination and a trip type. All but 18 have an end port — those 18 are long Princess
 itineraries whose cards stop short (see the flights panel below) — and every departure and end
 port maps to an airport. 15 ships with descriptions, cheapest prices $249–$6,559 USD and
-$347–$110,999 CAD (the top is a 30-night Viking voyage). Alaska: 787 sailings. 269 tests.
+$347–$110,999 CAD (the top is a 30-night Viking voyage). Alaska: 787 sailings. 280 tests.
 
 **Prices per cabin type.** Every sailing has `cabinPrices` — cabin type → that cabin's
 cheapest price, e.g. `{ interior: 959, oceanview: 1009, balcony: 1459, suite: 2164 }` — and
