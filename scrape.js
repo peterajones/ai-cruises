@@ -60,6 +60,17 @@ export function withinNextYear(sailings, today) {
 }
 
 /**
+ * The zero-row guard runs before the window, so a line whose every sailing falls outside it
+ * (a changed date format, say) would pass, then write nothing and replace its good data.
+ * Throwing makes it a failed line instead, which keeps its previous sailings.
+ */
+export function requireSomeInYear(name, before, after) {
+  if (before > 0 && after === 0) {
+    throw new Error(`${name}: all ${before} sailings fall outside the next 12 months — a changed date format?`);
+  }
+}
+
+/**
  * The end-of-run to-do list, by what fixes each kind. A skipped sailing is not a missing
  * alias: Princess drops a few unpriced sailings every run, and "add aliases to
  * normalize.js" above them sent you looking for a fix that doesn't exist.
@@ -145,6 +156,8 @@ async function main() {
       }
 
       const { kept: inYear, beyond } = withinNextYear(unique, today);
+      // Not under --limit: a handful of sailings may all be far off, and that's no failure.
+      if (!Number.isFinite(flags.limit)) requireSomeInYear(adapter.name, unique.length, inYear.length);
       if (beyond[adapter.name]) {
         report.log(`${adapter.name}: left out ${beyond[adapter.name]} sailings outside the next 12 months`);
       }

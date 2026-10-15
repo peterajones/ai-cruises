@@ -67,3 +67,12 @@ test('accented port names match their plain spellings', () => {
   assert.equal(airportFor('Tromsø'), 'TOS');
   assert.equal(airportFor('Sète'), null); // no airport entry: still null, not an accident
 });
+
+test("Spain's Cartagena is not Colombia's", () => {
+  // Final review: both Spanish spellings are in the data as ports of call; a voyage ending
+  // there must not price flights to South America.
+  assert.equal(airportFor('Cartagena'), 'CTG');
+  assert.equal(airportFor('Cartagena, Colombia'), 'CTG');
+  assert.equal(airportFor('Cartagena, Spain'), 'RMU');
+  assert.equal(airportFor('Murcia (Cartagena)'), 'RMU');
+});

@@ -271,13 +271,14 @@ export async function fetchListingPages(page, { limit = Infinity, onProgress = (
   const payloads = [];
   const seen = new Set();
   let sailings = 0;
+  let skip = 0;
+  let total = null;
 
   for (let n = 0; ; n += 1) {
     if (n === MAX_PAGES) {
       throw new Error(`Celebrity search ran to more than ${MAX_PAGES} pages without an end — stopping rather than guessing`);
     }
     await pause();
-    const skip = n * count;
     const { text, results } = await replay(page, captured, { count, skip });
     if (results.cruises.length === 0) break;
     for (const cruise of results.cruises) {
@@ -287,12 +288,18 @@ export async function fetchListingPages(page, { limit = Infinity, onProgress = (
       seen.add(cruise.id);
     }
     payloads.push(text);
+    // On by what came back, not by what was asked: a server that caps a page below `count`
+    // would otherwise have the rest skipped, or the loop end after one page as if complete.
+    skip += results.cruises.length;
 
-    const total = Number.isFinite(results.total) ? results.total : null;
-    onProgress(total === null ? `page ${n + 1}` : `page ${n + 1}/${Math.ceil(total / count)}`);
+    total = Number.isFinite(results.total) ? results.total : null;
+    onProgress(total === null ? `${seen.size} cruises` : `${seen.size}/${total} cruises`);
     sailings += parseListing(text).length;
-    if (sailings >= limit) break;
-    if (total !== null && skip + count >= total) break;
+    if (sailings >= limit) return payloads;
+    if (total !== null && skip >= total) break;
+  }
+  if (total !== null && seen.size < total) {
+    throw new Error(`Celebrity search returned ${seen.size} of ${total} cruises — stopping rather than keeping part of the catalogue`);
   }
   return payloads;
 }

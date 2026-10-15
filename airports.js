@@ -78,9 +78,11 @@ const AIRPORTS = {
   EWR: ['Newark', 'newark', 'cape liberty', 'bayonne'],
   PVG: ['Shanghai', 'shanghai'],
   ICN: ['Seoul', 'seoul', 'incheon'],
-  // Cartagena, Colombia — Royal Caribbean sails from it. (Spain's Cartagena is a port of
-  // call, never a departure, so it never reaches the airport lookup.)
+  // Cartagena, Colombia — Royal Caribbean sails from it as plain "Cartagena".
   CTG: ['Cartagena', 'cartagena'],
+  // Spain's Cartagena ("Cartagena, Spain", "Murcia (Cartagena)"): the longer names win over
+  // a bare "cartagena", so a voyage ending there never prices flights to Colombia.
+  RMU: ['Murcia', 'murcia', 'cartagena spain', 'murcia cartagena'],
   // Baltra Island is the Galápagos airport (Seymour).
   GPS: ['Galápagos (Baltra)', 'baltra', 'baltra island'],
 };

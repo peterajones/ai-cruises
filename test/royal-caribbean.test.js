@@ -234,14 +234,14 @@ function fakePage(route, { sent = [FACETS_BODY, PAGE_BODY], html = `<html><body>
 }
 const noPause = async () => {};
 const run = (page, opts = {}) => fetchListingPages(page, { limit: Infinity, pause: noPause, ...opts });
-// A catalogue bigger than one request: the two halves of the fixture's cruises.
-const halves = ({ skip }) => answer(skip === 0 ? cruises.slice(0, 5) : cruises.slice(5), 4000);
+// A server that answers 5 cruises a page, whatever was asked: the fixture's 10 in two pages.
+const halves = ({ skip }) => answer(cruises.slice(skip, skip + 5), 10);
 
-test('the fetch replays the page’s own search, 3000 cruises at a time, until total', async () => {
+test('the fetch replays the page’s own search, moving on by what came back, until total', async () => {
   const page = fakePage(halves);
   const payloads = await run(page);
   assert.equal(PAGE_SIZE, 3000);
-  assert.deepEqual(page.calls.map((c) => c.body.variables.pagination), [{ count: 3000, skip: 0 }, { count: 3000, skip: 3000 }]);
+  assert.deepEqual(page.calls.map((c) => c.body.variables.pagination), [{ count: 3000, skip: 0 }, { count: 3000, skip: 5 }]);
   assert.equal(page.calls[0].path, '/cruises/graph');
   assert.equal(payloads.flatMap((p) => parseListing(p)).length, parseListing(payload).length);
 });
@@ -290,7 +290,7 @@ test('limit asks for that many cruises, and stops once it has enough sailings', 
 test('the fetch reports each page', async () => {
   const seen = [];
   await run(fakePage(halves), { onProgress: (t) => seen.push(t) });
-  assert.deepEqual(seen, ['page 1/2', 'page 2/2']);
+  assert.deepEqual(seen, ['5/10 cruises', '10/10 cruises']);
 });
 
 test('no search request from the page fails loudly', async () => {
@@ -321,4 +321,10 @@ test('pages that overlap fail loudly — a repeated cruise means another was mis
   // 67 cruises twice and 67 never.
   const page = fakePage(() => answer(cruises.slice(0, 5), 4000));
   await assert.rejects(run(page), /overlapped/);
+});
+
+test('fewer cruises than total fails loudly instead of keeping part of the catalogue', async () => {
+  // Final review: a server that quietly capped pages would otherwise pass as complete.
+  const page = fakePage(({ skip }) => answer(skip === 0 ? cruises.slice(0, 5) : [], 10));
+  await assert.rejects(run(page), /5 of 10 cruises/);
 });

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseFlags, describeMisses, linesToKeep, withinNextYear } from '../scrape.js';
+import { parseFlags, describeMisses, linesToKeep, withinNextYear, requireSomeInYear } from '../scrape.js';
 import { ADAPTERS, adaptersFor } from '../sites/index.js';
 
 test('the registered adapter is royal-caribbean', () => {
@@ -125,4 +125,12 @@ test('carried-over sailings are trimmed too — nothing is exempt', () => {
   const { kept, beyond } = withinNextYear([sail('holland-america', '2028-07-16')], '2026-10-15');
   assert.deepEqual(kept, []);
   assert.deepEqual(beyond, { 'holland-america': 1 });
+});
+
+test('a line whose every sailing falls outside the window fails, rather than writing none', () => {
+  // Final review: a date-format change would otherwise pass the zero-row guard, then the
+  // window would empty the line and replace its good data with nothing.
+  assert.throws(() => requireSomeInYear('princess', 195, 0), /princess: all 195 sailings fall outside the next 12 months/);
+  assert.doesNotThrow(() => requireSomeInYear('princess', 195, 98));
+  assert.doesNotThrow(() => requireSomeInYear('princess', 0, 0)); // the zero-row guard owns this case
 });
