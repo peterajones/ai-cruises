@@ -298,7 +298,11 @@ page sends): its photos are 2880px originals of 0.7–2.8 MB, so the adapter ask
 for the 1280px copy at `…jpg/jcr:content/renditions/cq5dam.web.1280.1280.jpeg` (0.15–0.5 MB, all
 19 photos in the fixture have one; checked 2026-10-15). Royal Caribbean's photos belong to the
 itinerary; with the whole catalogue its cards show ~90 different ones (2 before 2026-10-15).
-Nothing is downloaded locally — image URLs are hotlinked.
+Nothing is downloaded locally — image URLs are hotlinked. A card with no photo — Celebrity lists
+37 itineraries with none, most of them Galápagos — or whose photo fails to load says "Image not
+available". **Checking photos headlessly:** Royal Caribbean, Celebrity and Cunard answer a
+`HeadlessChrome` user agent with an HTML block page instead of the photo (Chrome reports
+`ERR_BLOCKED_BY_ORB`); set a normal Chrome user agent in puppeteer, or every photo looks broken.
 
 ## Working style
 

@@ -110,6 +110,11 @@
   .card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(16,32,43,.1), 0 16px 40px rgba(16,32,43,.12); }
   .thumb { position: relative; aspect-ratio: 16/10; background: var(--chip); }
   .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  /* No photo from the line (Celebrity lists some itineraries with none), or one that failed. */
+  .no-photo {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 13px;
+  }
   .nights {
     position: absolute; left: 12px; top: 12px; background: rgba(6,20,28,.82); color: #fff;
     font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px;
@@ -852,7 +857,15 @@ $('#show-all').onclick = () => appendCards(Infinity);
 function cardFor(s) {
   const thumb = el('div', { class: 'thumb', 'data-thumb': s.id });
   const img = safeUrl(s.image);
-  if (img) thumb.append(el('img', { loading: 'lazy', alt: '', src: img }));
+  const noPhoto = () => el('span', { class: 'no-photo', text: 'Image not available' });
+  if (img) {
+    const photo = el('img', { loading: 'lazy', alt: '', src: img });
+    // A photo that fails to load says so too, rather than leaving a broken-image icon.
+    photo.onerror = () => photo.replaceWith(noPhoto());
+    thumb.append(photo);
+  } else {
+    thumb.append(noPhoto());
+  }
   thumb.append(el('span', { class: 'nights', text: `${s.nights} nights` }));
   const tag = viewedTag(s);
   if (tag) thumb.append(tag);
