@@ -95,7 +95,7 @@ sailings, every one with a trip type, and all but ~11 "Repositioning" sailings w
 The rest of this paragraph is from the 2026-10-14 scrape of 1,857: all but 18 had an end port —
 those 18 are long Princess itineraries whose cards stop short (see the flights panel below) — and
 every departure and end port maps to an airport (still true on the 2026-10-15 dry run). 15 ships with descriptions, cheapest prices $249–$6,559 USD and
-$347–$110,999 CAD (the top is a 30-night Viking voyage). Alaska: 787 sailings. 326 tests.
+$347–$110,999 CAD (the top is a 30-night Viking voyage). Alaska: 787 sailings. 330 tests.
 
 **Prices per cabin type.** Every sailing has `cabinPrices` — cabin type → that cabin's
 cheapest price, e.g. `{ interior: 959, oceanview: 1009, balcony: 1459, suite: 2164 }` — and
