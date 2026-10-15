@@ -1,7 +1,7 @@
 # Full catalogues and a rolling 12 months — design
 
 **Date:** 2026-10-15
-**Status:** draft for review
+**Status:** approved 2026-10-15
 
 ## Purpose
 
