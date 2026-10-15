@@ -1,4 +1,5 @@
-import test from 'node:test';
+import test, { after } from 'node:test';
+import { rmSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { readFile, writeFile, mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -113,9 +114,14 @@ function fakeFetch(body) {
   f.calls = 0;
   return f;
 }
+// Scratch folders for this file's tests, removed when the file's tests finish — every run
+// used to leave its folders in the system temp folder (2,542 had piled up by 2026-10-15).
+const scratch = [];
+after(() => { for (const dir of scratch) rmSync(dir, { recursive: true, force: true }); });
+const scratchDir = async (prefix) => { const dir = await mkdtemp(join(tmpdir(), prefix)); scratch.push(dir); return dir; };
 const opts = async (fetchImpl, extra = {}) => ({
   today: TODAY, apiKey: 'test-key', fetchImpl,
-  cacheFile: join(await mkdtemp(join(tmpdir(), 'flights-')), 'cache.json'), ...extra,
+  cacheFile: join(await scratchDir('flights-'), 'cache.json'), ...extra,
 });
 
 test('a search is cached: the second ask is free', async () => {

@@ -1,10 +1,17 @@
-import test from 'node:test';
+import test, { after } from 'node:test';
+import { rmSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { assertNonEmpty, carryOver, dedupeById, loadExisting, mergeShips, writeResult } from '../persist.js';
 import { ConflictingDuplicateError, EmptyResultError } from '../errors.js';
+
+// Scratch folders for this file's tests, removed when the file's tests finish — every run
+// used to leave its folders in the system temp folder (2,542 had piled up by 2026-10-15).
+const scratch = [];
+after(() => { for (const dir of scratch) rmSync(dir, { recursive: true, force: true }); });
+const scratchDir = async (prefix) => { const dir = await mkdtemp(join(tmpdir(), prefix)); scratch.push(dir); return dir; };
 
 const sampleResult = () => ({
   scrapedAt: '2026-08-03T22:40:00.000Z',
@@ -20,7 +27,7 @@ test('zero rows throws rather than being treated as no results', () => {
 });
 
 test('writeResult writes sailings.json and a dated run snapshot', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'cruise-'));
+  const dir = await scratchDir('cruise-');
   await writeResult(dir, sampleResult());
 
   const written = JSON.parse(await readFile(join(dir, 'sailings.json'), 'utf8'));
@@ -32,26 +39,26 @@ test('writeResult writes sailings.json and a dated run snapshot', async () => {
 });
 
 test('writeResult leaves no temp file behind', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'cruise-'));
+  const dir = await scratchDir('cruise-');
   await writeResult(dir, sampleResult());
   const files = await readdir(dir);
   assert.ok(!files.some((f) => f.endsWith('.tmp')), `temp file left: ${files.join(', ')}`);
 });
 
 test('writeResult leaves no temp file behind in runs/', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'cruise-'));
+  const dir = await scratchDir('cruise-');
   await writeResult(dir, sampleResult());
   const runs = await readdir(join(dir, 'runs'));
   assert.ok(!runs.some((f) => f.endsWith('.tmp')), `temp file left in runs/: ${runs.join(', ')}`);
 });
 
 test('loadExisting returns null when there is nothing yet', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'cruise-'));
+  const dir = await scratchDir('cruise-');
   assert.equal(await loadExisting(dir), null);
 });
 
 test('loadExisting round-trips what writeResult wrote', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'cruise-'));
+  const dir = await scratchDir('cruise-');
   await writeResult(dir, sampleResult());
   const loaded = await loadExisting(dir);
   assert.equal(loaded.sailings[0].id, 'princess:1');

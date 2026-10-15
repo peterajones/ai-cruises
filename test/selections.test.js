@@ -1,11 +1,16 @@
-import test from 'node:test';
+import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { openSelections, nodeSupportsSqlite, snapshotOf, selectionMap, handleSelections, exportPath } from '../selections.js';
 
-const tmp = () => join(mkdtempSync(join(tmpdir(), 'sel-')), 'selections.db');
+// Scratch folders for this file's tests, removed when the file's tests finish — every run
+// used to leave its folders in the system temp folder (2,542 had piled up by 2026-10-15).
+const scratch = [];
+after(() => { for (const dir of scratch) rmSync(dir, { recursive: true, force: true }); });
+const scratchDir = () => { const dir = mkdtempSync(join(tmpdir(), 'sel-')); scratch.push(dir); return dir; };
+const tmp = () => join(scratchDir(), 'selections.db');
 const sailing = (over = {}) => ({
   id: 'cunard:M626C', line: 'Cunard', ship: 'Queen Mary 2', itinerary: 'Southampton To Hamburg',
   destination: 'europe', departureDate: '2026-10-18', nights: 2, price: 504.74, currency: 'CAD',
@@ -28,7 +33,7 @@ test('on an older Node the store is unavailable, with a reason that says what to
 });
 
 test('a path that cannot be a database is unavailable, not a crash', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'sel-'));
+  const dir = scratchDir();
   mkdirSync(join(dir, 'selections.db'));
   const store = await openSelections(join(dir, 'selections.db'));
   assert.equal(store.ok, false);
