@@ -130,6 +130,8 @@ function starsFor(r) {
 }
 
 function draw() {
+  // Here, not once at load: clearing a never-viewed cruise's rating removes its row.
+  $('#sub').firstChild.textContent = `${rows.length} viewed or rated · `;
   const host = $('#table');
   host.textContent = '';
   if (rows.length === 0) {
@@ -183,7 +185,6 @@ async function boot() {
     const now = byId.get(sel.sailingId) ?? null;
     return { sel, now, s: now ?? sel.snapshot };
   });
-  $('#sub').firstChild.textContent = `${rows.length} viewed or rated · `;
   draw();
 }
 
