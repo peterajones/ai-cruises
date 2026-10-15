@@ -85,7 +85,7 @@ Princess (197), Holland America (760), Viking (328), Cunard (275) — 1,857 sail
 with a destination and a trip type. All but 18 have an end port — those 18 are long Princess
 itineraries whose cards stop short (see the flights panel below) — and every departure and end
 port maps to an airport. 15 ships with descriptions, cheapest prices $249–$6,559 USD and
-$347–$110,999 CAD (the top is a 30-night Viking voyage). Alaska: 787 sailings. 280 tests.
+$347–$110,999 CAD (the top is a 30-night Viking voyage). Alaska: 787 sailings. 281 tests.
 
 **Prices per cabin type.** Every sailing has `cabinPrices` — cabin type → that cabin's
 cheapest price, e.g. `{ interior: 959, oceanview: 1009, balcony: 1459, suite: 2164 }` — and
@@ -269,9 +269,13 @@ a layout question settled.
 **Lazy loading.** Cards are built 60 at a time as you scroll (`BATCH` in `public/index.html`) —
 building all 1,857 took ~0.6 s on a desktop and ~2 s on a slowed phone on every filter or sort
 change; now ~25 ms and ~85 ms (measured 2026-10-14). "Show all" builds the rest, e.g. for ⌘F.
-Images carry `loading="lazy"`, so only those in view load. Still open: Royal Caribbean's
-photos are full 4K heroes (0.9–2.7 MB) in ~290px cards — Celebrity, Holland America and Cunard
-honour `?imwidth=600`, Royal Caribbean ignores it, and its own parameter was not found.
+Images carry `loading="lazy"`, so only those in view load. Celebrity, Holland America and
+Cunard honour `?imwidth=600`. Royal Caribbean ignores it (and `?wid=`, and the `?$800x450$` its own
+page sends): its photos are 2880px originals of 0.7–2.8 MB, so the adapter asks its image store
+for the 1280px copy at `…jpg/jcr:content/renditions/cq5dam.web.1280.1280.jpeg` (0.15–0.5 MB, all
+19 photos in the fixture have one; checked 2026-10-15). Every Royal Caribbean card shows one of
+two photos — the API's photos belong to the itinerary, and nearly every Bahamas and Caribbean
+itinerary on its one results page stops at CocoCay; asking per destination would vary them.
 Nothing is downloaded locally — image URLs are hotlinked.
 
 ## Working style

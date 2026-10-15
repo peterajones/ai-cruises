@@ -10,6 +10,7 @@ export const name = 'royal-caribbean';
 export const line = 'Royal Caribbean';
 
 const SITE_ORIGIN = 'https://www.royalcaribbean.com';
+const RENDITION = '/jcr:content/renditions/cq5dam.web.1280.1280.jpeg';
 
 /**
  * @param {string} payload - raw JSON text captured from the cruises/graph search response
@@ -29,9 +30,11 @@ export function parseListing(payload) {
     const destination = it.destination.name;
     const nights = it.sailingNights;
     const itinerary = it.name ?? null;
-    // Image paths are site-relative; absolutise so a UI can use them directly.
+    // Image paths are site-relative; absolutise so a UI can use them directly. The path is
+    // a 2880px original (0.7–2.8 MB); its image store keeps a 1280px copy (0.15–0.5 MB)
+    // at a fixed rendition path — ?imwidth= and the site's own ?$800x450$ are ignored.
     const imagePath = it.media?.images?.[0]?.path;
-    const image = imagePath ? `${SITE_ORIGIN}${imagePath}` : null;
+    const image = imagePath ? `${SITE_ORIGIN}${imagePath}${RENDITION}` : null;
     // Ports actually visited, in order, minus embarkation/disembarkation.
     const ports = [
       ...new Set(

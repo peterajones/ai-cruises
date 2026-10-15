@@ -64,6 +64,15 @@ test('every url is absolute against royalcaribbean.com', () => {
   }
 });
 
+test('every photo is the 1280px rendition, not the 2880px original', () => {
+  // The originals are 0.7–2.8 MB; ?imwidth= and ?$800x450$ are ignored (checked 2026-10-15).
+  const rows = parseListing(payload).filter((r) => r.image);
+  assert.ok(rows.length > 0);
+  for (const row of rows) {
+    assert.match(row.image, /^https:\/\/www\.royalcaribbean\.com\/content\/dam\/.+\.jpg\/jcr:content\/renditions\/cq5dam\.web\.1280\.1280\.jpeg$/);
+  }
+});
+
 test('the first row matches the hand-written golden row', () => {
   assert.deepEqual(parseListing(payload)[0], golden);
 });
