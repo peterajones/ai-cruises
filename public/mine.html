@@ -147,10 +147,13 @@ function starsFor(r) {
       r.sel = { ...r.sel, rating };
       paint();
       try {
-        const res = await fetch('/api/selections/rating', {
+        // One save after another per cruise, so the server ends on the last click.
+        const send = (r.chain ?? Promise.resolve()).then(() => fetch('/api/selections/rating', {
           method: 'PUT', headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ id: r.sel.sailingId, rating }),
-        });
+        }));
+        r.chain = send.catch(() => {});
+        const res = await send;
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
         if (ticket !== r.ticket) return;
