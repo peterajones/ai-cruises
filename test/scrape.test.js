@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseFlags, describeMisses, linesToKeep } from '../scrape.js';
+import { parseFlags, describeMisses, linesToKeep, withinNextYear } from '../scrape.js';
 import { ADAPTERS, adaptersFor } from '../sites/index.js';
 
 test('the registered adapter is royal-caribbean', () => {
@@ -99,4 +99,30 @@ test('--site keeps every line it did not scrape, so one line cannot wipe the oth
     { name: 'holland-america', reason: 'not scraped' },
     { name: 'cunard', reason: 'failed' },
   ]);
+});
+
+const sail = (source, departureDate) => ({ id: `${source}:${departureDate}`, source, departureDate });
+
+test('the next 12 months: tomorrow through today + 365, nothing else', () => {
+  const { kept, beyond } = withinNextYear([
+    sail('princess', '2026-10-15'), // today: sailing or sailed
+    sail('princess', '2026-10-16'), // tomorrow
+    sail('princess', '2027-10-15'), // + 365
+    sail('princess', '2027-10-16'), // + 366
+    sail('celebrity', '2025-01-01'),
+  ], '2026-10-15');
+  assert.deepEqual(kept.map((s) => s.departureDate), ['2026-10-16', '2027-10-15']);
+  assert.deepEqual(beyond, { princess: 2, celebrity: 1 });
+});
+
+test('the window crosses a leap day and a year end correctly', () => {
+  const { kept } = withinNextYear([sail('viking', '2028-02-29'), sail('viking', '2028-03-01')], '2027-03-01');
+  // 2027-03-01 + 365 days = 2028-02-29 (2028 is a leap year).
+  assert.deepEqual(kept.map((s) => s.departureDate), ['2028-02-29']);
+});
+
+test('carried-over sailings are trimmed too — nothing is exempt', () => {
+  const { kept, beyond } = withinNextYear([sail('holland-america', '2028-07-16')], '2026-10-15');
+  assert.deepEqual(kept, []);
+  assert.deepEqual(beyond, { 'holland-america': 1 });
 });

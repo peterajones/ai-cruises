@@ -34,6 +34,31 @@ export function parseFlags(argv) {
 
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 
+/** The local date, YYYY-MM-DD. */
+const localToday = () => new Date().toLocaleDateString('en-CA');
+
+const addDaysIso = (iso, days) => {
+  const d = new Date(`${iso}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+};
+
+/**
+ * Every line's horizon: departing after today, up to 365 days ahead (spec 2026-10-15) — a
+ * rolling 12 months, moving forward with each scrape. One rule for all six lines, applied
+ * to each line's fresh sailings and to any carried over from the previous run.
+ */
+export function withinNextYear(sailings, today) {
+  const until = addDaysIso(today, 365);
+  const kept = [];
+  const beyond = {};
+  for (const s of sailings) {
+    if (s.departureDate > today && s.departureDate <= until) kept.push(s);
+    else beyond[s.source] = (beyond[s.source] ?? 0) + 1;
+  }
+  return { kept, beyond };
+}
+
 /**
  * The end-of-run to-do list, by what fixes each kind. A skipped sailing is not a missing
  * alias: Princess drops a few unpriced sailings every run, and "add aliases to
@@ -84,6 +109,7 @@ async function main() {
   const flags = parseFlags(process.argv.slice(2));
   const adapters = adaptersFor(flags.sites);
   const report = createReporter();
+  const today = localToday();
 
   const browser = await launch();
   const allSailings = [];
@@ -118,10 +144,14 @@ async function main() {
         report.log(`${adapter.name}: dropped ${duplicates} duplicate sailings`);
       }
 
-      const sailings = unique.slice(0, flags.limit);
-      if (sailings.length < unique.length) {
+      const { kept: inYear, beyond } = withinNextYear(unique, today);
+      if (beyond[adapter.name]) {
+        report.log(`${adapter.name}: left out ${beyond[adapter.name]} sailings outside the next 12 months`);
+      }
+      const sailings = inYear.slice(0, flags.limit);
+      if (sailings.length < inYear.length) {
         report.log(
-          `${adapter.name}: --limit ${flags.limit} truncated ${unique.length} sailings to ${sailings.length}`,
+          `${adapter.name}: --limit ${flags.limit} truncated ${inYear.length} sailings to ${sailings.length}`,
         );
       }
       allSailings.push(...sailings);
@@ -160,9 +190,11 @@ async function main() {
   // line this run didn't ask for (--site).
   const kept = linesToKeep(ADAPTERS.map((a) => a.name), adapters.map((a) => a.name), failedSources);
   const carried = carryOver(existing.sailings, new Set(kept.map((k) => k.name)));
-  allSailings.push(...carried);
+  // A previous run may predate the window, or have been scraped months ago: trim it too.
+  const { kept: carriedInYear } = withinNextYear(carried, today);
+  allSailings.push(...carriedInYear);
   for (const { name, reason } of kept) {
-    const n = carried.filter((s) => s.source === name).length;
+    const n = carriedInYear.filter((s) => s.source === name).length;
     if (reason === 'failed') console.error(`${name}: kept ${n} sailings from the previous run`);
     else console.log(`${name}: not scraped — kept ${n} sailings from the previous run`);
   }
