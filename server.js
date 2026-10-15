@@ -3,6 +3,9 @@
  *
  *   node server.js   ->   http://localhost:3030
  *
+ * Listens on 127.0.0.1 only (this Mac) unless HOST says otherwise — a container needs
+ * HOST=0.0.0.0 so its proxy can reach it. Every /api/ request passes guard.js first.
+ *
  * Serves the page, and one API endpoint that runs a plain-English query through
  * brain.js (the model) and then search.js (ordinary conditionals).
  */
@@ -19,9 +22,11 @@ import { flightsFor } from './flights.js';
 import {
   openSelections, handleSelections, selectionMap, DEFAULT_FILE as SELECTIONS_DEFAULT,
 } from './selections.js';
+import { checkRequest, readBody } from './guard.js';
 
 // PORT lets a second copy run beside the usual one, e.g. to check a change.
 const PORT = Number(process.env.PORT) || 3030;
+const HOST = process.env.HOST || '127.0.0.1';
 const PUBLIC_DIR = new URL('./public/', import.meta.url).pathname;
 const DATA_FILE = new URL('./data/sailings.json', import.meta.url).pathname;
 const FLIGHTS_CACHE = new URL('./data/flights-cache.json', import.meta.url).pathname;
@@ -110,6 +115,11 @@ const server = createServer(async (req, res) => {
       return res.end(html);
     }
 
+    if (req.url.startsWith('/api/')) {
+      const refused = checkRequest({ method: req.method, headers: req.headers });
+      if (refused) return json(res, refused.status, { error: refused.error });
+    }
+
     // What the page needs on load: the facets, and the whole dataset to render.
     if (req.method === 'GET' && req.url === '/api/dataset') {
       dataset = await loadDataset();
@@ -133,9 +143,13 @@ const server = createServer(async (req, res) => {
         return json(res, 503, { error: 'No data yet. Run `node scrape.js` first.' });
       }
 
-      let body = '';
-      for await (const chunk of req) body += chunk;
-      const { q } = JSON.parse(body || '{}');
+      const body = await readBody(req);
+      let q;
+      try {
+        ({ q } = JSON.parse(body || '{}'));
+      } catch {
+        return json(res, 400, { error: 'That request was not valid JSON.' });
+      }
 
       if (!q || !q.trim()) return json(res, 400, { error: 'Ask for something.' });
 
@@ -191,8 +205,7 @@ const server = createServer(async (req, res) => {
 
     if (req.url.startsWith('/api/selections')) {
       dataset = await loadDataset();
-      let body = '';
-      if (req.method !== 'GET') for await (const chunk of req) body += chunk;
+      const body = req.method === 'GET' ? '' : await readBody(req);
       const out = handleSelections(
         { method: req.method, path: req.url.split('?')[0], body },
         { store: selections, sailings: dataset ? current(dataset).sailings : [] },
@@ -235,6 +248,7 @@ const server = createServer(async (req, res) => {
     res.writeHead(404).end('Not found');
   } catch (err) {
     if (err.code === 'ENOENT') return res.writeHead(404).end('Not found');
+    if (err.status === 413) return json(res, 413, { error: err.message });
     console.error(err);
     json(res, 500, { error: err.message });
   }
@@ -260,7 +274,7 @@ server.on('error', (err) => {
   throw err;
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, HOST, () => {
   if (!dataset) {
     console.log('WARNING: data/sailings.json not found. Run `node scrape.js` first.\n');
   } else {
