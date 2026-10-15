@@ -29,6 +29,8 @@
   td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
   td a { color: var(--accent); text-decoration: none; font-weight: 600; }
   .gone { color: var(--muted); font-size: 13px; }
+  .note { color: var(--up); font-size: 14px; margin: -8px 0 10px; }
+  .note:empty { display: none; }
   .up { color: var(--up); font-size: 12px; } .down { color: var(--down); font-size: 12px; }
   .stars { display: flex; gap: 1px; }
   .star { background: none; border: 0; padding: 0 1px; font-size: 18px; line-height: 1; color: var(--muted); cursor: pointer; }
@@ -40,6 +42,7 @@
 <div class="wrap">
   <h1>My cruises</h1>
   <div class="sub" id="sub">Loading… · <a href="/">Back to search</a></div>
+  <div class="note" id="note" role="status"></div>
   <div class="box"><div id="table"></div></div>
 </div>
 <script type="module">
@@ -78,6 +81,11 @@ const COLUMNS = [
 const defaultOrder = (a, b) => (b.sel.rating ?? 0) - (a.sel.rating ?? 0)
   || String(b.sel.lastViewed ?? '').localeCompare(String(a.sel.lastViewed ?? ''));
 
+/** One line above the table, for a rating that didn't save. null clears it. */
+function note(text) {
+  $('#note').textContent = text ?? '';
+}
+
 function starsFor(r) {
   const group = el('div', { class: 'stars', role: 'group', 'aria-label': 'Your rating' });
   const paint = () => [...group.children].forEach((b, i) => {
@@ -90,14 +98,27 @@ function starsFor(r) {
     const b = el('button', { type: 'button', 'aria-label': `Rate ${n} star${n === 1 ? '' : 's'}` });
     b.onclick = async () => {
       const rating = r.sel.rating === n ? null : n;
-      const res = await fetch('/api/selections/rating', {
-        method: 'PUT', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ id: r.sel.sailingId, rating }),
-      });
-      const data = await res.json();
-      if (!res.ok) { console.error('Rating not saved:', data.error); return; }
-      if (data.selection) r.sel = data.selection;
-      else { rows = rows.filter((x) => x !== r); draw(); return; }
+      // Show it now; a later click owns the display, and a failed save puts it back.
+      const ticket = (r.ticket = (r.ticket ?? 0) + 1);
+      const before = r.sel;
+      r.sel = { ...r.sel, rating };
+      paint();
+      try {
+        const res = await fetch('/api/selections/rating', {
+          method: 'PUT', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ id: r.sel.sailingId, rating }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        if (ticket !== r.ticket) return;
+        if (data.selection) r.sel = data.selection;
+        else { rows = rows.filter((x) => x !== r); draw(); return; }
+        note(null);
+      } catch (err) {
+        if (ticket !== r.ticket) return;
+        r.sel = before;
+        note(`Rating not saved: ${err.message}`);
+      }
       paint();
     };
     group.append(b);
