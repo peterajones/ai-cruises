@@ -140,9 +140,13 @@
     position: absolute; left: 12px; top: 44px; background: #6b7580; color: #fff;
     font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px;
   }
-  .table-link { align-self: center; margin-left: 6px; font-size: 13px; font-weight: 600;
-    color: var(--accent); text-decoration: none; }
-  .ratings-off { align-self: center; margin-left: 6px; font-size: 13px; color: var(--muted); }
+  /* Above the cards: what this list is (and the table link, on My cruises), and its count. */
+  .results-bar { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px;
+    min-height: 20px; font-size: 14px; color: var(--muted); }
+  .table-link { font-weight: 600; color: var(--accent); text-decoration: none; }
+  .table-link:hover { text-decoration: underline; }
+  /* My cruises is your list; the chips after it are years. */
+  .chip-divider { width: 1px; align-self: stretch; margin: 4px 4px; background: var(--line); }
   .panel .hero-text .stars { margin-top: 6px; }
   .panel .hero-text .star { color: rgba(255,255,255,.75); }
   .panel .hero-text .star.on { color: #ffc940; }
@@ -253,6 +257,8 @@
   @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -200% 0; } }
 
   @media (max-width: 600px) {
+    /* On a phone the divider becomes a line break: My cruises on a line of its own. */
+    .chip-divider { flex-basis: 100%; height: 0; margin: 0; background: none; }
     .panel .hero { height: 170px; }
     .panel-body { padding: 16px 16px 24px; }
     /* Price | airline on one line; time and stops beneath the airline. */
@@ -293,6 +299,7 @@
 
   <div class="facets" id="facets"></div>
 
+  <div id="results-bar" class="results-bar"><span id="results-note"></span><span id="count" class="count"></span></div>
   <div id="results" class="grid"></div>
   <div id="more" class="more" hidden><span id="more-count"></span>
     <button id="show-all" type="button">Show all</button></div>
@@ -586,12 +593,10 @@ function buildYearChips() {
     updateMineCount = () => {
       mine.querySelector('.yearcount').textContent = String(Object.keys(state.selections).length);
     };
+    host.append(el('span', { class: 'chip-divider', 'aria-hidden': 'true' }));
   }
   chip(null, 'All', state.all.length);
   for (const y of years) chip(y, y, counts.get(y));
-  host.append(state.selectionsOk
-    ? el('a', { class: 'table-link', href: '/mine', text: 'Table view ↗' })
-    : el('span', { class: 'ratings-off', text: state.selectionsWhy }));
 
   syncYearChips = () => {
     for (const c of chips) c.el.classList.toggle('on', c.value === state.facets.year);
@@ -673,10 +678,6 @@ function buildFacets() {
   sort.onchange = () => { state.facets.sort = sort.value; render(); };
   sortWrap.append(sort);
   host.append(sortWrap);
-
-  const count = document.createElement('div');
-  count.className = 'count'; count.id = 'count';
-  host.append(count);
 }
 
 function applyFacets(list) {
@@ -835,6 +836,11 @@ function render() {
   if (countEl) {
     countEl.textContent = `${list.length} of ${base.length} shown`;
   }
+  // The table is My cruises in another form, so its link shows with that list. Without
+  // ratings there is no My cruises chip, and the reason shows here instead.
+  $('#results-note').replaceChildren(...(mine
+    ? ['My cruises · ', el('a', { class: 'table-link', href: '/mine', text: 'Table view ↗' })]
+    : state.selectionsOk ? [] : [state.selectionsWhy ?? '']));
 
   const host = $('#results');
   host.textContent = '';
