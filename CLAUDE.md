@@ -89,12 +89,13 @@ a good dataset.
 
 ## Status
 
-**Six lines working** (scraped 2026-10-14): Royal Caribbean (184), Celebrity (113),
-Princess (197), Holland America (760), Viking (328), Cunard (275) — 1,857 sailings, every one
-with a destination and a trip type. All but 18 have an end port — those 18 are long Princess
-itineraries whose cards stop short (see the flights panel below) — and every departure and end
-port maps to an airport. 15 ships with descriptions, cheapest prices $249–$6,559 USD and
-$347–$110,999 CAD (the top is a 30-night Viking voyage). Alaska: 787 sailings. 297 tests.
+**Six lines working**, each to the next 12 months (dry run 2026-10-15): Royal Caribbean (2,076),
+Celebrity (836), Princess (98), Holland America (683), Viking (326), Cunard (276) — 4,295
+sailings, every one with a trip type, and all but ~11 "Repositioning" sailings with a destination.
+The rest of this paragraph is from the 2026-10-14 scrape of 1,857: all but 18 had an end port —
+those 18 are long Princess itineraries whose cards stop short (see the flights panel below) — and
+every departure and end port maps to an airport (still true on the 2026-10-15 dry run). 15 ships with descriptions, cheapest prices $249–$6,559 USD and
+$347–$110,999 CAD (the top is a 30-night Viking voyage). Alaska: 787 sailings. 326 tests.
 
 **Prices per cabin type.** Every sailing has `cabinPrices` — cabin type → that cabin's
 cheapest price, e.g. `{ interior: 959, oceanview: 1009, balcony: 1459, suite: 2164 }` — and
@@ -170,9 +171,22 @@ flight out, saying why (N731's card ends at Kotor; the cruise ends in Ravenna). 
 - **Segments of long voyages are their own sailings** (M627 Hamburg → New York, and M627B
   Southampton → New York, the same voyage). CAD, as served. Photos `?imwidth=600`.
 
-**Celebrity and Royal Caribbean read one results page each**, and the site chooses what is
-on it. Coverage by destination drifts between scrapes: Celebrity had 36 Alaska sailings on
-2026-10-02 and none on 2026-10-07. Asking their APIs per destination would fix it.
+**Royal Caribbean and Celebrity read their whole catalogues** (spec:
+`docs/superpowers/specs/2026-10-15-full-catalogues-design.md`). Their `/cruises` page asks for
+its first 10 cruises; the adapters capture that `CruisesSearchResults` request and replay it from
+inside the page with `pagination: { count: 3000 }` — the whole catalogue in one request (Royal
+Caribbean ~1,190 cruises, 14 MB, ~9 s; Celebrity ~640, ocean only: the page's own
+`voyageType:OCEAN` filter is kept). No copy of their GraphQL query lives in our code. **Not pages
+of 500:** the site's order shifts between requests, and paging by `skip` returned 67 cruises twice
+and missed 67 others; paging is kept only for a catalogue over 3,000 cruises, and a cruise that
+comes back twice fails the fetch. Before 2026-10-15 they read the 10 cruises alone, and coverage
+drifted: Celebrity's 36 Alaska sailings vanished between two scrapes.
+
+**Every line keeps the next 12 months** — departing after today, up to 365 days ahead,
+rolling forward with each scrape. One rule, `withinNextYear` in `scrape.js`, applied to each
+line's fresh sailings and to any carried over ("left out N sailings outside the next 12 months").
+Holland America's 750 cap still applies first. "Repositioning" sailings take their destination
+from the itinerary name when it names one; a few ("Colon To San Juan Cruise") stay unmapped.
 
 **Cruisetours are a trip type.** Every sailing has `tripType`: `"cruise"` or
 `"cruisetour"` (a cruise plus land days, sold as one package — only Holland America has
@@ -282,9 +296,8 @@ Images carry `loading="lazy"`, so only those in view load. Celebrity, Holland Am
 Cunard honour `?imwidth=600`. Royal Caribbean ignores it (and `?wid=`, and the `?$800x450$` its own
 page sends): its photos are 2880px originals of 0.7–2.8 MB, so the adapter asks its image store
 for the 1280px copy at `…jpg/jcr:content/renditions/cq5dam.web.1280.1280.jpeg` (0.15–0.5 MB, all
-19 photos in the fixture have one; checked 2026-10-15). Every Royal Caribbean card shows one of
-two photos — the API's photos belong to the itinerary, and nearly every Bahamas and Caribbean
-itinerary on its one results page stops at CocoCay; asking per destination would vary them.
+19 photos in the fixture have one; checked 2026-10-15). Royal Caribbean's photos belong to the
+itinerary; with the whole catalogue its cards show ~90 different ones (2 before 2026-10-15).
 Nothing is downloaded locally — image URLs are hotlinked.
 
 ## Working style
