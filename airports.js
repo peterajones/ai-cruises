@@ -64,10 +64,25 @@ const AIRPORTS = {
   // Benoa is Bali's cruise port.
   DPS: ['Bali', 'bali', 'benoa'],
   // Fuerte Amador is Panama City's cruise pier.
-  PTY: ['Panama City', 'panama city', 'fuerte amador'],
+  // Colón, Royal Caribbean's Panama port, is ~80 km from Panama City.
+  PTY: ['Panama City', 'panama city', 'fuerte amador', 'colon'],
   // Deliberately no "san antonio": the Chilean port would match San Antonio, Texas.
-  SCL: ['Santiago', 'santiago'],
+  SCL: ['Santiago', 'santiago', 'valparaiso'],
   EZE: ['Buenos Aires', 'buenos aires'],
+  TPA: ['Tampa', 'tampa'],
+  // Galveston's nearest airline airport is Houston Intercontinental, ~75 km away.
+  IAH: ['Houston', 'houston', 'galveston'],
+  MSY: ['New Orleans', 'new orleans'],
+  BWI: ['Baltimore', 'baltimore'],
+  // Cape Liberty is Bayonne, New Jersey: Newark is closest.
+  EWR: ['Newark', 'newark', 'cape liberty', 'bayonne'],
+  PVG: ['Shanghai', 'shanghai'],
+  ICN: ['Seoul', 'seoul', 'incheon'],
+  // Cartagena, Colombia — Royal Caribbean sails from it. (Spain's Cartagena is a port of
+  // call, never a departure, so it never reaches the airport lookup.)
+  CTG: ['Cartagena', 'cartagena'],
+  // Baltra Island is the Galápagos airport (Seymour).
+  GPS: ['Galápagos (Baltra)', 'baltra', 'baltra island'],
 };
 
 // Accents folded first, so "Reykjavík" and "Tromsø" match "reykjavik" and "tromso" — without

@@ -15,11 +15,11 @@ const DESTINATIONS = {
   'alaska': ['alaska', 'alaska inside passage', 'inside passage', 'alaska gulf'],
   'mexico': ['mexico', 'mexican riviera', 'baja mexico', 'baja peninsula', 'sea of cortez'],
   // US/Canada west-coast sailings. Princess names these "Pacific Coastal" and
-  // "Pacific Wine Country"; no other line in the dataset sails them.
+  // "Pacific Wine Country"; Royal Caribbean's are "Pacific Northwest".
   // "West Coast Getaway" is kept whole: a bare "west coast" would also match an
   // Australian or Tasmanian itinerary.
-  'pacific-coast': ['pacific coastal', 'pacific coast', 'pacific wine country', 'california coast',
-    'west coast getaway'],
+  'pacific-coast': ['pacific coastal', 'pacific coast', 'pacific northwest', 'pacific wine country',
+    'california coast', 'west coast getaway'],
   // Princess's "Pacific Crossing" runs between Honolulu and British Columbia; a
   // Hawaii shopper wants it. Keyed on the port, since a crossing could run elsewhere.
   'hawaii': ['hawaii', 'hawaiian islands', 'honolulu'],
@@ -60,6 +60,11 @@ const DESTINATIONS = {
   'antarctica': ['antarctica'],
   // Cunard's "Africa & Indian Ocean" (Peter, 2026-10-14). Viking's Africa regions match too.
   'africa': ['africa', 'africa and indian ocean', 'indian ocean'],
+  // Celebrity sails the Galápagos from Baltra (Peter, 2026-10-15: its own destination).
+  // key() drops accented letters, so the accented spelling is listed as well.
+  'galapagos': ['galapagos', 'galápagos', 'galapagos islands'],
+  // Royal Caribbean and Celebrity's Asia ↔ Alaska/Hawaii/Australia crossings.
+  'transpacific': ['transpacific', 'trans pacific'],
   // Viking's "North America" itineraries run Montreal -> New York and Montreal -> Fort Lauderdale.
   'canada-new-england': ['canada new england', 'new england canada', 'canada', 'north america'],
   // Viking files its longest voyages under "Grand Journeys" (see pickRegion in sites/viking.js).
@@ -284,8 +289,11 @@ export function normalizeAll(rawRows, { source, line }) {
     if (row.destination) {
       // Exact label first (Royal Caribbean, Celebrity); then look inside the
       // phrase (Princess, whose only region signal is the itinerary title).
+      // "Repositioning" names no region; the itinerary's name often does
+      // ("12 Night Transpacific Repositioning"). Otherwise it stays on the to-do list.
       sailing.destination =
-        canonicalDestination(row.destination) ?? findDestination(row.destination);
+        canonicalDestination(row.destination) ?? findDestination(row.destination)
+        ?? (row.itinerary ? findDestination(row.itinerary) : null);
       if (sailing.destination === null) miss('destination', String(row.destination));
     }
 

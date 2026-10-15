@@ -33,6 +33,10 @@ const PORTS = {
   'Hamburg, Germany': 'HAM', 'Kiel, Germany': 'HAM', 'Le Havre, France': 'CDG', 'Quebec, QC, Canada': 'YQB',
   'Rio de Janeiro, Brazil': 'GIG', 'Cape Town, South Africa': 'CPT', 'Montreal, Quebec': 'YUL', 'Reykjavík': 'KEF', 'Reykjavík, Iceland': 'KEF', 'Bali (Benoa)': 'DPS', 'Hong Kong': 'HKG',
   'Panama City (Fuerte Amador)': 'PTY', 'Tromsø': 'TOS', 'Oslo': 'OSL',
+  // Royal Caribbean and Celebrity's full catalogues, 2026-10-15.
+  'Tampa': 'TPA', 'Galveston': 'IAH', 'New Orleans': 'MSY', 'Baltimore': 'BWI',
+  'Cape Liberty': 'EWR', 'Shanghai (Baoshan)': 'PVG', 'Seoul (Incheon)': 'ICN', 'Colón': 'PTY',
+  'Cartagena': 'CTG', 'Valparaiso': 'SCL', 'Baltra Island': 'GPS',
 };
 
 test('every known port maps to its airport', () => {

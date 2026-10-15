@@ -255,3 +255,22 @@ test("Cunard's destinations map onto ours", () => {
   ]);
   assert.equal(unrecognised.filter((u) => u.field === 'destination').length, 0);
 });
+
+test('Royal Caribbean and Celebrity labels from their full catalogues map onto ours', () => {
+  const rows = ['Galapagos', 'Galápagos', 'Transpacific', 'Pacific Northwest'].map((destination, i) => ({
+    ...goodRow, externalId: `R${i}`, destination,
+  }));
+  const { sailings, unrecognised } = normalizeAll(rows, { source: 'celebrity', line: 'Celebrity Cruises' });
+  assert.deepEqual(sailings.map((s) => s.destination), ['galapagos', 'galapagos', 'transpacific', 'pacific-coast']);
+  assert.equal(unrecognised.filter((u) => u.field === 'destination').length, 0);
+});
+
+test('"Repositioning" takes its region from the itinerary name, or stays on the to-do list', () => {
+  const rows = [
+    { ...goodRow, externalId: 'P1', destination: 'Repositioning', itinerary: '12 Night Transpacific Repositioning' },
+    { ...goodRow, externalId: 'P2', destination: 'Repositioning', itinerary: '6 Night Repositioning Cruise' },
+  ];
+  const { sailings, unrecognised } = normalizeAll(rows, { source: 'royal-caribbean', line: 'Royal Caribbean' });
+  assert.deepEqual(sailings.map((s) => s.destination), ['transpacific', null]);
+  assert.deepEqual(unrecognised.filter((u) => u.field === 'destination'), [{ field: 'destination', raw: 'Repositioning', count: 1 }]);
+});
