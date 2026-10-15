@@ -15,7 +15,7 @@ const sailing = (over = {}) => ({
   id: 'cunard:M626C', line: 'Cunard', ship: 'Queen Mary 2', itinerary: 'Southampton To Hamburg',
   destination: 'europe', departureDate: '2026-10-18', nights: 2, price: 504.74, currency: 'CAD',
   cabin: 'interior', url: 'https://www.cunard.com/x', image: null, departurePort: 'Southampton',
-  ports: ['ignored'], cabinPrices: { interior: 504.74 }, ...over,
+  ports: ['ignored'], cabinPrices: { interior: 504.74 }, tripType: 'cruise', ...over,
 });
 
 test('Node 24.15 or later is needed', () => {
@@ -61,9 +61,15 @@ test('a view creates a row, then counts', async () => {
 
 test('the snapshot keeps the card fields and nothing else', () => {
   assert.deepEqual(Object.keys(snapshotOf(sailing())).sort(), [
-    'cabin', 'currency', 'departureDate', 'departurePort', 'destination', 'id', 'image',
-    'itinerary', 'line', 'nights', 'price', 'ship', 'url',
+    'cabin', 'cabinPrices', 'currency', 'departureDate', 'departurePort', 'destination', 'id', 'image',
+    'itinerary', 'line', 'nights', 'price', 'ship', 'tripType', 'url',
   ]);
+});
+
+test('a departed cruise keeps its trip type and cabin prices, for its label and the cabin filter', () => {
+  const snap = snapshotOf(sailing({ tripType: 'cruisetour', cabinPrices: { interior: 900, balcony: 1400 } }));
+  assert.equal(snap.tripType, 'cruisetour');
+  assert.deepEqual(snap.cabinPrices, { interior: 900, balcony: 1400 });
 });
 
 test('rate, change, and clear a rating', async () => {

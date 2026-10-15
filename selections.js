@@ -13,9 +13,11 @@ import { dirname, join } from 'node:path';
 
 export const DEFAULT_FILE = new URL('./data/selections.db', import.meta.url).pathname;
 
+// tripType and cabinPrices keep a departed cruise's "Cruisetour" label and its place under a
+// cabin filter (added 2026-10-15; older rows gain them at their next view or rating).
 const SNAPSHOT_FIELDS = [
   'id', 'line', 'ship', 'itinerary', 'destination', 'departureDate', 'nights', 'price',
-  'currency', 'cabin', 'url', 'image', 'departurePort',
+  'currency', 'cabin', 'url', 'image', 'departurePort', 'tripType', 'cabinPrices',
 ];
 
 const SCHEMA = `
