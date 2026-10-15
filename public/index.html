@@ -888,7 +888,12 @@ function cardFor(s) {
 
   const link = safeUrl(s.url);
   const view = link ? el('a', { class: 'book', href: link, target: '_blank', rel: 'noopener', text: ' View ↗' }) : null;
-  if (view) view.onclick = () => recordView(s);
+  if (view) {
+    view.onclick = () => recordView(s); // also ⌘- and ctrl-click, which are still clicks
+    // A middle-click opens a new tab without a click event. (Right-click → Open in New Tab
+    // can't be seen by the page at all.)
+    view.onauxclick = (e) => { if (e.button === 1) recordView(s); };
+  }
   const foot = el('div', { class: 'foot' },
     el('div', {}, price, priceLabel),
     el('div', {}, s.unlisted ? null : flightsButton(s), view));
