@@ -274,3 +274,16 @@ test('"Repositioning" takes its region from the itinerary name, or stays on the 
   assert.deepEqual(sailings.map((s) => s.destination), ['transpacific', null]);
   assert.deepEqual(unrecognised.filter((u) => u.field === 'destination'), [{ field: 'destination', raw: 'Repositioning', count: 1 }]);
 });
+
+test('the "Repositioning" itineraries map as Peter chose (2026-10-15)', () => {
+  const rows = [
+    'Perfect Day Cococay to Texas', 'Colon To San Juan Cruise', 'Fort Lauderdale to Cape Liberty', 'Greenland & Iceland',
+    // The same voyages under another name or direction, just beyond the window on 2026-10-15.
+    'Baltimore To San Juan Cruise', 'San Juan To Colon Cruise', 'Boston to Ft. Lauderdale', 'Iceland, Greenland & Nova Scotia',
+  ].map((itinerary, i) => ({ ...goodRow, externalId: `R${i}`, destination: 'Repositioning', itinerary }));
+  const { sailings, unrecognised } = normalizeAll(rows, { source: 'celebrity', line: 'Celebrity Cruises' });
+  assert.deepEqual(sailings.map((s) => s.destination), [
+    'caribbean', 'caribbean', 'caribbean', 'transatlantic', 'caribbean', 'caribbean', 'caribbean', 'transatlantic',
+  ]);
+  assert.equal(unrecognised.filter((u) => u.field === 'destination').length, 0);
+});

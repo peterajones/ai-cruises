@@ -9,7 +9,11 @@ const DESTINATIONS = {
   'caribbean-east': ['eastern caribbean', 'caribbean eastern', 'e caribbean', 'caribbean east'],
   'caribbean-west': ['western caribbean', 'caribbean western', 'w caribbean', 'caribbean west'],
   'caribbean-south': ['southern caribbean', 'caribbean southern', 's caribbean', 'caribbean south'],
-  'caribbean': ['caribbean', 'turks caicos', 'turks and caicos', 'grand turk'],
+  // Royal Caribbean and Celebrity "Repositioning" voyages through the islands, named only by
+  // their ends (Peter, 2026-10-15: Caribbean). Whole names, so nothing else matches them.
+  'caribbean': ['caribbean', 'turks caicos', 'turks and caicos', 'grand turk',
+    'perfect day cococay to texas', 'colon to san juan', 'san juan to colon', 'baltimore to san juan',
+    'fort lauderdale to cape liberty', 'boston to ft lauderdale'],
   'bahamas': ['bahamas', 'bahamas florida'],
   'bermuda': ['bermuda'],
   'alaska': ['alaska', 'alaska inside passage', 'inside passage', 'alaska gulf'],
@@ -44,7 +48,10 @@ const DESTINATIONS = {
   'british-isles': ['british isles', 'ireland britain', 'irish counties', 'scottish shores'],
   // "Moroccan Passage" sails Rome to Fort Lauderdale via Morocco and Tenerife. Princess
   // uses "Passage" for repositioning voyages; the title never says "transatlantic".
-  'transatlantic': ['transatlantic', 'trans atlantic', 'repositioning transatlantic', 'moroccan passage'],
+  // Celebrity's "Greenland & Iceland" and "Iceland, Greenland & Nova Scotia" reposition between
+  // New Jersey or Boston and Reykjavík (Peter, 2026-10-15).
+  'transatlantic': ['transatlantic', 'trans atlantic', 'repositioning transatlantic', 'moroccan passage',
+    'greenland iceland', 'iceland greenland'],
   'panama-canal': ['panama canal', 'panama canal full transit'],
   'south-america': ['south america', 'south america antarctica', 'brazil', 'brazilian', 'cape horn',
     'patagonia'],

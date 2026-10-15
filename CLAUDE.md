@@ -92,11 +92,11 @@ a good dataset.
 **Six lines working**, each to the next 12 months (scraped 2026-10-15): Royal Caribbean (2,078),
 Celebrity (831), Princess (98), Holland America (682), Viking (326), Cunard (276) — 4,291
 sailings departing 2026-10-16 → 2027-10-15, every one with a trip type (544 cruisetours, all
-Holland America) and all but 4 with a destination (the unmapped "Repositioning" ones). All but
+Holland America) and a destination. All but
 12 have an end port — those are long Princess itineraries whose cards stop short (see the flights
 panel below) — and every departure and end port maps to an airport. 46 ships with descriptions,
 cheapest prices $199–$30,155 USD (the top is Celebrity's 7-night Galápagos Outer Loop and Machu
-Picchu) and $395–$80,999 CAD (a 28-night Viking voyage). Alaska: 1,213 sailings. 330 tests.
+Picchu) and $395–$80,999 CAD (a 28-night Viking voyage). Alaska: 1,213 sailings. 331 tests.
 
 **Prices per cabin type.** Every sailing has `cabinPrices` — cabin type → that cabin's
 cheapest price, e.g. `{ interior: 959, oceanview: 1009, balcony: 1459, suite: 2164 }` — and
@@ -187,7 +187,9 @@ drifted: Celebrity's 36 Alaska sailings vanished between two scrapes.
 rolling forward with each scrape. One rule, `withinNextYear` in `scrape.js`, applied to each
 line's fresh sailings and to any carried over ("left out N sailings outside the next 12 months").
 Holland America's 750 cap still applies first. "Repositioning" sailings take their destination
-from the itinerary name when it names one; a few ("Colon To San Juan Cruise") stay unmapped.
+from the itinerary name: a region it names, or one of the voyages Peter mapped by name (Caribbean
+crossings like "Colon To San Juan Cruise"; Iceland/Greenland → transatlantic). A new one shows up
+in the scrape's to-do list.
 
 **Cruisetours are a trip type.** Every sailing has `tripType`: `"cruise"` or
 `"cruisetour"` (a cruise plus land days, sold as one package — only Holland America has
