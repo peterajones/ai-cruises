@@ -90,8 +90,9 @@ CREATE TABLE IF NOT EXISTS selections (
 - The server looks the sailing up by `id` in the current dataset for the snapshot. For a
   sailing no longer listed, a rating change updates the row and keeps its old snapshot; a view
   of an unlisted sailing is refused (404) — there is nothing to view.
-- Bad input → 400 with a message: missing/unknown `id`, rating 0, 6, 2.5 or a string,
-  malformed JSON.
+- Bad input → 400 with a message: a missing `id`, rating 0, 6, 2.5 or a string, malformed JSON.
+  An `id` that matches no sailing → 404 "not found" (corrected 2026-10-15: the code's answer,
+  and the accurate one — the request was well-formed).
 - `npm run export-selections` → writes `data/selections-export-YYYY-MM-DD.json` (readable,
   every row with its snapshot) and prints the path.
 

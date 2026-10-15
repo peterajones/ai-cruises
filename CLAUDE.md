@@ -307,6 +307,13 @@ available". **Checking photos headlessly:** Royal Caribbean, Celebrity and Cunar
 `HeadlessChrome` user agent with an HTML block page instead of the photo (Chrome reports
 `ERR_BLOCKED_BY_ORB`); set a normal Chrome user agent in puppeteer, or every photo looks broken.
 
+## Decided against
+
+**Labelling Celebrity's land-tour packages as cruisetours** (2026-10-15). Some Celebrity
+sailings include land days ("Galápagos Outer Loop and Machu Picchu", 7 nights, $30,155) but
+show as plain cruises. Peter: the price makes a package obvious, and it is a booking-time
+decision, not an exploring one. Not worth the effort.
+
 ## Working style
 
 - Say what you're about to do, what Peter will run, and what success looks like —
