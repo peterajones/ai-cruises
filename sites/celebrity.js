@@ -153,15 +153,70 @@ export function parseShip(html) {
 
 const SEARCH_URL = 'https://www.celebritycruises.com/cruises';
 
-/** Response URL substring shared by all four batched GraphQL operations on page load. */
+/** URL substring shared by every GraphQL operation the page sends as it loads. */
 const RESULTS_MATCH = 'cruises/graph';
 
+/** The operation whose answer carries sailings; the page sends it as it loads. */
+const SEARCH_OPERATION = 'CruisesSearchResults';
+
 /**
- * Content marker unique to the one GraphQL response (of four hitting the same
- * URL) that actually carries sailings. Recorded in NOTES.md, Task 8: size is
- * a decent heuristic but not a guarantee, so filter by content instead.
+ * Cruises per replayed request — enough for the whole catalogue at once (638 cruises:
+ * 10 MB, ~5 s, 2026-10-15). Not smaller pages: on Royal Caribbean, the same platform, the
+ * order shifts between requests, and paging by `skip` returned 67 cruises twice and missed
+ * 67 others. Paging stays only for a catalogue that outgrows this, and a repeated cruise
+ * then fails the fetch.
  */
-const SAILINGS_MARKER = '"cruiseSearch"';
+export const PAGE_SIZE = 3000;
+
+/** A `total` that never arrives must not page for ever. */
+const MAX_PAGES = 20;
+
+/** Headers the browser sets for itself; fetch() refuses or ignores them on a replay. */
+const BROWSER_HEADERS = /^(:|sec-|user-agent$|accept-encoding$|content-length$|origin$|priority$|referer$|cookie$|host$|connection$)/;
+
+export function replayHeaders(headers) {
+  return Object.fromEntries(Object.entries(headers).filter(([k]) => !BROWSER_HEADERS.test(k)));
+}
+
+/**
+ * One replay of the page's search from inside the page (same-origin, the site's own
+ * cookies). HTTP 403, or HTML carrying a block's signature, is a bot wall; anything else
+ * that isn't a search answer is an ordinary failure, and fails the line loudly.
+ */
+async function replay(page, captured, pagination) {
+  const body = JSON.stringify({ ...captured.body, variables: { ...captured.body.variables, pagination } });
+  const { status, text } = await page.evaluate(async (path, headers, b) => {
+    const res = await fetch(path, { method: 'POST', headers, body: b });
+    return { status: res.status, text: await res.text() };
+  }, captured.path, captured.headers, body);
+
+  if (status === 403) throw new BotWallError('HTTP 403', captured.path);
+  const trimmed = String(text ?? '').trimStart();
+  if (!trimmed.startsWith('{')) {
+    // detectBotWall calls any short body a block; here a short body is just a bad answer.
+    const reason = detectBotWall(text);
+    if (reason && !reason.startsWith('response too small')) throw new BotWallError(reason, captured.path);
+    throw new Error(`Celebrity search answered HTTP ${status} with no JSON: ${trimmed.slice(0, 80) || '(empty)'}`);
+  }
+  if (status >= 400) throw new Error(`Celebrity search answered HTTP ${status}: ${trimmed.slice(0, 80)}`);
+  let json;
+  try {
+    json = JSON.parse(trimmed);
+  } catch {
+    throw new Error(`Celebrity search answered invalid JSON: ${trimmed.slice(0, 80)}`);
+  }
+  if (json.errors?.length) {
+    throw new Error(`Celebrity search answered GraphQL errors: ${JSON.stringify(json.errors).slice(0, 120)}`);
+  }
+  const results = json.data?.cruiseSearch?.results;
+  if (!Array.isArray(results?.cruises)) {
+    throw new Error(`Celebrity search answer has no results.cruises (skip ${pagination.skip})`);
+  }
+  return { text: trimmed, results };
+}
+
+
+
 
 /**
  * @param {string} ship
@@ -176,40 +231,70 @@ export function shipUrl(ship) {
 }
 
 /**
+ * The whole ocean catalogue. The /cruises page asks for its first 10 cruises — the 114
+ * sailings this adapter used to read, of ~1,900 — filtered to `voyageType:OCEAN`. The same
+ * request takes a bigger `count` and a `skip`: capture the one the page sends (its filter
+ * included, so river cruises stay out), then replay it for the whole catalogue at once.
+ * No copy of the query lives here — if the site changes it, we replay theirs.
+ *
  * @param {import('puppeteer').Page} page
- * @param {{limit: number}} options - `limit` is accepted for interface parity with the
- *   registry/CLI but currently unused: a single landing-page load already returns
- *   ~204 sailings, comfortably above what any caller needs, so no pagination is
- *   attempted. If pagination is ever required, the correct route is discovering
- *   the GraphQL request's parameters (page/offset/filter body) — not clicking
- *   blindly at the DOM of a site fronted by Akamai.
- * @returns {Promise<string[]>} raw JSON payload TEXT of the sailings-bearing responses only
+ * @param {{limit?: number, onProgress?: (text: string) => void, pause?: () => Promise<void>}} options
+ * @returns {Promise<string[]>} raw JSON answers, each a full cruiseSearch result
  */
-export async function fetchListingPages(page, { limit }) {
-  const rawPayloads = [];
-
-  const onResponse = async (response) => {
-    if (!response.url().includes(RESULTS_MATCH)) return;
-    if (!(response.headers()['content-type'] ?? '').includes('json')) return;
+export async function fetchListingPages(page, { limit = Infinity, onProgress = () => {}, pause = politeDelay } = {}) {
+  let captured = null;
+  const onRequest = (request) => {
+    if (captured || request.method() !== 'POST' || !request.url().includes(RESULTS_MATCH)) return;
+    const raw = request.postData() ?? '';
+    if (!raw.includes(SEARCH_OPERATION)) return;
     try {
-      rawPayloads.push(await response.text());
+      captured = { path: new URL(request.url()).pathname, headers: replayHeaders(request.headers()), body: JSON.parse(raw) };
     } catch {
-      // Body no longer available (page navigated on); a later load may produce another.
+      // Not JSON: keep listening for the next one.
     }
   };
-  page.on('response', onResponse);
 
+  page.on('request', onRequest);
   try {
     await page.goto(SEARCH_URL, { waitUntil: 'networkidle2', timeout: 60_000 });
-    await politeDelay();
-
     const wall = detectBotWall(await page.content());
     if (wall) throw new BotWallError(wall, SEARCH_URL);
-
-    return rawPayloads.filter((p) => p.includes(SAILINGS_MARKER));
   } finally {
-    page.off('response', onResponse);
+    page.off('request', onRequest);
   }
+  if (!captured) {
+    throw new Error('Celebrity: the search page sent no CruisesSearchResults request — the page or its API has changed');
+  }
+
+  // `limit` is in sailings; every cruise has at least one, so this many cruises is enough.
+  const count = Number.isFinite(limit) ? Math.max(1, Math.min(PAGE_SIZE, limit)) : PAGE_SIZE;
+  const payloads = [];
+  const seen = new Set();
+  let sailings = 0;
+
+  for (let n = 0; ; n += 1) {
+    if (n === MAX_PAGES) {
+      throw new Error(`Celebrity search ran to more than ${MAX_PAGES} pages without an end — stopping rather than guessing`);
+    }
+    await pause();
+    const skip = n * count;
+    const { text, results } = await replay(page, captured, { count, skip });
+    if (results.cruises.length === 0) break;
+    for (const cruise of results.cruises) {
+      if (seen.has(cruise.id)) {
+        throw new Error(`Celebrity search pages overlapped (cruise ${cruise.id} came back twice), so others were missed — stopping rather than keeping a partial catalogue`);
+      }
+      seen.add(cruise.id);
+    }
+    payloads.push(text);
+
+    const total = Number.isFinite(results.total) ? results.total : null;
+    onProgress(total === null ? `page ${n + 1}` : `page ${n + 1}/${Math.ceil(total / count)}`);
+    sailings += parseListing(text).length;
+    if (sailings >= limit) break;
+    if (total !== null && skip + count >= total) break;
+  }
+  return payloads;
 }
 
 /**
