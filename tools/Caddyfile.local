@@ -1,0 +1,14 @@
+# Local HTTPS in front of a second copy on port 3031, so the Mac behaves like the deployed
+# site: HTTPS, Secure cookies, and a proxy adding X-Forwarded-For as Coolify's does.
+#   caddy run --config tools/Caddyfile.local --adapter caddyfile
+# Browsers trust it after `caddy trust` (asks for the Mac's password) — Peter's step.
+{
+	local_certs
+	skip_install_trust
+	http_port 8080
+	auto_https disable_redirects
+}
+
+https://localhost:8443 {
+	reverse_proxy 127.0.0.1:3031
+}

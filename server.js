@@ -32,6 +32,7 @@ import {
   clearedCookie, readCookie, createLimiter, clientAddress, isLocalHost,
 } from './auth.js';
 import { securityHeaders } from './headers.js';
+import { health } from './health.js';
 
 // PORT lets a second copy run beside the usual one, e.g. to check a change.
 const PORT = Number(process.env.PORT) || 3030;
@@ -139,6 +140,12 @@ const server = createServer(async (req, res) => {
       if (path.startsWith('/api/')) return json(res, 401, { error: 'Log in first.' });
       res.writeHead(302, { location: '/login' });
       return res.end();
+    }
+
+    if (req.method === 'GET' && path === '/healthz') {
+      const h = await health({ selections, dataFile: DATA_FILE });
+      res.writeHead(h.status, { 'content-type': 'text/plain; charset=utf-8' });
+      return res.end(h.text);
     }
 
     if (req.method === 'GET' && path === '/login') {
