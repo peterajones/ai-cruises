@@ -16,3 +16,7 @@ data/selections-export-*.json
 # SDD scratch — see CLAUDE.md; delete when the work lands
 .superpowers/
 .env
+.env.*
+
+# The local stand-in for the server (npm run serve:server) — its data and ratings
+server-data/

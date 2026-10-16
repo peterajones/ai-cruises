@@ -51,7 +51,9 @@ npm run pull-ratings                      # copy the server's ratings down to th
 npm run push-ratings                      # move this Mac's ratings up, once (-- --force)
 npm run hash-password                     # asks twice, prints LOGIN_PASSWORD_HASH
 npm run make-key                          # prints a 32+ character key (JWT_SECRET, SYNC_KEY)
-caddy run --config tools/Caddyfile.local --adapter caddyfile   # HTTPS at https://localhost:8443 -> port 3031
+npm run local:start                       # Caddy + the stand-in server at https://ai-cruises.localhost:8443; Ctrl-C stops both
+npm run local:upload                      # send data/sailings.json to the stand-in
+npm run local:stop                        # stop Caddy if it was left running
 ```
 
 Fixtures in `test/fixtures/` are real captured payloads. When a site changes shape,
@@ -183,11 +185,15 @@ HSTS is sent only when `HOST` is public and the request's host isn't localhost, 
 Coolify's persistent storage is mounted at `/app/data` — `sailings.json`, the previous copy,
 `selections.db`, and the flights cache that protects the SerpApi quota.
 
-**Local HTTPS.** To see the deployed behaviour on the Mac, run a second copy on `PORT=3031` with
-the server's settings (`JWT_SECRET`, `LOGIN_PASSWORD_HASH`, `SYNC_KEY`, `TRUST_PROXY=1`) and scratch
-`DATA_DIR` and `SELECTIONS_FILE`, and Caddy in front (`tools/Caddyfile.local`, line above). Caddy's
-certificate needs its root trusted once with `caddy trust` (asks for the Mac's password).
-`SYNC_URL=https://localhost:8443` runs Refresh, upload and pull end to end against it.
+**Local HTTPS.** A stand-in for the server runs on the Mac: `npm run serve:server` starts a copy
+on port 3031 with the server's settings from `.env.server` (`PORT=3031`, `TRUST_PROXY=1`,
+`DATA_DIR=server-data`, `SELECTIONS_FILE=server-data/selections.db`, `JWT_SECRET`,
+`LOGIN_PASSWORD_HASH`, `SYNC_KEY`, and the two API keys), and Caddy in front serves it at
+`https://ai-cruises.localhost:8443` (`tools/Caddyfile.local`). `.env.*` and `server-data/` are
+gitignored, so neither the secrets nor its ratings can be committed; Peter's `data/` is untouched.
+Caddy's certificate needs its root trusted once: `caddy start …` first, then `caddy trust` (asks for
+the Mac's password) — without Caddy running it fails with "requesting CA info … connection refused".
+The Mac's own copy (`npm run serve`, port 3030, `.env`) has no login and no `JWT_SECRET`.
 
 ## Status
 
