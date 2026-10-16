@@ -51,6 +51,7 @@
   <h1>My cruises</h1>
   <div class="sub" id="sub">Loading… · <a href="/">Back to search</a></div>
   <div class="note" id="note" role="status"></div>
+  <div class="sub" id="nodata" hidden></div>
   <div class="box"><div id="table"></div></div>
 </div>
 <script type="module">
@@ -70,6 +71,8 @@ const day = (iso) => (iso ? new Date(iso.length === 10 ? `${iso}T00:00:00` : iso
   .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '');
 
 let rows = [];
+// Set when the cruise data couldn't be loaded: then "now" is unknown, not "gone".
+let noData = null;
 let sortKey = null;
 let sortDir = -1;
 
@@ -147,10 +150,13 @@ function starsFor(r) {
       r.sel = { ...r.sel, rating };
       paint();
       try {
-        const res = await fetch('/api/selections/rating', {
+        // One save after another per cruise, so the server ends on the last click.
+        const send = (r.chain ?? Promise.resolve()).then(() => fetch('/api/selections/rating', {
           method: 'PUT', headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ id: r.sel.sailingId, rating }),
-        });
+        }));
+        r.chain = send.catch(() => {});
+        const res = await send;
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
         if (ticket !== r.ticket) return;
@@ -195,7 +201,7 @@ function draw() {
     const link = safeUrl(r.s.url);
     const then = r.sel.snapshot.price;
     let nowCell;
-    if (!r.now) nowCell = el('span', { class: 'gone', text: 'No longer listed' });
+    if (!r.now) nowCell = el('span', { class: 'gone', text: noData ? 'Prices unavailable' : 'No longer listed' });
     else {
       const diff = then != null ? Math.round(r.now.price - then) : 0;
       nowCell = el('span', {}, money(r.now.price, r.now.currency),
@@ -221,7 +227,13 @@ async function boot() {
   const [dres, sres] = await Promise.all([fetch('/api/dataset'), fetch('/api/selections')]);
   const sdata = await sres.json();
   if (!sres.ok) { $('#sub').firstChild.textContent = `Ratings are unavailable: ${sdata.error} · `; return; }
-  const listed = dres.ok ? (await dres.json()).sailings : [];
+  const ddata = await dres.json().catch(() => ({}));
+  const listed = dres.ok ? ddata.sailings : [];
+  if (!dres.ok) {
+    noData = ddata.error ?? 'The cruise data could not be loaded.';
+    $('#nodata').textContent = `Today's prices are unavailable — ${noData}`;
+    $('#nodata').hidden = false;
+  }
   const byId = new Map(listed.map((s) => [s.id, s]));
   rows = sdata.selections.map((sel) => {
     const now = byId.get(sel.sailingId) ?? null;

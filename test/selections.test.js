@@ -11,11 +11,20 @@ const scratch = [];
 after(() => { for (const dir of scratch) rmSync(dir, { recursive: true, force: true }); });
 const scratchDir = () => { const dir = mkdtempSync(join(tmpdir(), 'sel-')); scratch.push(dir); return dir; };
 const tmp = () => join(scratchDir(), 'selections.db');
+// The store needs built-in node:sqlite (Node 24.15+). On an older Node, the tests that open a
+// real database are skipped and one test says what to do, instead of a wall of bare errors.
+const sqliteOk = nodeSupportsSqlite();
+const dbTest = sqliteOk ? test : (name, fn) => test(name, { skip: 'needs Node 24.15+' }, fn);
+
+test('this Node can run the ratings tests', () => {
+  assert.ok(sqliteOk, `These need Node 24.15 or later (this is ${process.versions.node}) — run \`nvm use\` in the project folder.`);
+});
+
 const sailing = (over = {}) => ({
   id: 'cunard:M626C', line: 'Cunard', ship: 'Queen Mary 2', itinerary: 'Southampton To Hamburg',
   destination: 'europe', departureDate: '2026-10-18', nights: 2, price: 504.74, currency: 'CAD',
   cabin: 'interior', url: 'https://www.cunard.com/x', image: null, departurePort: 'Southampton',
-  ports: ['ignored'], cabinPrices: { interior: 504.74 }, ...over,
+  ports: ['ignored'], cabinPrices: { interior: 504.74 }, tripType: 'cruise', ...over,
 });
 
 test('Node 24.15 or later is needed', () => {
@@ -32,7 +41,7 @@ test('on an older Node the store is unavailable, with a reason that says what to
   assert.match(store.reason, /nvm use/);
 });
 
-test('a path that cannot be a database is unavailable, not a crash', async () => {
+dbTest('a path that cannot be a database is unavailable, not a crash', async () => {
   const dir = scratchDir();
   mkdirSync(join(dir, 'selections.db'));
   const store = await openSelections(join(dir, 'selections.db'));
@@ -40,13 +49,13 @@ test('a path that cannot be a database is unavailable, not a crash', async () =>
   assert.match(store.reason, /Could not open/);
 });
 
-test('a new database starts empty', async () => {
+dbTest('a new database starts empty', async () => {
   const store = await openSelections(tmp());
   assert.equal(store.ok, true);
   assert.deepEqual(store.all(), []);
 });
 
-test('a view creates a row, then counts', async () => {
+dbTest('a view creates a row, then counts', async () => {
   const store = await openSelections(tmp());
   const first = store.recordView(sailing(), '2026-10-14T10:00:00Z');
   assert.equal(first.views, 1);
@@ -61,12 +70,18 @@ test('a view creates a row, then counts', async () => {
 
 test('the snapshot keeps the card fields and nothing else', () => {
   assert.deepEqual(Object.keys(snapshotOf(sailing())).sort(), [
-    'cabin', 'currency', 'departureDate', 'departurePort', 'destination', 'id', 'image',
-    'itinerary', 'line', 'nights', 'price', 'ship', 'url',
+    'cabin', 'cabinPrices', 'currency', 'departureDate', 'departurePort', 'destination', 'id', 'image',
+    'itinerary', 'line', 'nights', 'price', 'ship', 'tripType', 'url',
   ]);
 });
 
-test('rate, change, and clear a rating', async () => {
+test('a departed cruise keeps its trip type and cabin prices, for its label and the cabin filter', () => {
+  const snap = snapshotOf(sailing({ tripType: 'cruisetour', cabinPrices: { interior: 900, balcony: 1400 } }));
+  assert.equal(snap.tripType, 'cruisetour');
+  assert.deepEqual(snap.cabinPrices, { interior: 900, balcony: 1400 });
+});
+
+dbTest('rate, change, and clear a rating', async () => {
   const store = await openSelections(tmp());
   assert.equal(store.setRating('cunard:M626C', 4, 'T1', sailing()).rating, 4);
   const changed = store.setRating('cunard:M626C', 2, 'T2', sailing());
@@ -77,7 +92,7 @@ test('rate, change, and clear a rating', async () => {
   assert.deepEqual(store.all(), []);
 });
 
-test('clearing the rating of a viewed sailing keeps the view', async () => {
+dbTest('clearing the rating of a viewed sailing keeps the view', async () => {
   const store = await openSelections(tmp());
   store.recordView(sailing(), 'T1');
   store.setRating('cunard:M626C', 5, 'T2', sailing());
@@ -86,7 +101,7 @@ test('clearing the rating of a viewed sailing keeps the view', async () => {
   assert.equal(row.views, 1);
 });
 
-test('a sailing no longer listed can be re-rated and keeps its old snapshot', async () => {
+dbTest('a sailing no longer listed can be re-rated and keeps its old snapshot', async () => {
   const store = await openSelections(tmp());
   store.setRating('cunard:M626C', 3, 'T1', sailing({ price: 600 }));
   const row = store.setRating('cunard:M626C', 5, 'T2', null);
@@ -94,7 +109,7 @@ test('a sailing no longer listed can be re-rated and keeps its old snapshot', as
   assert.equal(row.snapshot.price, 600);
 });
 
-test('a rating that is not a whole number from 1 to 5 is refused', async () => {
+dbTest('a rating that is not a whole number from 1 to 5 is refused', async () => {
   const store = await openSelections(tmp());
   for (const bad of [0, 6, 2.5, '4', undefined]) {
     assert.throws(() => store.setRating('cunard:M626C', bad, 'T', sailing()), RangeError, String(bad));
@@ -102,12 +117,12 @@ test('a rating that is not a whole number from 1 to 5 is refused', async () => {
   assert.deepEqual(store.all(), []);
 });
 
-test('rating an unknown sailing with nothing to snapshot is refused', async () => {
+dbTest('rating an unknown sailing with nothing to snapshot is refused', async () => {
   const store = await openSelections(tmp());
   assert.throws(() => store.setRating('cunard:NOPE', 4, 'T', null), /No sailing/);
 });
 
-test('the map search uses holds rating and views by id', async () => {
+dbTest('the map search uses holds rating and views by id', async () => {
   const store = await openSelections(tmp());
   store.recordView(sailing(), 'T1');
   store.setRating('viking:X', 2, 'T2', sailing({ id: 'viking:X' }));
@@ -118,7 +133,7 @@ test('the map search uses holds rating and views by id', async () => {
   assert.deepEqual(selectionMap({ ok: false, reason: 'x' }), {});
 });
 
-test('the data survives closing and reopening', async () => {
+dbTest('the data survives closing and reopening', async () => {
   const path = tmp();
   const a = await openSelections(path);
   a.setRating('cunard:M626C', 4, 'T1', sailing());
@@ -132,11 +147,11 @@ const call = (store, method, path, body) =>
   handleSelections({ method, path, body: body === undefined ? '' : JSON.stringify(body) },
     { store, sailings: listed, now: () => 'NOW' });
 
-test('the handler ignores other paths', async () => {
+dbTest('the handler ignores other paths', async () => {
   assert.equal(call(await openSelections(tmp()), 'GET', '/api/dataset'), null);
 });
 
-test('GET lists, POST view records, PUT rating sets and clears', async () => {
+dbTest('GET lists, POST view records, PUT rating sets and clears', async () => {
   const store = await openSelections(tmp());
   assert.deepEqual(call(store, 'GET', '/api/selections'), { status: 200, body: { selections: [] } });
   const viewed = call(store, 'POST', '/api/selections/view', { id: 'cunard:M626C' });
@@ -150,7 +165,7 @@ test('GET lists, POST view records, PUT rating sets and clears', async () => {
   assert.equal(call(store, 'GET', '/api/selections').body.selections.length, 1);
 });
 
-test('bad input is a 400 with a message', async () => {
+dbTest('bad input is a 400 with a message', async () => {
   const store = await openSelections(tmp());
   const cases = [
     ['PUT', '/api/selections/rating', { id: 'cunard:M626C', rating: 0 }],
@@ -173,13 +188,13 @@ test('bad input is a 400 with a message', async () => {
   assert.deepEqual(store.all(), []);
 });
 
-test('an unknown sailing is a 404; a view of an unlisted one too', async () => {
+dbTest('an unknown sailing is a 404; a view of an unlisted one too', async () => {
   const store = await openSelections(tmp());
   assert.equal(call(store, 'POST', '/api/selections/view', { id: 'cunard:GONE' }).status, 404);
   assert.equal(call(store, 'PUT', '/api/selections/rating', { id: 'cunard:GONE', rating: 3 }).status, 404);
 });
 
-test('an unlisted sailing that has a row can still be re-rated', async () => {
+dbTest('an unlisted sailing that has a row can still be re-rated', async () => {
   const store = await openSelections(tmp());
   store.setRating('cunard:GONE', 2, 'T1', sailing({ id: 'cunard:GONE' }));
   const out = call(store, 'PUT', '/api/selections/rating', { id: 'cunard:GONE', rating: 4 });
@@ -187,7 +202,7 @@ test('an unlisted sailing that has a row can still be re-rated', async () => {
   assert.equal(out.body.selection.rating, 4);
 });
 
-test('an unknown method or sub-path is a 404', async () => {
+dbTest('an unknown method or sub-path is a 404', async () => {
   const store = await openSelections(tmp());
   assert.equal(call(store, 'DELETE', '/api/selections').status, 404);
   assert.equal(call(store, 'GET', '/api/selections/rating').status, 404);
@@ -206,7 +221,7 @@ test('the export is written beside the database it came from', () => {
   assert.match(exportPath(undefined, '2026-10-15'), /\/ai-cruises\/data\/selections-export-2026-10-15\.json$/);
 });
 
-test('clearing views: an unrated cruise leaves, a rated one keeps its rating', async () => {
+dbTest('clearing views: an unrated cruise leaves, a rated one keeps its rating', async () => {
   const store = await openSelections(tmp());
   store.recordView(sailing(), 'T1');
   store.recordView(sailing(), 'T2');
@@ -223,7 +238,7 @@ test('clearing views: an unrated cruise leaves, a rated one keeps its rating', a
   assert.equal(row.lastViewed, null);
 });
 
-test('forgetting removes a cruise entirely, rating and views', async () => {
+dbTest('forgetting removes a cruise entirely, rating and views', async () => {
   const store = await openSelections(tmp());
   store.recordView(sailing(), 'T1');
   store.setRating('cunard:M626C', 5, 'T2', sailing());
@@ -231,7 +246,7 @@ test('forgetting removes a cruise entirely, rating and views', async () => {
   assert.deepEqual(store.all(), []);
 });
 
-test('POST unview and forget, by id; a cruise with no row is a 404', async () => {
+dbTest('POST unview and forget, by id; a cruise with no row is a 404', async () => {
   const store = await openSelections(tmp());
   call(store, 'POST', '/api/selections/view', { id: 'cunard:M626C' });
   call(store, 'PUT', '/api/selections/rating', { id: 'cunard:M626C', rating: 3 });

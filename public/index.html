@@ -713,6 +713,9 @@ function flightsButton(s) {
 let updateMineCount = () => {};
 /** Bumped per rating click, per sailing, so a slow earlier answer never repaints over a later one. */
 const rateTickets = {};
+// Each cruise's rating saves go one after another, so the server ends on the last click:
+// sent side by side, 3 then 5 could arrive as 5 then 3.
+const rateChains = {};
 
 /** Five buttons; clicking the current rating clears it. One group per copy of the cruise on screen. */
 function starsFor(s) {
@@ -749,10 +752,12 @@ async function rate(s, rating) {
   state.selections[s.id] = { ...(before ?? { sailingId: s.id, views: 0, snapshot: s }), rating };
   paintStars(s.id);
   try {
-    const res = await fetch('/api/selections/rating', {
+    const send = (rateChains[s.id] ?? Promise.resolve()).then(() => fetch('/api/selections/rating', {
       method: 'PUT', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ id: s.id, rating }),
-    });
+    }));
+    rateChains[s.id] = send.catch(() => {});
+    const res = await send;
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);
     if (ticket !== rateTickets[s.id]) return; // a later click owns the display now
