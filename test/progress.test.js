@@ -92,3 +92,13 @@ test('the whole run ends with its total time', () => {
   r.done();
   assert.equal(stream.text, 'Done in 16:42\n');
 });
+
+test('the throttle can be shortened (the Refresh panel asks for 2 s)', () => {
+  const stream = fakeStream(false);
+  const c = clock();
+  const r = createReporter({ stream, now: c.now, throttleMs: 2000 });
+  r.start('cunard');
+  c.t = 2500;
+  r.progress('cunard', 'page 3');
+  assert.match(stream.text, /cunard: page 3\n/);
+});

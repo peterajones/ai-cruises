@@ -279,6 +279,16 @@
   .account { position: absolute; top: 14px; right: 16px; font-size: 14px; }
   .account a { color: var(--accent); text-decoration: none; }
   header .wrap { position: relative; }
+  .refresh { font: inherit; font-size: 13px; font-weight: 600; padding: 4px 10px; border: 1px solid var(--line);
+    border-radius: 999px; background: transparent; color: var(--accent); cursor: pointer; }
+  .refresh-panel { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin: -4px 0 14px; }
+  .refresh-lines { margin: 0; max-height: 220px; overflow: auto; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+    white-space: pre-wrap; color: var(--muted); }
+  .refresh-result { margin-top: 8px; font-size: 14px; }
+  .refresh-result div + div { color: var(--muted); font-size: 13px; }
+  .refresh-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .refresh-actions button { font: inherit; font-size: 13px; padding: 4px 10px; border: 1px solid var(--line);
+    border-radius: 6px; background: transparent; color: inherit; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -304,7 +314,17 @@
 
   <div class="facets" id="facets"></div>
 
-  <div id="results-bar" class="results-bar"><span id="results-note"></span><span id="count" class="count"></span></div>
+  <div id="results-bar" class="results-bar"><button id="refresh" type="button" class="refresh" hidden>Refresh data</button><span id="results-note"></span><span id="count" class="count"></span></div>
+  <section id="refresh-panel" class="refresh-panel" hidden aria-live="polite">
+    <pre id="refresh-lines" class="refresh-lines"></pre>
+    <div id="refresh-result" class="refresh-result"></div>
+    <div class="refresh-actions">
+      <button id="refresh-new" type="button" hidden>Show the new data</button>
+      <button id="refresh-retry" type="button" hidden>Try again</button>
+      <button id="refresh-stop" type="button" hidden>Stop</button>
+      <button id="refresh-hide" type="button">Hide</button>
+    </div>
+  </section>
   <div id="results" class="grid"></div>
   <div id="more" class="more" hidden><span id="more-count"></span>
     <button id="show-all" type="button">Show all</button></div>

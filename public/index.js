@@ -1,4 +1,5 @@
 import '/session.js';
+import '/refresh-panel.js';
 import { priceFor } from '/search.js';
 
 const $ = (s) => document.querySelector(s);

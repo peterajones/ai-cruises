@@ -25,7 +25,8 @@ import {
 import { checkRequest, readBody, readRaw } from './guard.js';
 import { dataDir } from './paths.js';
 import { handleSync, LIMITS } from './sync-server.js';
-import { syncConfig } from './sync.js';
+import { syncConfig, uploadSailings, pullRatings } from './sync.js';
+import { createRefresher } from './refresh.js';
 import {
   authConfig, startupProblems, isOpenPath, attemptLogin, verifyToken, signToken, sessionCookie,
   clearedCookie, readCookie, createLimiter, clientAddress, isLocalHost,
@@ -176,6 +177,20 @@ const server = createServer(async (req, res) => {
         key: process.env.SYNC_KEY ?? '', dataDir: DATA_DIR, store: selections, address: addressOf(req), limiter,
       });
       return json(res, out.status, out.body);
+    }
+
+    if (path === '/api/refresh' || path.startsWith('/api/refresh/')) {
+      if (req.method === 'GET' && path === '/api/refresh') return json(res, 200, refresher.status());
+      if (!mirror) return json(res, 404, { error: 'Refresh needs SYNC_URL and SYNC_KEY in .env.' });
+      const body = await readBody(req);
+      if (req.method === 'POST' && path === '/api/refresh') return json(res, 202, await refresher.start());
+      if (req.method === 'POST' && path === '/api/refresh/stop') return json(res, 200, refresher.stop());
+      if (req.method === 'POST' && path === '/api/refresh/retry') {
+        let step = null;
+        try { ({ step } = JSON.parse(body || '{}')); } catch { /* step stays null */ }
+        return json(res, 200, refresher.retry(step));
+      }
+      return json(res, 404, { error: 'Not found' });
     }
 
     if (req.method === 'POST' && path === '/api/login') {
@@ -332,6 +347,14 @@ const server = createServer(async (req, res) => {
 
 dataset = await loadDataset();
 const selections = await openSelections(SELECTIONS_FILE);
+
+const refresher = createRefresher({
+  dataFile: DATA_FILE,
+  sync: mirror && {
+    upload: () => uploadSailings({ config: mirror, dataFile: DATA_FILE }),
+    pull: () => pullRatings({ config: mirror, store: selections }),
+  },
+});
 
 // A server that others can reach must not start half-protected: no login, or ratings that
 // silently don't save. On this Mac (127.0.0.1) the app still runs without ratings and says why.
