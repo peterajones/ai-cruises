@@ -213,3 +213,18 @@ dbTest('pushRatings moves the Mac’s rows to an empty server, once', async () =
   await assert.rejects(pushRatings({ config, store: mac, fetchImpl: fetchVia(ctx) }), /already has 1/);
   server.close(); mac.close();
 });
+
+test('checkSailings refuses a null or falsy sailing, naming its place', () => {
+  for (const bad of [null, 0, '', false]) {
+    const problem = checkSailings({ sailings: [sailing(1), bad] }, 0, false);
+    assert.match(problem, /sailing 1, no id/, String(bad));
+  }
+  assert.match(checkSailings({ sailings: [{ id: 'x:1', line: 'V' }] }, 0, false), /\(x:1\)/);
+});
+
+test('an upload containing a null sailing is refused and the file is unchanged', async () => {
+  const ctx = await context({ current: dataset(10) });
+  const out = await handleSync(req({ body: gz({ sailings: [...dataset(10).sailings, null] }) }), ctx);
+  assert.equal(out.status, 400);
+  assert.equal(JSON.parse(readFileSync(join(ctx.dataDir, 'sailings.json'))).sailings.length, 10);
+});

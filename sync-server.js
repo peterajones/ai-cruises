@@ -24,9 +24,12 @@ export function keyMatches(authorization, key) {
 export function checkSailings(data, currentCount, force) {
   const sailings = data?.sailings;
   if (!Array.isArray(sailings) || sailings.length === 0) return 'No sailings in the upload — nothing changed.';
-  const bad = sailings.find((s) => !s || typeof s.id !== 'string' || !s.id || typeof s.line !== 'string' || !s.line
+  const at = sailings.findIndex((s) => !s || typeof s.id !== 'string' || !s.id || typeof s.line !== 'string' || !s.line
     || !/^\d{4}-\d{2}-\d{2}/.test(s.departureDate ?? ''));
-  if (bad) return `A sailing is missing its id, line or departure date (${bad?.id ?? 'no id'}) — nothing changed.`;
+  if (at !== -1) {
+    const id = sailings[at]?.id;
+    return `A sailing is missing its id, line or departure date (${id ? id : `sailing ${at}, no id`}) — nothing changed.`;
+  }
   if (!force && currentCount > 0 && sailings.length < currentCount / 2) {
     return `Only ${sailings.length} sailings — fewer than half the ${currentCount} the server has. Nothing changed. `
       + 'If that is right, send it again with --force.';
