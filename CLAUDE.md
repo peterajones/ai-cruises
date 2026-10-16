@@ -125,15 +125,15 @@ public, and a ratings file or a key committed here is published.
 | `TRUST_PROXY` | — | `1` |
 | `ANTHROPIC_API_KEY`, `SERP_API_KEY` | as now | set |
 
-**Set `TRUST_PROXY=1` in Coolify, or the login locks Peter out.** Without it every visitor
+**Set `TRUST_PROXY=1` in Coolify, or the server won't start (and the login would lock Peter out).** Without it every visitor
 shares the proxy's address, so 5 bad guesses from anyone lock everyone out, Peter included. A
 second proxy in front (Cloudflare, say) does the same, because the server reads the *last*
 `X-Forwarded-For` entry — the one the nearest proxy added; earlier entries can be forged.
 
 **Refusing to start.** With a `HOST` other than localhost the server exits, naming the problem,
 if `JWT_SECRET` is missing or under 32 characters, `LOGIN_PASSWORD_HASH` isn't a hash
-`npm run hash-password` makes, `SYNC_KEY` is set but under 32 characters, or the ratings database
-won't open. On the Mac the app still runs without ratings and says why; on a server that would
+`npm run hash-password` makes, `SYNC_KEY` is set but under 32 characters, `TRUST_PROXY` isn't exactly `1` or `0`, or the
+ratings database won't open. On the Mac the app still runs without ratings and says why; on a server that would
 fail silently.
 
 **Refresh, upload, pull.** Refresh runs the full `node scrape.js` as a child process (one at a
@@ -149,6 +149,15 @@ push is refused when the server already has ratings, unless forced.
 **The Mac is a mirror.** After a pull, the Mac's pages say "Ratings copied from the server at
 14:05 — changes here aren't kept" whenever `SYNC_URL` is set. A pull replaces every row in one
 transaction; ratings made on the Mac are lost at the next one.
+
+**A pull refuses to wipe ratings that exist only on the Mac.** When the Mac has saved cruises
+and either (a) it has never copied from the server, or (b) the server sent none, the pull changes
+nothing and says so: (a) "never copied from the server … Send them first with
+`npm run push-ratings`", (b) "The server has no saved cruises but this Mac has N … If the server
+lost its data, send yours with `npm run push-ratings -- --force`". `npm run pull-ratings -- --force`
+skips both checks and replaces the Mac's rows. **First deploy: `npm run export-selections` (a
+backup), then `npm run push-ratings`, before any pull or Refresh.** A Mac with no ratings may pull
+from an empty server.
 
 **Login.** One user, one password (12+ characters; only its hash is stored). A cookie
 (`HttpOnly; Secure; SameSite=Strict`, always `Secure`) holds an HS256 token good for 30 days.
