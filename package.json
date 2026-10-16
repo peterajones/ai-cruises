@@ -11,7 +11,10 @@
     "serve": "node --env-file-if-exists=.env server.js",
     "export-selections": "node selections.js --export",
     "hash-password": "node tools/hash-password.js",
-    "make-key": "node tools/make-key.js"
+    "make-key": "node tools/make-key.js",
+    "upload-data": "node --env-file-if-exists=.env tools/sync.js upload",
+    "pull-ratings": "node --env-file-if-exists=.env tools/sync.js pull",
+    "push-ratings": "node --env-file-if-exists=.env tools/sync.js push"
   },
   "keywords": [],
   "author": "",

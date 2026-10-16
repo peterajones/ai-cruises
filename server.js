@@ -22,7 +22,10 @@ import { flightsFor } from './flights.js';
 import {
   openSelections, handleSelections, selectionMap, DEFAULT_FILE as SELECTIONS_DEFAULT,
 } from './selections.js';
-import { checkRequest, readBody } from './guard.js';
+import { checkRequest, readBody, readRaw } from './guard.js';
+import { dataDir } from './paths.js';
+import { handleSync, LIMITS } from './sync-server.js';
+import { syncConfig } from './sync.js';
 import {
   authConfig, startupProblems, isOpenPath, attemptLogin, verifyToken, signToken, sessionCookie,
   clearedCookie, readCookie, createLimiter, clientAddress, isLocalHost,
@@ -35,6 +38,12 @@ const HOST = process.env.HOST || '127.0.0.1';
 const auth = authConfig(process.env);
 const deployed = !isLocalHost(HOST);
 const trustProxy = process.env.TRUST_PROXY === '1';
+// The Mac's copy: SYNC_URL + SYNC_KEY. A bad SYNC_URL (plain http to a real host) stops the start.
+let mirror;
+try { mirror = syncConfig(process.env); } catch (err) { console.error(`Not starting: ${err.message}`); process.exit(1); }
+const NO_DATA = deployed
+  ? 'No data yet — upload it from the Mac with `npm run upload-data`.'
+  : 'No data yet. Run `node scrape.js` first, then reload this page.';
 // Wrong passwords and wrong sync keys share one count per address.
 const limiter = createLimiter();
 const addressOf = (req) => clientAddress({
@@ -42,8 +51,9 @@ const addressOf = (req) => clientAddress({
 });
 const signedIn = (req) => Boolean(verifyToken(readCookie(req.headers.cookie, 'session'), auth));
 const PUBLIC_DIR = new URL('./public/', import.meta.url).pathname;
-const DATA_FILE = new URL('./data/sailings.json', import.meta.url).pathname;
-const FLIGHTS_CACHE = new URL('./data/flights-cache.json', import.meta.url).pathname;
+const DATA_DIR = dataDir();
+const DATA_FILE = join(DATA_DIR, 'sailings.json');
+const FLIGHTS_CACHE = join(DATA_DIR, 'flights-cache.json');
 // SELECTIONS_FILE points a second copy (port 3031) at a scratch database, so checks never
 // touch Peter's ratings.
 const SELECTIONS_FILE = process.env.SELECTIONS_FILE || SELECTIONS_DEFAULT;
@@ -153,8 +163,19 @@ const server = createServer(async (req, res) => {
     }
 
     if (req.url.startsWith('/api/')) {
-      const refused = checkRequest({ method: req.method, headers: req.headers });
+      const maxBody = path.startsWith('/api/sync/') ? LIMITS.maxCompressed : undefined;
+      const refused = checkRequest({ method: req.method, headers: req.headers, maxBody });
       if (refused) return json(res, refused.status, { error: refused.error });
+    }
+
+    if (path.startsWith('/api/sync/')) {
+      const out = await handleSync({
+        method: req.method, path, query: new URL(req.url, 'http://x').searchParams, headers: req.headers,
+        readBody: () => readRaw(req, LIMITS.maxCompressed),
+      }, {
+        key: process.env.SYNC_KEY ?? '', dataDir: DATA_DIR, store: selections, address: addressOf(req), limiter,
+      });
+      return json(res, out.status, out.body);
     }
 
     if (req.method === 'POST' && path === '/api/login') {
@@ -174,16 +195,14 @@ const server = createServer(async (req, res) => {
     }
 
     if (req.method === 'GET' && path === '/api/status') {
-      return json(res, 200, { login: auth.on, mirror: false, ratingsCopiedAt: null });
+      return json(res, 200, { login: auth.on, mirror: Boolean(mirror), ratingsCopiedAt: selections.ok ? selections.copiedAt() : null });
     }
 
     // What the page needs on load: the facets, and the whole dataset to render.
     if (req.method === 'GET' && req.url === '/api/dataset') {
       dataset = await loadDataset();
       if (!dataset) {
-        return json(res, 503, {
-          error: 'No data yet. Run `node scrape.js` first, then reload this page.',
-        });
+        return json(res, 503, { error: NO_DATA });
       }
       const view = current(dataset);
       return json(res, 200, {
@@ -197,7 +216,7 @@ const server = createServer(async (req, res) => {
     if (req.method === 'POST' && req.url === '/api/search') {
       dataset = await loadDataset();
       if (!dataset) {
-        return json(res, 503, { error: 'No data yet. Run `node scrape.js` first.' });
+        return json(res, 503, { error: NO_DATA });
       }
 
       const body = await readBody(req);

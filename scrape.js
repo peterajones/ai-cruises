@@ -13,8 +13,9 @@ import { deriveValues } from './values.js';
 import { assertNonEmpty, carryOver, dedupeById, loadExisting, mergeShips, writeResult } from './persist.js';
 import { ADAPTERS, adaptersFor } from './sites/index.js';
 import { createReporter } from './progress.js';
+import { dataDir } from './paths.js';
 
-const DATA_DIR = new URL('./data/', import.meta.url).pathname;
+const DATA_DIR = dataDir();
 
 export function parseFlags(argv) {
   // No cap by default. A fixed default silently shaped the production dataset:
