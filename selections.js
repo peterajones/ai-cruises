@@ -176,6 +176,9 @@ function storeFor(db) {
     /** When the Mac last copied the server's ratings, or null. */
     copiedAt: () => q.getMeta.get('ratings_copied_at')?.value ?? null,
 
+    /** The Mac and the server match as of `at`, after a pull or a push. */
+    markCopied: (at) => { q.setMeta.run('ratings_copied_at', at); },
+
     close: () => db.close(),
   };
   return store;

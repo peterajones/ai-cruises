@@ -53,8 +53,10 @@ export async function pullRatings({ config, store, fetchImpl, now = () => new Da
   return { copied: store.replaceAll(selections, { copiedAt: now() }) };
 }
 
-export async function pushRatings({ config, store, force = false, fetchImpl }) {
+export async function pushRatings({ config, store, force = false, fetchImpl, now = () => new Date().toISOString() }) {
   if (!store?.ok) throw new Error(store?.reason ?? 'Ratings are unavailable on this Mac.');
   const body = gzipSync(Buffer.from(JSON.stringify({ selections: store.all() })));
-  return call(config, `/api/sync/selections${force ? '?force=1' : ''}`, { method: 'PUT', body, headers: GZIP_JSON, fetchImpl });
+  const result = await call(config, `/api/sync/selections${force ? '?force=1' : ''}`, { method: 'PUT', body, headers: GZIP_JSON, fetchImpl });
+  store.markCopied(now()); // a refused push threw above: the sides match only once the server has accepted
+  return result;
 }

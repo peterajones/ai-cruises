@@ -2535,6 +2535,6 @@ Not tasks for an executor: Peter does the dashboard and DNS steps; Claude gives 
    Before setting SYNC_URL on the Mac: `npm run export-selections` (a backup).
 3. **Coolify:** new application from `peterajones/ai-cruises`, branch `main`, build pack Dockerfile, port 3030; persistent storage → `/app/data`; environment `JWT_SECRET`, `LOGIN_PASSWORD_HASH`, `SYNC_KEY`, `TRUST_PROXY=1`, `ANTHROPIC_API_KEY`, `SERP_API_KEY`; domain `https://ai-cruises.peter-jones.org`; deploy webhook as peterjonesdev2027's. Deploy.
 4. **Check:** `curl https://ai-cruises.peter-jones.org/healthz` → `ok — no data yet`; the site shows the login.
-5. **Data:** `npm run upload-data`. **Ratings:** `npm run push-ratings` (once) — before any `pull-ratings` or Refresh, which refuse until it has run.
-6. **Phone:** log in, rate a cruise. **Mac:** `npm run pull-ratings` → it arrives; the Mac's page shows the mirror note.
+5. **Data:** `npm run upload-data`. **Ratings:** `npm run push-ratings` (once) — before any `pull-ratings` or Refresh, which refuse until a push or pull has happened. A successful push marks the Mac as matching the server, so after it Refresh and `pull-ratings` work normally.
+6. **Phone:** log in, rate a cruise. **Mac:** `npm run pull-ratings` → it arrives (the pull works because step 5's push marked the Mac as matching); the Mac's page shows the mirror note.
 7. **Notes:** add the URL and Coolify app to `~/Projects/deployment-notes.md`; check whether `backups-dashboard` covers the volume and say which.

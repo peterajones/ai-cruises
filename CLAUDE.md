@@ -151,13 +151,15 @@ push is refused when the server already has ratings, unless forced.
 transaction; ratings made on the Mac are lost at the next one.
 
 **A pull refuses to wipe ratings that exist only on the Mac.** When the Mac has saved cruises
-and either (a) it has never copied from the server, or (b) the server sent none, the pull changes
-nothing and says so: (a) "never copied from the server … Send them first with
+and either (a) it has never copied from or pushed to the server, or (b) the server sent none, the
+pull changes nothing and says so: (a) "never copied from the server … Send them first with
 `npm run push-ratings`", (b) "The server has no saved cruises but this Mac has N … If the server
 lost its data, send yours with `npm run push-ratings -- --force`". `npm run pull-ratings -- --force`
 skips both checks and replaces the Mac's rows. **First deploy: `npm run export-selections` (a
-backup), then `npm run push-ratings`, before any pull or Refresh.** A Mac with no ratings may pull
-from an empty server.
+backup), then `npm run push-ratings`, before any pull or Refresh.** A successful push also marks
+the Mac as matching the server, so after it every pull and Refresh works; (a) only bites when you
+pull before you have ever pushed or pulled. A refused push marks nothing. A Mac with no ratings
+may pull from an empty server.
 
 **Login.** One user, one password (12+ characters; only its hash is stored). A cookie
 (`HttpOnly; Secure; SameSite=Strict`, always `Secure`) holds an HS256 token good for 30 days.

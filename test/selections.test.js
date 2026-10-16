@@ -307,3 +307,13 @@ dbTest('replaceAll without copiedAt (a push to the server) records no copy time'
   assert.equal(store.copiedAt(), null);
   store.close();
 });
+
+dbTest('markCopied records when the sides matched, and leaves the rows alone', async () => {
+  const store = await openSelections(tmp());
+  store.replaceAll([row()]);
+  const before = store.all();
+  store.markCopied('2026-10-16T15:00:00Z');
+  assert.equal(store.copiedAt(), '2026-10-16T15:00:00Z');
+  assert.deepEqual(store.all(), before);
+  store.close();
+});

@@ -254,6 +254,32 @@ dbTest('pushRatings moves the Mac’s rows to an empty server, once', async () =
   server.close(); mac.close();
 });
 
+dbTest('the first-deploy sequence: push once, and later pulls work without force', async () => {
+  const server = await openSelections(join(scratchDir(), 'server.db'));
+  const ctx = await context({ store: server });
+  const mac = await openSelections(join(scratchDir(), 'mac.db'));
+  mac.setRating('cunard:9', 4, '2026-10-01T00:00:00Z', { id: 'cunard:9' });
+  assert.equal(mac.copiedAt(), null);
+  await pushRatings({ config, store: mac, fetchImpl: fetchVia(ctx), now: () => '2026-10-16T14:00:00Z' });
+  assert.equal(mac.copiedAt(), '2026-10-16T14:00:00Z');
+  server.setRating('viking:3', 5, '2026-10-16T14:30:00Z', { id: 'viking:3' });
+  assert.deepEqual(await pullRatings({ config, store: mac, fetchImpl: fetchVia(ctx), now: () => '2026-10-16T15:00:00Z' }), { copied: 2 });
+  assert.deepEqual(mac.all().map((r) => r.sailingId).sort(), ['cunard:9', 'viking:3']);
+  assert.equal(mac.copiedAt(), '2026-10-16T15:00:00Z');
+  server.close(); mac.close();
+});
+
+dbTest('a push the server refuses does not mark the Mac as matching', async () => {
+  const server = await openSelections(join(scratchDir(), 'server.db'));
+  server.setRating('viking:3', 5, '2026-10-16T14:30:00Z', { id: 'viking:3' });
+  const ctx = await context({ store: server });
+  const mac = await openSelections(join(scratchDir(), 'mac.db'));
+  mac.setRating('cunard:9', 4, '2026-10-01T00:00:00Z', { id: 'cunard:9' });
+  await assert.rejects(pushRatings({ config, store: mac, fetchImpl: fetchVia(ctx) }), /already has 1/);
+  assert.equal(mac.copiedAt(), null);
+  server.close(); mac.close();
+});
+
 test('checkSailings refuses a null or falsy sailing, naming its place', () => {
   for (const bad of [null, 0, '', false]) {
     const problem = checkSailings({ sailings: [sailing(1), bad] }, 0, false);
