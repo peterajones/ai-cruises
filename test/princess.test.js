@@ -1,13 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { parseListing, parseShip, shipUrl, name, line, shipDescriptions, endPortOf } from '../sites/princess.js';
+import { readFile, readFileSync } from 'node:fs';
+import { readFile as readFileAsync } from 'node:fs/promises';
+import { parseListing, parseShip, shipUrl, name, line, shipDescriptions, endPortOf, fetchListingPages } from '../sites/princess.js';
 import { normalizeAll } from '../normalize.js';
 
-const html = await readFile(new URL('./fixtures/princess-results.html', import.meta.url), 'utf8');
+const html = await readFileAsync(new URL('./fixtures/princess-results.html', import.meta.url), 'utf8');
 
 const golden = JSON.parse(
-  await readFile(new URL('./fixtures/princess-first-row.json', import.meta.url), 'utf8'),
+  await readFileAsync(new URL('./fixtures/princess-first-row.json', import.meta.url), 'utf8'),
 );
 
 test('the first row matches the hand-checked golden row', () => {
@@ -171,4 +172,63 @@ test('a long one-way card does not guess where the cruise ends', () => {
   assert.equal(endPortOf(eight.slice(0, 3), false), 'Crete');
   assert.equal(endPortOf(eight, false), null);
   assert.equal(endPortOf(eight, true), 'Athens (Piraeus), Greece');
+});
+
+const noPause = async () => {};
+const RESULTS_PAGE = `<html><head><title>Cruise search results</title></head><body>${'<div class="card">sailing</div>'.repeat(60)}</body></html>`;
+const SHIP_CODES = JSON.parse(readFileSync(new URL('./fixtures/princess-ships-ref.json', import.meta.url), 'utf8')).ships.map((s) => s.id);
+
+/** A browser whose tabs remember what happened to them. */
+function fakeBrowser({ failOnShip = null, html = RESULTS_PAGE } = {}) {
+  const b = { tabs: [] };
+  b.newPage = async () => {
+    const tab = {
+      url: null, closed: false,
+      setUserAgent: async () => {}, setViewport: async () => {},
+      goto: async (url) => {
+        tab.url = url;
+        if (failOnShip && url.endsWith(`ship=${failOnShip}`)) throw new Error('Navigation timeout of 60000 ms exceeded');
+      },
+      evaluate: async () => 20,
+      content: async () => html,
+      close: async () => { tab.closed = true; },
+    };
+    b.tabs.push(tab);
+    return tab;
+  };
+  return b;
+}
+const sharedPage = (browser) => ({
+  browser: () => browser,
+  goto: async () => { throw new Error('the shared page must not load results pages'); },
+});
+
+test('each ship gets its own tab, closed afterwards', async () => {
+  const browser = fakeBrowser();
+  const pages = await fetchListingPages(sharedPage(browser), { limit: 60, pause: noPause });
+  assert.equal(pages.length, 3);
+  assert.equal(browser.tabs.length, 3);
+  assert.ok(browser.tabs.every((t) => t.closed));
+  assert.deepEqual(browser.tabs.map((t) => t.url.split('ship=')[1]), SHIP_CODES.slice(0, 3));
+});
+
+test('a ship that fails still closes its tab, and the error carries the page', async () => {
+  const browser = fakeBrowser({ failOnShip: SHIP_CODES[1] });
+  await assert.rejects(fetchListingPages(sharedPage(browser), { limit: 60, pause: noPause }), (err) => {
+    assert.match(err.message, /Navigation timeout/);
+    assert.equal(err.pageHtml, RESULTS_PAGE);
+    return true;
+  });
+  assert.equal(browser.tabs.length, 2);
+  assert.ok(browser.tabs.every((t) => t.closed));
+});
+
+test('a bot wall closes its tab and is reported with the page', async () => {
+  const browser = fakeBrowser({ html: '<html><title>Access Denied</title></html>' });
+  await assert.rejects(fetchListingPages(sharedPage(browser), { limit: 20, pause: noPause }), (err) => {
+    assert.equal(err.name, 'BotWallError');
+    assert.match(err.pageHtml, /Access Denied/);
+    return true;
+  });
+  assert.ok(browser.tabs.every((t) => t.closed));
 });

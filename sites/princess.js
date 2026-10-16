@@ -15,7 +15,7 @@
  */
 
 import { readFile } from 'node:fs/promises';
-import { politeDelay, detectBotWall } from '../browser.js';
+import { politeDelay, detectBotWall, newPage } from '../browser.js';
 import { BotWallError } from '../errors.js';
 
 export const name = 'princess';
@@ -184,9 +184,9 @@ export function shipUrl(ship) {
  *
  * The list lazy-loads: 10 cards on arrival, 20 after a scroll. Bounded at 15
  * iterations so a site change cannot spin forever, and every scroll is spaced by
- * politeDelay.
+ * a polite pause.
  */
-async function loadAllCards(page) {
+async function loadAllCards(page, pause) {
   let previous = -1;
   for (let i = 0; i < 15; i += 1) {
     const count = await page.evaluate(
@@ -195,38 +195,51 @@ async function loadAllCards(page) {
     if (count === previous) break;
     previous = count;
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await politeDelay(2500);
+    await pause(2500);
   }
   return page.content();
 }
 
 /**
- * One rendered results page per ship.
+ * One rendered results page per ship, each in its own tab.
  *
- * @param {import('puppeteer').Page} page
- * @param {{limit: number}} options - `limit` caps how many SHIPS are visited
- *   (~20 sailings each), so a small limit means a short run rather than a full
- *   17-ship crawl.
+ * A fresh tab per ship, closed afterwards: one tab reused for all 17 results pages kept
+ * every page's scripts in memory — 3.3 GB by the last ship (spike, 2026-10-16), against
+ * ~1.4 GB this way, with the same sailings.
+ *
+ * @param {import('puppeteer').Page} page - only its browser is used
+ * @param {{limit: number, onProgress?: Function, pause?: Function}} options - `limit` caps
+ *   how many SHIPS are visited (~20 sailings each), so a small limit means a short run.
  * @returns {Promise<string[]>}
  */
-export async function fetchListingPages(page, { limit, onProgress = () => {} }) {
+export async function fetchListingPages(page, { limit, onProgress = () => {}, pause = politeDelay }) {
   const codes = await shipCodes();
   const wanted = Number.isFinite(limit)
     ? codes.slice(0, Math.max(1, Math.ceil(limit / 20)))
     : codes;
+  const browser = page.browser();
   const pages = [];
 
   for (const [i, code] of wanted.entries()) {
     onProgress(`ship ${i + 1}/${wanted.length}`);
     const url = `${RESULTS_URL}?ship=${code}`;
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 60_000 });
-    await politeDelay();
+    const tab = await newPage(browser);
+    try {
+      await tab.goto(url, { waitUntil: 'networkidle2', timeout: 60_000 });
+      await pause();
 
-    const html = await loadAllCards(page);
-    const wall = detectBotWall(html);
-    if (wall) throw new BotWallError(wall, url);
+      const html = await loadAllCards(tab, pause);
+      const wall = detectBotWall(html);
+      if (wall) throw new BotWallError(wall, url);
 
-    pages.push(html);
+      pages.push(html);
+    } catch (err) {
+      // scrape.js saves the page that failed, but this tab is about to close: carry it.
+      err.pageHtml ??= await tab.content().catch(() => null);
+      throw err;
+    } finally {
+      await tab.close();
+    }
   }
 
   return pages;

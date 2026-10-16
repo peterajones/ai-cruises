@@ -175,7 +175,8 @@ async function main() {
       // Both of these abort without writing, and both save the page that caused
       // them — but they need different fixes, so they must not read alike.
       if (err instanceof BotWallError) {
-        const path = await snapshotFailure(await page.content(), `${adapter.name}-wall`);
+        // An adapter that opens its own tabs (Princess) closes them; the error carries the page.
+        const path = await snapshotFailure(err.pageHtml ?? await page.content(), `${adapter.name}-wall`);
         console.error(`${adapter.name}: BOT WALL — ${err.reason}.`);
         console.error(`  This is a block, not a parse failure. Body saved to ${path}`);
       } else if (err instanceof ConflictingDuplicateError) {
