@@ -92,7 +92,7 @@ async function loadDataset() {
   const parsed = JSON.parse(await readFile(DATA_FILE, 'utf8'));
 
   if (loadedMtime !== 0) {
-    console.log(`data/sailings.json changed — reloaded ${parsed.sailings.length} sailings`);
+    console.log(`${DATA_FILE} changed — reloaded ${parsed.sailings.length} sailings`);
   }
   loadedMtime = mtime;
   dataset = parsed;
@@ -391,7 +391,7 @@ server.on('error', (err) => {
 
 server.listen(PORT, HOST, () => {
   if (!dataset) {
-    console.log('WARNING: data/sailings.json not found. Run `node scrape.js` first.\n');
+    console.log(`WARNING: ${DATA_FILE} not found. ${NO_DATA}\n`);
   } else {
     console.log(`${dataset.sailings.length} sailings loaded, scraped ${dataset.scrapedAt}`);
   }
