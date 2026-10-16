@@ -24,8 +24,8 @@ import {
 } from './selections.js';
 import { checkRequest, readBody } from './guard.js';
 import {
-  authConfig, startupProblems, isOpenPath, verifyToken, signToken, verifyPassword, sessionCookie,
-  clearedCookie, readCookie, createLimiter, tooManyMessage, clientAddress, isLocalHost,
+  authConfig, startupProblems, isOpenPath, attemptLogin, verifyToken, signToken, sessionCookie,
+  clearedCookie, readCookie, createLimiter, clientAddress, isLocalHost,
 } from './auth.js';
 import { securityHeaders } from './headers.js';
 
@@ -159,16 +159,11 @@ const server = createServer(async (req, res) => {
 
     if (req.method === 'POST' && path === '/api/login') {
       if (!auth.on) return json(res, 404, { error: 'The login is off on this copy.' });
-      const address = addressOf(req);
-      const wait = limiter.blocked(address);
-      if (wait) return json(res, 429, { error: tooManyMessage(wait) });
       let password;
       try { ({ password } = JSON.parse(await readBody(req) || '{}')); } catch { password = null; }
-      if (typeof password !== 'string' || !verifyPassword(password, auth.passwordHash)) {
-        limiter.fail(address);
-        return json(res, 401, { error: 'Wrong password' });
-      }
-      limiter.succeed(address);
+      // No await from here: the count and the check happen together (see attemptLogin).
+      const out = attemptLogin(password, { address: addressOf(req), limiter, passwordHash: auth.passwordHash });
+      if (out.status !== 204) return json(res, out.status, { error: out.error });
       res.writeHead(204, { 'set-cookie': sessionCookie(signToken(auth)) });
       return res.end();
     }

@@ -4,7 +4,7 @@ import { createHmac } from 'node:crypto';
 import {
   hashPassword, verifyPassword, isPasswordHash, checkNewPassword, signToken, verifyToken,
   sessionCookie, clearedCookie, readCookie, createLimiter, tooManyMessage, clientAddress,
-  authConfig, startupProblems, isOpenPath,
+  authConfig, startupProblems, isOpenPath, attemptLogin,
 } from '../auth.js';
 
 const SECRET = 's'.repeat(40);
@@ -133,5 +133,46 @@ test('only the login page, its files, health and the sync routes are open', () =
     ['GET', '/api/selections'], ['PUT', '/api/selections/rating'], ['GET', '/api/flights'], ['GET', '/api/status'],
     ['GET', '/api/refresh'], ['GET', '/api/login'], ['GET', '/login/../index.html'], ['GET', '/api/syncx']]) {
     assert.equal(isOpenPath(m, p), false, `${m} ${p}`);
+  }
+});
+
+test('a login attempt is counted before the password is checked', () => {
+  const calls = [];
+  const limiter = { blocked: () => 0, fail: () => calls.push('fail'), succeed: () => calls.push('succeed') };
+  // A wrong password: the failure is already recorded when the (slow) check finishes.
+  assert.equal(attemptLogin('wrong', { address: 'a', limiter, passwordHash: HASH }).status, 401);
+  assert.deepEqual(calls, ['fail']);
+  calls.length = 0;
+  assert.equal(attemptLogin('correct horse battery', { address: 'a', limiter, passwordHash: HASH }).status, 204);
+  assert.deepEqual(calls, ['fail', 'succeed'], 'fail first, then cleared on success');
+});
+
+test('attemptLogin: wrong passwords are 401, then the sixth is 429 even if right', () => {
+  const limiter = createLimiter({ now: () => 0 });
+  const opts = { address: '1.1.1.1', limiter, passwordHash: HASH };
+  for (let i = 0; i < 5; i += 1) {
+    assert.deepEqual(attemptLogin('nope', opts), { status: 401, error: 'Wrong password' });
+  }
+  const out = attemptLogin('correct horse battery', opts);
+  assert.equal(out.status, 429);
+  assert.match(out.error, /Too many attempts/);
+});
+
+test('attemptLogin: the right password clears the count', () => {
+  const limiter = createLimiter({ now: () => 0 });
+  const opts = { address: '1.1.1.1', limiter, passwordHash: HASH };
+  for (let i = 0; i < 4; i += 1) attemptLogin('nope', opts);
+  assert.equal(attemptLogin('correct horse battery', opts).status, 204);
+  for (let i = 0; i < 5; i += 1) assert.equal(attemptLogin('nope', opts).status, 401, `wrong #${i + 1}`);
+  assert.equal(attemptLogin('nope', opts).status, 429);
+});
+
+test('attemptLogin: a password that is not a string is a counted failure', () => {
+  for (const bad of [null, 123, {}, undefined]) {
+    const limiter = createLimiter({ now: () => 0 });
+    const opts = { address: '1.1.1.1', limiter, passwordHash: HASH };
+    assert.equal(attemptLogin(bad, opts).status, 401);
+    for (let i = 0; i < 4; i += 1) attemptLogin(bad, opts);
+    assert.ok(limiter.blocked('1.1.1.1') > 0, `counted: ${String(bad)}`);
   }
 });

@@ -108,6 +108,20 @@ export function createLimiter({ max = 5, windowMs = 15 * 60_000, now = Date.now 
 export const tooManyMessage = (ms) => `Too many attempts — try again in ${Math.max(1, Math.ceil(ms / 60_000))} minutes.`;
 
 /**
+ * One login attempt, decided with no await inside: a request that waits for its body can't slip
+ * past the limit while others are being checked. The failure is counted before the (slow) password
+ * check and cleared on success.
+ */
+export function attemptLogin(password, { address, limiter, passwordHash }) {
+  const wait = limiter.blocked(address);
+  if (wait) return { status: 429, error: tooManyMessage(wait) };
+  limiter.fail(address);
+  if (typeof password !== 'string' || !verifyPassword(password, passwordHash)) return { status: 401, error: 'Wrong password' };
+  limiter.succeed(address);
+  return { status: 204 };
+}
+
+/**
  * Behind Coolify's proxy every request comes from the proxy. The proxy appends the address
  * it saw to X-Forwarded-For; anything before that came from the client and can be forged.
  */
