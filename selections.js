@@ -29,7 +29,8 @@ const SCHEMA = `
     views        INTEGER NOT NULL DEFAULT 0,
     rated_at     TEXT,
     snapshot     TEXT NOT NULL
-  )`;
+  );
+  CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT)`;
 
 /** node:sqlite is a release candidate from 24.15; before that it warns it may change. */
 export function nodeSupportsSqlite(version = process.versions.node) {
@@ -43,6 +44,21 @@ export function snapshotOf(sailing) {
 }
 
 const isRating = (r) => Number.isInteger(r) && r >= 1 && r <= 5;
+
+/** Rows as store.all() returns them, checked before any replace. The first problem, or null. */
+export function checkRows(rows) {
+  if (!Array.isArray(rows)) return 'Send { "selections": [...] }.';
+  const seen = new Set();
+  for (const r of rows) {
+    if (!r || typeof r.sailingId !== 'string' || !r.sailingId) return 'A saved cruise has no sailingId.';
+    if (seen.has(r.sailingId)) return `${r.sailingId} appears twice.`;
+    seen.add(r.sailingId);
+    if (r.rating !== null && !isRating(r.rating)) return `${r.sailingId}: a rating is 1–5 or null.`;
+    if (!Number.isInteger(r.views) || r.views < 0) return `${r.sailingId}: views must be a whole number, 0 or more.`;
+    if (!r.snapshot || typeof r.snapshot !== 'object' || Array.isArray(r.snapshot)) return `${r.sailingId}: no snapshot.`;
+  }
+  return null;
+}
 
 const toRow = (r) => (r ? {
   sailingId: r.sailing_id,
@@ -70,6 +86,12 @@ function storeFor(db) {
         rating = excluded.rating, rated_at = excluded.rated_at, snapshot = excluded.snapshot`),
     remove: db.prepare('DELETE FROM selections WHERE sailing_id = ?'),
     unview: db.prepare('UPDATE selections SET views = 0, first_viewed = NULL, last_viewed = NULL WHERE sailing_id = ?'),
+    clear: db.prepare('DELETE FROM selections'),
+    insert: db.prepare(`
+      INSERT INTO selections (sailing_id, rating, first_viewed, last_viewed, views, rated_at, snapshot)
+      VALUES (?, ?, ?, ?, ?, ?, ?)`),
+    getMeta: db.prepare('SELECT value FROM meta WHERE key = ?'),
+    setMeta: db.prepare('INSERT INTO meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value'),
   };
 
   const store = {
@@ -127,6 +149,35 @@ function storeFor(db) {
       q.remove.run(id);
       return null;
     },
+
+    /**
+     * Replaces every row — the Mac copying the server's ratings (with `copiedAt`), or the
+     * server receiving the Mac's once. One transaction: a failure leaves the old rows.
+     */
+    replaceAll(rows, { copiedAt = null } = {}) {
+      const problem = checkRows(rows);
+      if (problem) throw new RangeError(problem);
+      db.exec('BEGIN');
+      try {
+        q.clear.run();
+        for (const r of rows) {
+          q.insert.run(r.sailingId, r.rating, r.firstViewed ?? null, r.lastViewed ?? null, r.views,
+            r.ratedAt ?? null, JSON.stringify(r.snapshot));
+        }
+        if (copiedAt) q.setMeta.run('ratings_copied_at', copiedAt);
+        db.exec('COMMIT');
+      } catch (err) {
+        db.exec('ROLLBACK');
+        throw err;
+      }
+      return rows.length;
+    },
+
+    /** When the Mac last copied the server's ratings, or null. */
+    copiedAt: () => q.getMeta.get('ratings_copied_at')?.value ?? null,
+
+    /** The Mac and the server match as of `at`, after a pull or a push. */
+    markCopied: (at) => { q.setMeta.run('ratings_copied_at', at); },
 
     close: () => db.close(),
   };

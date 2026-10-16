@@ -10,8 +10,8 @@ export const MAX_BODY = 64 * 1024;
 
 const WRITES = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
-/** null if allowed, else { status, error }. */
-export function checkRequest({ method, headers }) {
+/** null if allowed, else { status, error }. `maxBody` is for the few routes that take more. */
+export function checkRequest({ method, headers, maxBody = MAX_BODY }) {
   const site = headers['sec-fetch-site'];
   // 'none' is the address bar or a bookmark. 'same-site' includes other ports on localhost.
   if (site && site !== 'same-origin' && site !== 'none') {
@@ -32,24 +32,31 @@ export function checkRequest({ method, headers }) {
       return { status: 415, error: 'Send JSON (content-type: application/json).' };
     }
   }
-  if (Number(headers['content-length']) > MAX_BODY) {
-    return { status: 413, error: `Too large — the limit is ${MAX_BODY / 1024} KB.` };
+  if (Number(headers['content-length']) > maxBody) {
+    return { status: 413, error: `Too large — the limit is ${sizeText(maxBody)}.` };
   }
   return null;
 }
 
-/** The request body as text, refusing more than MAX_BODY bytes whatever was declared. */
-export async function readBody(req) {
+const sizeText = (bytes) => (bytes >= 1024 * 1024 ? `${bytes / 1024 / 1024} MB` : `${bytes / 1024} KB`);
+
+/** The request body as bytes, refusing more than `maxBody` whatever was declared. */
+export async function readRaw(req, maxBody = MAX_BODY) {
   const chunks = [];
   let size = 0;
   for await (const chunk of req) {
     size += chunk.length;
-    if (size > MAX_BODY) {
-      const err = new Error(`Too large — the limit is ${MAX_BODY / 1024} KB.`);
+    if (size > maxBody) {
+      const err = new Error(`Too large — the limit is ${sizeText(maxBody)}.`);
       err.status = 413;
       throw err;
     }
     chunks.push(Buffer.from(chunk));
   }
-  return Buffer.concat(chunks).toString('utf8');
+  return Buffer.concat(chunks);
+}
+
+/** The request body as text, refusing more than `maxBody` bytes whatever was declared. */
+export async function readBody(req, maxBody = MAX_BODY) {
+  return (await readRaw(req, maxBody)).toString('utf8');
 }

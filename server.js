@@ -22,14 +22,40 @@ import { flightsFor } from './flights.js';
 import {
   openSelections, handleSelections, selectionMap, DEFAULT_FILE as SELECTIONS_DEFAULT,
 } from './selections.js';
-import { checkRequest, readBody } from './guard.js';
+import { checkRequest, readBody, readRaw } from './guard.js';
+import { dataDir } from './paths.js';
+import { handleSync, LIMITS } from './sync-server.js';
+import { syncConfig, uploadSailings, pullRatings } from './sync.js';
+import { createRefresher } from './refresh.js';
+import {
+  authConfig, startupProblems, isOpenPath, attemptLogin, verifyToken, signToken, sessionCookie,
+  clearedCookie, readCookie, createLimiter, clientAddress, isLocalHost,
+} from './auth.js';
+import { securityHeaders } from './headers.js';
+import { health } from './health.js';
 
 // PORT lets a second copy run beside the usual one, e.g. to check a change.
 const PORT = Number(process.env.PORT) || 3030;
 const HOST = process.env.HOST || '127.0.0.1';
+const auth = authConfig(process.env);
+const deployed = !isLocalHost(HOST);
+const trustProxy = process.env.TRUST_PROXY === '1';
+// The Mac's copy: SYNC_URL + SYNC_KEY. A bad SYNC_URL (plain http to a real host) stops the start.
+let mirror;
+try { mirror = syncConfig(process.env); } catch (err) { console.error(`Not starting: ${err.message}`); process.exit(1); }
+const NO_DATA = deployed
+  ? 'No data yet — upload it from the Mac with `npm run upload-data`.'
+  : 'No data yet. Run `node scrape.js` first, then reload this page.';
+// Wrong passwords and wrong sync keys share one count per address.
+const limiter = createLimiter();
+const addressOf = (req) => clientAddress({
+  socketAddress: req.socket.remoteAddress, forwardedFor: req.headers['x-forwarded-for'], trustProxy,
+});
+const signedIn = (req) => Boolean(verifyToken(readCookie(req.headers.cookie, 'session'), auth));
 const PUBLIC_DIR = new URL('./public/', import.meta.url).pathname;
-const DATA_FILE = new URL('./data/sailings.json', import.meta.url).pathname;
-const FLIGHTS_CACHE = new URL('./data/flights-cache.json', import.meta.url).pathname;
+const DATA_DIR = dataDir();
+const DATA_FILE = join(DATA_DIR, 'sailings.json');
+const FLIGHTS_CACHE = join(DATA_DIR, 'flights-cache.json');
 // SELECTIONS_FILE points a second copy (port 3031) at a scratch database, so checks never
 // touch Peter's ratings.
 const SELECTIONS_FILE = process.env.SELECTIONS_FILE || SELECTIONS_DEFAULT;
@@ -66,7 +92,7 @@ async function loadDataset() {
   const parsed = JSON.parse(await readFile(DATA_FILE, 'utf8'));
 
   if (loadedMtime !== 0) {
-    console.log(`data/sailings.json changed — reloaded ${parsed.sailings.length} sailings`);
+    console.log(`${DATA_FILE} changed — reloaded ${parsed.sailings.length} sailings`);
   }
   loadedMtime = mtime;
   dataset = parsed;
@@ -104,6 +130,34 @@ function dateRange(sailings) {
 
 const server = createServer(async (req, res) => {
   try {
+    // Before any route answers: setHeader values merge into every writeHead below.
+    for (const [name, value] of Object.entries(securityHeaders({ deployed, host: req.headers.host, login: auth.on }))) {
+      res.setHeader(name, value);
+    }
+    const path = req.url.split('?')[0];
+
+    if (auth.on && !isOpenPath(req.method, path) && !signedIn(req)) {
+      if (path.startsWith('/api/')) return json(res, 401, { error: 'Log in first.' });
+      res.writeHead(302, { location: '/login' });
+      return res.end();
+    }
+
+    if (req.method === 'GET' && path === '/healthz') {
+      const h = await health({ selections, dataFile: DATA_FILE });
+      res.writeHead(h.status, { 'content-type': 'text/plain; charset=utf-8' });
+      return res.end(h.text);
+    }
+
+    if (req.method === 'GET' && path === '/login') {
+      if (!auth.on || signedIn(req)) {
+        res.writeHead(302, { location: '/' });
+        return res.end();
+      }
+      const html = await readFile(join(PUBLIC_DIR, 'login.html'));
+      res.writeHead(200, { 'content-type': MIME['.html'] });
+      return res.end(html);
+    }
+
     if (req.method === 'GET' && (req.url === '/' || req.url === '/index.html')) {
       const html = await readFile(join(PUBLIC_DIR, 'index.html'));
       res.writeHead(200, { 'content-type': MIME['.html'] });
@@ -117,17 +171,60 @@ const server = createServer(async (req, res) => {
     }
 
     if (req.url.startsWith('/api/')) {
-      const refused = checkRequest({ method: req.method, headers: req.headers });
+      const maxBody = path.startsWith('/api/sync/') ? LIMITS.maxCompressed : undefined;
+      const refused = checkRequest({ method: req.method, headers: req.headers, maxBody });
       if (refused) return json(res, refused.status, { error: refused.error });
+    }
+
+    if (path.startsWith('/api/sync/')) {
+      const out = await handleSync({
+        method: req.method, path, query: new URL(req.url, 'http://x').searchParams, headers: req.headers,
+        readBody: () => readRaw(req, LIMITS.maxCompressed),
+      }, {
+        key: process.env.SYNC_KEY ?? '', dataDir: DATA_DIR, store: selections, address: addressOf(req), limiter,
+      });
+      return json(res, out.status, out.body);
+    }
+
+    if (path === '/api/refresh' || path.startsWith('/api/refresh/')) {
+      if (req.method === 'GET' && path === '/api/refresh') return json(res, 200, refresher.status());
+      if (!mirror) return json(res, 404, { error: 'Refresh needs SYNC_URL and SYNC_KEY in .env.' });
+      const body = await readBody(req);
+      if (req.method === 'POST' && path === '/api/refresh') return json(res, 202, await refresher.start());
+      if (req.method === 'POST' && path === '/api/refresh/stop') return json(res, 200, refresher.stop());
+      if (req.method === 'POST' && path === '/api/refresh/retry') {
+        let step = null;
+        try { ({ step } = JSON.parse(body || '{}')); } catch { /* step stays null */ }
+        return json(res, 200, refresher.retry(step));
+      }
+      return json(res, 404, { error: 'Not found' });
+    }
+
+    if (req.method === 'POST' && path === '/api/login') {
+      if (!auth.on) return json(res, 404, { error: 'The login is off on this copy.' });
+      let password;
+      try { ({ password } = JSON.parse(await readBody(req) || '{}')); } catch { password = null; }
+      // No await from here: the count and the check happen together (see attemptLogin).
+      const out = attemptLogin(password, { address: addressOf(req), limiter, passwordHash: auth.passwordHash });
+      if (out.status !== 204) return json(res, out.status, { error: out.error });
+      res.writeHead(204, { 'set-cookie': sessionCookie(signToken(auth)) });
+      return res.end();
+    }
+
+    if (req.method === 'POST' && path === '/api/logout') {
+      res.writeHead(204, { 'set-cookie': clearedCookie() });
+      return res.end();
+    }
+
+    if (req.method === 'GET' && path === '/api/status') {
+      return json(res, 200, { login: auth.on, mirror: Boolean(mirror), ratingsCopiedAt: selections.ok ? selections.copiedAt() : null });
     }
 
     // What the page needs on load: the facets, and the whole dataset to render.
     if (req.method === 'GET' && req.url === '/api/dataset') {
       dataset = await loadDataset();
       if (!dataset) {
-        return json(res, 503, {
-          error: 'No data yet. Run `node scrape.js` first, then reload this page.',
-        });
+        return json(res, 503, { error: NO_DATA });
       }
       const view = current(dataset);
       return json(res, 200, {
@@ -141,7 +238,7 @@ const server = createServer(async (req, res) => {
     if (req.method === 'POST' && req.url === '/api/search') {
       dataset = await loadDataset();
       if (!dataset) {
-        return json(res, 503, { error: 'No data yet. Run `node scrape.js` first.' });
+        return json(res, 503, { error: NO_DATA });
       }
 
       const body = await readBody(req);
@@ -258,6 +355,23 @@ const server = createServer(async (req, res) => {
 dataset = await loadDataset();
 const selections = await openSelections(SELECTIONS_FILE);
 
+const refresher = createRefresher({
+  dataFile: DATA_FILE,
+  sync: mirror && {
+    upload: () => uploadSailings({ config: mirror, dataFile: DATA_FILE }),
+    pull: () => pullRatings({ config: mirror, store: selections }),
+  },
+});
+
+// A server that others can reach must not start half-protected: no login, or ratings that
+// silently don't save. On this Mac (127.0.0.1) the app still runs without ratings and says why.
+const problems = startupProblems({ env: process.env, host: HOST, selections });
+if (problems.length > 0) {
+  console.error('Not starting:');
+  for (const p of problems) console.error(`  ${p}`);
+  process.exit(1);
+}
+
 // The likeliest way to fail on startup is a server you already have running.
 // Node's default is an unhandled 'error' event: a 20-line stack trace whose
 // actual meaning — "it's already up" — is on line 8.
@@ -277,10 +391,11 @@ server.on('error', (err) => {
 
 server.listen(PORT, HOST, () => {
   if (!dataset) {
-    console.log('WARNING: data/sailings.json not found. Run `node scrape.js` first.\n');
+    console.log(`WARNING: ${DATA_FILE} not found. ${NO_DATA}\n`);
   } else {
     console.log(`${dataset.sailings.length} sailings loaded, scraped ${dataset.scrapedAt}`);
   }
   console.log(selections.ok ? `Ratings: ${SELECTIONS_FILE}` : `Ratings unavailable: ${selections.reason}`);
+  console.log(auth.on ? 'Login: on' : 'Login: off (this Mac only)');
   console.log(`Cruise search running at http://localhost:${PORT}`);
 });

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { openSelections, nodeSupportsSqlite, snapshotOf, selectionMap, handleSelections, exportPath } from '../selections.js';
+import { openSelections, nodeSupportsSqlite, snapshotOf, selectionMap, handleSelections, exportPath, checkRows } from '../selections.js';
 
 // Scratch folders for this file's tests, removed when the file's tests finish — every run
 // used to leave its folders in the system temp folder (2,542 had piled up by 2026-10-15).
@@ -263,4 +263,57 @@ dbTest('POST unview and forget, by id; a cruise with no row is a 404', async () 
     assert.equal(call(store, 'POST', p, { id: 'cunard:NEVER' }).status, 404, p);
     assert.equal(call(store, 'POST', p, {}).status, 400, p);
   }
+});
+
+const row = (over = {}) => ({
+  sailingId: 'cunard:M626C', rating: 4, views: 2, firstViewed: '2026-10-01T10:00:00Z',
+  lastViewed: '2026-10-02T10:00:00Z', ratedAt: '2026-10-02T10:01:00Z', snapshot: snapshotOf(sailing()), ...over,
+});
+
+test('checkRows names the first bad row', () => {
+  assert.equal(checkRows([row()]), null);
+  assert.match(checkRows('x'), /selections/);
+  assert.match(checkRows([row({ sailingId: '' })]), /sailingId/);
+  assert.match(checkRows([row(), row()]), /twice/);
+  assert.match(checkRows([row({ rating: 6 })]), /1–5/);
+  assert.match(checkRows([row({ views: -1 })]), /views/);
+  assert.match(checkRows([row({ snapshot: null })]), /snapshot/);
+});
+
+dbTest('replaceAll swaps every row, keeping every column, and records when', async () => {
+  const store = await openSelections(tmp());
+  store.recordView(sailing({ id: 'old:1' }), '2026-09-01T00:00:00Z');
+  const rows = [row(), row({ sailingId: 'viking:2', rating: null, views: 1, ratedAt: null })];
+  assert.equal(store.replaceAll(rows, { copiedAt: '2026-10-16T14:05:00Z' }), 2);
+  assert.deepEqual(store.all(), rows);
+  assert.equal(store.copiedAt(), '2026-10-16T14:05:00Z');
+  store.close();
+});
+
+dbTest('replaceAll is all or nothing: a row that fails mid-way leaves the old rows', async () => {
+  const store = await openSelections(tmp());
+  store.recordView(sailing(), '2026-09-01T00:00:00Z');
+  const before = store.all();
+  // passes checkRows, but SQLite cannot bind an object — fails after the first insert
+  assert.throws(() => store.replaceAll([row({ sailingId: 'a:1' }), row({ sailingId: 'b:2', firstViewed: {} })]));
+  assert.deepEqual(store.all(), before);
+  assert.equal(store.copiedAt(), null);
+  store.close();
+});
+
+dbTest('replaceAll without copiedAt (a push to the server) records no copy time', async () => {
+  const store = await openSelections(tmp());
+  store.replaceAll([row()]);
+  assert.equal(store.copiedAt(), null);
+  store.close();
+});
+
+dbTest('markCopied records when the sides matched, and leaves the rows alone', async () => {
+  const store = await openSelections(tmp());
+  store.replaceAll([row()]);
+  const before = store.all();
+  store.markCopied('2026-10-16T15:00:00Z');
+  assert.equal(store.copiedAt(), '2026-10-16T15:00:00Z');
+  assert.deepEqual(store.all(), before);
+  store.close();
 });

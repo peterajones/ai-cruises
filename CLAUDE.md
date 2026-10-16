@@ -46,6 +46,14 @@ npm test                                  # unit tests, no network
 node scrape.js --limit 5 --dry-run        # smoke test, writes nothing
 node scrape.js                            # real run, writes data/sailings.json
 npm run export-selections                 # a readable JSON copy of your ratings
+npm run upload-data                       # send data/sailings.json to the server (-- --force)
+npm run pull-ratings                      # copy the server's ratings down to this Mac
+npm run push-ratings                      # move this Mac's ratings up, once (-- --force)
+npm run hash-password                     # asks twice, prints LOGIN_PASSWORD_HASH
+npm run make-key                          # prints a 32+ character key (JWT_SECRET, SYNC_KEY)
+npm run local:start                       # Caddy + the stand-in server at https://ai-cruises.localhost:8443; Ctrl-C stops both
+npm run local:upload                      # send data/sailings.json to the stand-in
+npm run local:stop                        # stop Caddy if it was left running
 ```
 
 Fixtures in `test/fixtures/` are real captured payloads. When a site changes shape,
@@ -78,7 +86,15 @@ a good dataset.
   `node --env-file-if-exists=.env` — no `dotenv` dependency. `npm run serve` does this.
   The search layer uses `claude-haiku-4-5` (~$0.002/query). No `ant` CLI installed.
 - Server runs on port 3030 (`PORT=3031` runs a second copy beside it, e.g. to check a change),
-  listening on `127.0.0.1` only — this Mac, not the Wi-Fi. `HOST=0.0.0.0` for a container.
+  listening on `127.0.0.1` only — this Mac, not the Wi-Fi. `HOST=0.0.0.0` for a container; any
+  `HOST` other than localhost needs the login set up and working ratings, or the server refuses
+  to start and says which is missing (see Deployment).
+- `DATA_DIR` moves `sailings.json`, `sailings.previous.json`, `flights-cache.json` and the scrape's
+  `runs/` away from `data/`. **Ratings do not follow it:** `selections.db` follows only
+  `SELECTIONS_FILE` (default `data/selections.db`), so a second copy for checks needs both set to
+  scratch, or it touches Peter's real ratings. `SCRAPE_PROGRESS_MS` sets how often a scrape prints its running count
+  outside a terminal (default 15 s; Refresh passes 2000). `REFRESH_ARGS` replaces the arguments
+  the Refresh button gives `scrape.js` — for checks only, e.g. `--limit 5 --dry-run`.
 - `guard.js` stands in front of every `/api/` route: requests another site sent (including another
   app on localhost) get 403, writes that aren't JSON 415, bodies over 64 KB 413. Every route spends
   something — ratings, Anthropic credit, the SerpApi quota. Tools like `curl` send no browser
@@ -86,6 +102,98 @@ a good dataset.
 - `SERP_API_KEY` in `.env` is SerpApi's Google Flights API, for the flights panel. Free plan:
   250 searches a month. Results are cached in `data/flights-cache.json` (gitignored) for 3 days.
   Tests never call it; they use saved responses in `test/fixtures/serpapi-*.json`.
+
+## Deployment
+
+Live at **https://ai-cruises.peter-jones.org** (Hetzner, run by Coolify). Spec:
+`docs/superpowers/specs/2026-10-16-deployment-design.md`. The server's address, the Coolify
+application and every key live in `~/Projects/deployment-notes.md`, never in this repo — it is
+public, and a ratings file or a key committed here is published.
+
+**Two roles, one codebase.** Settings choose which.
+
+- **The Mac** is the development copy and the only place that scrapes. No login. `SYNC_URL`
+  (the site's address) and `SYNC_KEY` in `.env` turn on the **Refresh data** button: scrape with
+  live progress, then upload `sailings.json` to the server and copy the server's ratings back.
+- **The server** has the login, the `/api/sync/*` routes and no scraping — no Chromium in its
+  image. The server's ratings are the real ones; the Mac's are a mirror.
+
+| Setting | Mac (`.env`) | Server (Coolify) |
+|---|---|---|
+| `HOST` | unset (`127.0.0.1`) | `0.0.0.0` (the Dockerfile sets it) |
+| `SYNC_URL` | `https://ai-cruises.peter-jones.org` | — |
+| `SYNC_KEY` | the key | the same key (32+ characters) |
+| `JWT_SECRET`, `LOGIN_PASSWORD_HASH` | — (no login) | set |
+| `TRUST_PROXY` | — | `1` |
+| `ANTHROPIC_API_KEY`, `SERP_API_KEY` | as now | set |
+
+**Set `TRUST_PROXY=1` in Coolify, or the server won't start (and the login would lock Peter out).** Without it every visitor
+shares the proxy's address, so 5 bad guesses from anyone lock everyone out, Peter included. A
+second proxy in front (Cloudflare, say) does the same, because the server reads the *last*
+`X-Forwarded-For` entry — the one the nearest proxy added; earlier entries can be forged.
+
+**Refusing to start.** With a `HOST` other than localhost the server exits, naming the problem,
+if `JWT_SECRET` is missing or under 32 characters, `LOGIN_PASSWORD_HASH` isn't a hash
+`npm run hash-password` makes, `SYNC_KEY` is set but under 32 characters, `TRUST_PROXY` isn't exactly `1` or `0`, or the
+ratings database won't open. On the Mac the app still runs without ratings and says why; on a server that would
+fail silently.
+
+**Refresh, upload, pull.** Refresh runs the full `node scrape.js` as a child process (one at a
+time; the last 500 lines are kept), then uploads, then pulls ratings. Results stay visible while it
+runs; "Show the new data" redraws when it ends. Nothing written (zero sailings, or stopped) means
+no upload — "the server keeps its data". **Stop** sends SIGINT, then SIGKILL after 10 s, because
+Puppeteer swallows SIGTERM. The upload is gzip over HTTPS, `Authorization: Bearer <SYNC_KEY>`,
+20 MB compressed / 50 MB unpacked. It is **refused** when a sailing has no id, line or departure
+date (a null included), or when it holds fewer than half the server's sailings — unless forced
+(`npm run upload-data -- --force`). The old file is kept as `sailings.previous.json`. The ratings
+push is refused when the server already has ratings, unless forced.
+
+**The Mac is a mirror.** After a pull, the Mac's pages say "Ratings copied from the server at
+14:05 — changes here aren't kept" whenever `SYNC_URL` is set. A pull replaces every row in one
+transaction; ratings made on the Mac are lost at the next one.
+
+**A pull refuses to wipe ratings that exist only on the Mac.** When the Mac has saved cruises
+and either (a) it has never copied from or pushed to the server, or (b) the server sent none, the
+pull changes nothing and says so: (a) "never copied from the server … Send them first with
+`npm run push-ratings`", (b) "The server has no saved cruises but this Mac has N … If the server
+lost its data, send yours with `npm run push-ratings -- --force`". `npm run pull-ratings -- --force`
+skips both checks and replaces the Mac's rows. **First deploy: `npm run export-selections` (a
+backup), then `npm run push-ratings`, before any pull or Refresh.** A successful push also marks
+the Mac as matching the server, so after it every pull and Refresh works; (a) only bites when you
+pull before you have ever pushed or pulled. A refused push marks nothing. A Mac with no ratings
+may pull from an empty server.
+
+**Login.** One user, one password (12+ characters; only its hash is stored). A cookie
+(`HttpOnly; Secure; SameSite=Strict`, always `Secure`) holds an HS256 token good for 30 days.
+**A new password, or a new `JWT_SECRET`, logs every device out.** Log out clears the cookie, but a
+copied cookie stays valid for its 30 days unless one of those two changes. Five wrong passwords
+(or wrong sync keys) per address per 15 minutes give a 429. An attempt is counted *before* the
+password is checked, so slow request bodies can't slip past the limit. The count is in memory; a
+restart resets it. There is deliberately no site-wide lockout — anyone could use it to lock Peter
+out. Everything is locked except `/login`, its assets, `POST /api/login`, `/healthz` and
+`/api/sync/*` (which has its own key).
+
+**Security headers** on every response, including a CSP that allows scripts only from this
+site's own files. **Never add an inline `<script>` or an `onclick=`** to a page: it won't run, and
+`test/pages.test.js` fails. Both pages' code lives in `public/index.js` and `public/mine.js`.
+HSTS is sent only when `HOST` is public and the request's host isn't localhost, so never on the Mac, including the Caddy copy on 3031.
+
+**`/healthz`** needs no login. 200 `ok`; 200 `ok — no data yet` before the first upload; 503
+`unhealthy` when the data or the ratings can't be read.
+
+**Dockerfile:** Node 24.22 (pinned), no Chromium (`PUPPETEER_SKIP_DOWNLOAD`), runs as `node`.
+Coolify's persistent storage is mounted at `/app/data` — `sailings.json`, the previous copy,
+`selections.db`, and the flights cache that protects the SerpApi quota.
+
+**Local HTTPS.** A stand-in for the server runs on the Mac: `npm run serve:server` starts a copy
+on port 3031 with the server's settings from `.env.server` (`PORT=3031`, `TRUST_PROXY=1`,
+`DATA_DIR=server-data`, `SELECTIONS_FILE=server-data/selections.db`, `JWT_SECRET`,
+`LOGIN_PASSWORD_HASH`, `SYNC_KEY`, and the two API keys), and Caddy in front serves it at
+`https://ai-cruises.localhost:8443` (`tools/Caddyfile.local`). `.env.*` and `server-data/` are
+gitignored, so neither the secrets nor its ratings can be committed; Peter's `data/` is untouched.
+Caddy's certificate needs its root trusted once: `caddy start …` first, then `caddy trust` (asks for
+the Mac's password) — without Caddy running it fails with "requesting CA info … connection refused".
+The Mac's own copy (`npm run serve`, port 3030, `.env`) has no login and no `JWT_SECRET`.
 
 ## Status
 
@@ -96,7 +204,7 @@ Holland America) and a destination. All but
 12 have an end port — those are long Princess itineraries whose cards stop short (see the flights
 panel below) — and every departure and end port maps to an airport. 46 ships with descriptions,
 cheapest prices $199–$30,155 USD (the top is Celebrity's 7-night Galápagos Outer Loop and Machu
-Picchu) and $395–$80,999 CAD (a 28-night Viking voyage). Alaska: 1,213 sailings. 336 tests.
+Picchu) and $395–$80,999 CAD (a 28-night Viking voyage). Alaska: 1,213 sailings. 400 tests.
 
 **Prices per cabin type.** Every sailing has `cabinPrices` — cabin type → that cabin's
 cheapest price, e.g. `{ interior: 959, oceanview: 1009, balcony: 1459, suite: 2164 }` — and
@@ -238,6 +346,8 @@ shape, the others keep running.
   so "Eastern Caribbean" beats a bare "Caribbean". Titles often name a coast or state
   instead of a region ("Tasmania", "Hunter Coast", "Sea of Cortez"); each alias was chosen
   from the sailing's actual ports. New titles show up in a scrape's `unrecognised` list.
+- **A fresh tab per ship.** One tab reused for 17 results pages held 3.3 GB by the end
+  (2026-10-16); a tab per ship, closed afterwards, peaks ~1.4 GB.
 - **Only ~15 of 20 cards per page are sailings**; the rest are promo tiles with no date.
 - **Ship pages are not fetched at all.** The adapter exports `shipDescriptions = false`,
   and `scrape.js` skips ship pages for any adapter that says so. Before this, every full

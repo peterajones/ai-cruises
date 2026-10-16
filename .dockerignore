@@ -1,0 +1,11 @@
+.env
+.env.*
+data/
+node_modules/
+.git/
+.superpowers/
+docs/
+test/
+.DS_Store
+*.md
+!package.json

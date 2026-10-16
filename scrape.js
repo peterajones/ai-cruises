@@ -13,8 +13,9 @@ import { deriveValues } from './values.js';
 import { assertNonEmpty, carryOver, dedupeById, loadExisting, mergeShips, writeResult } from './persist.js';
 import { ADAPTERS, adaptersFor } from './sites/index.js';
 import { createReporter } from './progress.js';
+import { dataDir } from './paths.js';
 
-const DATA_DIR = new URL('./data/', import.meta.url).pathname;
+const DATA_DIR = dataDir();
 
 export function parseFlags(argv) {
   // No cap by default. A fixed default silently shaped the production dataset:
@@ -132,8 +133,9 @@ async function main() {
   for (const adapter of adapters) {
     const page = await newPage(browser);
     report.start(adapter.name);
+    let payloads = [];
     try {
-      const payloads = await adapter.fetchListingPages(page, {
+      payloads = await adapter.fetchListingPages(page, {
         limit: flags.limit,
         onProgress: (text) => report.progress(adapter.name, text),
         log: report.log,
@@ -175,14 +177,16 @@ async function main() {
       // Both of these abort without writing, and both save the page that caused
       // them — but they need different fixes, so they must not read alike.
       if (err instanceof BotWallError) {
-        const path = await snapshotFailure(await page.content(), `${adapter.name}-wall`);
+        // An adapter that opens its own tabs (Princess) closes them; the error carries the page.
+        const path = await snapshotFailure(err.pageHtml ?? await page.content(), `${adapter.name}-wall`);
         console.error(`${adapter.name}: BOT WALL — ${err.reason}.`);
         console.error(`  This is a block, not a parse failure. Body saved to ${path}`);
       } else if (err instanceof ConflictingDuplicateError) {
         console.error(`${adapter.name}: ${err.message}`);
         console.error(`  Keeping ${adapter.name}'s sailings from the previous run.`);
       } else if (err instanceof EmptyResultError) {
-        const path = await snapshotFailure(await page.content(), `${adapter.name}-empty`);
+        // Save what the parser received: adapters may load pages in their own tabs, so the shared page could be blank.
+        const path = await snapshotFailure(payloads.length > 0 ? payloads.join('\n\n') : await page.content(), `${adapter.name}-empty`);
         console.error(`${adapter.name}: parsed 0 sailings.`);
         console.error(`  Selectors probably broke. Page saved to ${path}`);
         console.error(`  Keeping ${adapter.name}'s sailings from the previous run.`);

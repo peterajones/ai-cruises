@@ -9,7 +9,16 @@
     "test": "node --test 'test/*.test.js'",
     "scrape": "node scrape.js",
     "serve": "node --env-file-if-exists=.env server.js",
-    "export-selections": "node selections.js --export"
+    "serve:server": "node --env-file=.env.server server.js",
+    "local:start": "sh tools/local-server.sh",
+    "local:stop": "caddy stop",
+    "local:upload": "NODE_EXTRA_CA_CERTS=\"$HOME/Library/Application Support/Caddy/pki/authorities/local/root.crt\" SYNC_URL=https://ai-cruises.localhost:8443 node --env-file-if-exists=.env tools/sync.js upload",
+    "export-selections": "node selections.js --export",
+    "hash-password": "node tools/hash-password.js",
+    "make-key": "node tools/make-key.js",
+    "upload-data": "node --env-file-if-exists=.env tools/sync.js upload",
+    "pull-ratings": "node --env-file-if-exists=.env tools/sync.js pull",
+    "push-ratings": "node --env-file-if-exists=.env tools/sync.js push"
   },
   "keywords": [],
   "author": "",

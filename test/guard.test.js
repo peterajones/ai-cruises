@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Readable } from 'node:stream';
-import { checkRequest, readBody, MAX_BODY } from '../guard.js';
+import { checkRequest, readBody, readRaw, MAX_BODY } from '../guard.js';
 
 const host = 'localhost:3030';
 
@@ -63,4 +63,15 @@ test('readBody returns the body', async () => {
 test('readBody stops at the limit even when no length was declared', async () => {
   const big = Readable.from([Buffer.alloc(MAX_BODY), Buffer.from('x')]);
   await assert.rejects(readBody(big), (err) => err.status === 413);
+});
+
+test('a route may allow a bigger body than the 64 KB default', () => {
+  const headers = { host, 'content-type': 'application/json', 'content-length': String(MAX_BODY + 1) };
+  assert.equal(checkRequest({ method: 'PUT', headers }).status, 413);
+  assert.equal(checkRequest({ method: 'PUT', headers, maxBody: 20 * 1024 * 1024 }), null);
+});
+
+test('readRaw returns the bytes, and refuses past its limit', async () => {
+  assert.deepEqual(await readRaw(Readable.from([Buffer.from([1, 2]), Buffer.from([3])]), 10), Buffer.from([1, 2, 3]));
+  await assert.rejects(readRaw(Readable.from([Buffer.alloc(11)]), 10), (err) => err.status === 413);
 });

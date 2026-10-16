@@ -17,7 +17,12 @@ export function formatDuration(ms) {
   return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${s}` : `${m}:${s}`;
 }
 
-export function createReporter({ stream = process.stdout, now = Date.now } = {}) {
+export function createReporter({
+  stream = process.stdout, now = Date.now,
+  // The Refresh panel runs the scrape with SCRAPE_PROGRESS_MS=2000: a log line every 15 s
+  // looks stuck in a panel someone is watching.
+  throttleMs = Number(process.env.SCRAPE_PROGRESS_MS) || THROTTLE_MS,
+} = {}) {
   const tty = Boolean(stream.isTTY);
   const runStart = now();
   const started = {};
@@ -51,7 +56,7 @@ export function createReporter({ stream = process.stdout, now = Date.now } = {})
         showing = full;
         return;
       }
-      if (now() - lastPrint < THROTTLE_MS) return;
+      if (now() - lastPrint < throttleMs) return;
       lastPrint = now();
       stream.write(`${full}\n`);
     },
