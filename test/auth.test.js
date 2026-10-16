@@ -116,8 +116,12 @@ test('a public server refuses to start without login, or without ratings', () =>
   assert.deepEqual(startupProblems({ env: {}, host: '127.0.0.1', selections: ok }), []);
   assert.deepEqual(startupProblems({ env: {}, host: '127.0.0.1', selections: { ok: false, reason: 'old Node' } }), []);
   assert.match(startupProblems({ env: {}, host: '0.0.0.0', selections: ok }).join(), /Login is required/);
-  assert.deepEqual(startupProblems({ env: login, host: '0.0.0.0', selections: ok }), []);
-  assert.match(startupProblems({ env: login, host: '0.0.0.0', selections: { ok: false, reason: 'old Node' } }).join(), /old Node/);
+  assert.deepEqual(startupProblems({ env: { ...login, TRUST_PROXY: '1' }, host: '0.0.0.0', selections: ok }), []);
+  assert.deepEqual(startupProblems({ env: { ...login, TRUST_PROXY: '0' }, host: '0.0.0.0', selections: ok }), []);
+  assert.match(startupProblems({ env: login, host: '0.0.0.0', selections: ok }).join(), /TRUST_PROXY must be set when HOST is 0\.0\.0\.0: 1 behind a proxy such as Coolify's \(it reads the client's address from X-Forwarded-For\), 0 if nothing is in front\./);
+  assert.match(startupProblems({ env: { ...login, TRUST_PROXY: 'yes' }, host: '0.0.0.0', selections: ok }).join(), /TRUST_PROXY/);
+  assert.deepEqual(startupProblems({ env: login, host: '127.0.0.1', selections: ok }), []);
+  assert.match(startupProblems({ env: { ...login, TRUST_PROXY: '1' }, host: '0.0.0.0', selections: { ok: false, reason: 'old Node' } }).join(), /old Node/);
   assert.match(startupProblems({ env: { SYNC_KEY: 'short' }, host: '127.0.0.1', selections: ok }).join(), /SYNC_KEY/);
   assert.match(startupProblems({ env: { JWT_SECRET: SECRET }, host: '127.0.0.1', selections: ok }).join(), /LOGIN_PASSWORD_HASH/);
 });

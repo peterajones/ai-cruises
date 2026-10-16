@@ -156,6 +156,9 @@ export function startupProblems({ env, host, selections }) {
     if (!auth.on && auth.problems.length === 0) {
       problems.push(`Login is required when HOST is ${host}: set JWT_SECRET and LOGIN_PASSWORD_HASH.`);
     }
+    if (env.TRUST_PROXY !== '1' && env.TRUST_PROXY !== '0') {
+      problems.push(`TRUST_PROXY must be set when HOST is ${host}: 1 behind a proxy such as Coolify's (it reads the client's address from X-Forwarded-For), 0 if nothing is in front.`);
+    }
     if (!selections?.ok) problems.push(`Ratings could not open: ${selections?.reason ?? 'unknown'}`);
   }
   if (env.SYNC_KEY !== undefined && env.SYNC_KEY.length < MIN_SECRET) {
