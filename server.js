@@ -23,6 +23,7 @@ import {
   openSelections, handleSelections, selectionMap, DEFAULT_FILE as SELECTIONS_DEFAULT,
 } from './selections.js';
 import { checkRequest, readBody } from './guard.js';
+import { securityHeaders } from './headers.js';
 
 // PORT lets a second copy run beside the usual one, e.g. to check a change.
 const PORT = Number(process.env.PORT) || 3030;
@@ -104,6 +105,10 @@ function dateRange(sailings) {
 
 const server = createServer(async (req, res) => {
   try {
+    // Before any route answers: setHeader values merge into every writeHead below.
+    for (const [name, value] of Object.entries(securityHeaders({ deployed: false, host: req.headers.host, login: false }))) {
+      res.setHeader(name, value);
+    }
     if (req.method === 'GET' && (req.url === '/' || req.url === '/index.html')) {
       const html = await readFile(join(PUBLIC_DIR, 'index.html'));
       res.writeHead(200, { 'content-type': MIME['.html'] });
