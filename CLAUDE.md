@@ -87,9 +87,10 @@ a good dataset.
   listening on `127.0.0.1` only — this Mac, not the Wi-Fi. `HOST=0.0.0.0` for a container; any
   `HOST` other than localhost needs the login set up and working ratings, or the server refuses
   to start and says which is missing (see Deployment).
-- `DATA_DIR` moves `sailings.json` (and the flights cache, previous copy and ratings beside it) away
-  from `data/`: a second copy for checks points it at scratch, so neither its server nor its Refresh
-  touches Peter's data. `SCRAPE_PROGRESS_MS` sets how often a scrape prints its running count
+- `DATA_DIR` moves `sailings.json`, `sailings.previous.json`, `flights-cache.json` and the scrape's
+  `runs/` away from `data/`. **Ratings do not follow it:** `selections.db` follows only
+  `SELECTIONS_FILE` (default `data/selections.db`), so a second copy for checks needs both set to
+  scratch, or it touches Peter's real ratings. `SCRAPE_PROGRESS_MS` sets how often a scrape prints its running count
   outside a terminal (default 15 s; Refresh passes 2000). `REFRESH_ARGS` replaces the arguments
   the Refresh button gives `scrape.js` — for checks only, e.g. `--limit 5 --dry-run`.
 - `guard.js` stands in front of every `/api/` route: requests another site sent (including another
@@ -162,7 +163,7 @@ out. Everything is locked except `/login`, its assets, `POST /api/login`, `/heal
 **Security headers** on every response, including a CSP that allows scripts only from this
 site's own files. **Never add an inline `<script>` or an `onclick=`** to a page: it won't run, and
 `test/pages.test.js` fails. Both pages' code lives in `public/index.js` and `public/mine.js`.
-HSTS is sent only when the login is on, never on the Mac's plain HTTP.
+HSTS is sent only when `HOST` is public and the request's host isn't localhost, so never on the Mac, including the Caddy copy on 3031.
 
 **`/healthz`** needs no login. 200 `ok`; 200 `ok — no data yet` before the first upload; 503
 `unhealthy` when the data or the ratings can't be read.
