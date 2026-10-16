@@ -4,29 +4,35 @@ import { EventEmitter } from 'node:events';
 import { PassThrough } from 'node:stream';
 import { createRefresher, MAX_LINES } from '../refresh.js';
 
-function fakeChild() {
+function fakeChild({ ignore = false } = {}) {
   const c = new EventEmitter();
   c.stdout = new PassThrough();
   c.stderr = new PassThrough();
   c.killed = null;
-  c.kill = (signal) => { c.killed = signal; setImmediate(() => c.emit('close', null, signal)); };
+  c.kills = [];
+  c.kill = (signal) => {
+    c.killed = signal; c.kills.push(signal);
+    if (ignore && signal !== 'SIGKILL') return;
+    setImmediate(() => c.emit('close', null, signal));
+  };
   return c;
 }
 const settle = () => new Promise((r) => setImmediate(r));
 async function until(check) {
-  for (let i = 0; i < 200; i += 1) { if (check()) return; await settle(); }
+  for (let i = 0; i < 200; i += 1) { if (check()) return; await new Promise((r) => setTimeout(r, 2)); }
   throw new Error('timed out waiting');
 }
 
 /** A refresher with a fake scrape, fake file times and a fake clock. */
-function rig({ upload = async () => ({ stored: 4300, was: 4291 }), pull = async () => ({ copied: 3 }), sync = true } = {}) {
+function rig({ upload = async () => ({ stored: 4300, was: 4291 }), pull = async () => ({ copied: 3 }), sync = true, ignore = false, killAfterMs } = {}) {
   const t = { runs: 0, mtime: 1, clock: 0, child: null, uploads: 0, pulls: 0 };
   t.r = createRefresher({
     sync: sync ? { upload: async () => { t.uploads += 1; return upload(); }, pull: async () => { t.pulls += 1; return pull(); } } : null,
     dataFile: '/nowhere/sailings.json',
-    run: () => { t.runs += 1; t.child = fakeChild(); return t.child; },
+    run: () => { t.runs += 1; t.child = fakeChild({ ignore }); return t.child; },
     mtime: async () => t.mtime,
     now: () => t.clock,
+    ...(killAfterMs ? { killAfterMs } : {}),
   });
   t.finish = async ({ code = 0, written = true, out = '' } = {}) => {
     if (out) t.child.stdout.write(out);
@@ -97,10 +103,28 @@ test('Stop ends the scrape; nothing is uploaded', async () => {
   const t = rig();
   await t.r.start();
   t.r.stop();
-  assert.equal(t.child.killed, 'SIGTERM');
+  assert.equal(t.child.killed, 'SIGINT');
   await until(() => t.r.status().state === 'stopped');
   assert.match(t.r.status().result.text, /Stopped/);
   assert.equal(t.uploads, 0);
+});
+
+test('a scrape that ignores SIGINT is killed after killAfterMs', async () => {
+  const t = rig({ ignore: true, killAfterMs: 10 });
+  await t.r.start();
+  t.r.stop();
+  await until(() => t.child.killed === 'SIGKILL' && t.r.status().state === 'stopped');
+  assert.deepEqual(t.child.kills, ['SIGINT', 'SIGKILL']);
+  assert.equal(t.uploads, 0);
+});
+
+test('a scrape that closes promptly never gets SIGKILL', async () => {
+  const t = rig({ killAfterMs: 30 });
+  await t.r.start();
+  t.r.stop();
+  await until(() => t.r.status().state === 'stopped');
+  await new Promise((r) => setTimeout(r, 60));
+  assert.deepEqual(t.child.kills, ['SIGINT']);
 });
 
 test('a failed upload can be tried again on its own', async () => {

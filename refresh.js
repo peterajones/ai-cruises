@@ -25,7 +25,7 @@ const mtimeOf = async (file) => {
   try { return (await stat(file)).mtimeMs; } catch { return 0; }
 };
 
-export function createRefresher({ sync, dataFile, run = defaultRun, mtime = mtimeOf, now = Date.now }) {
+export function createRefresher({ sync, dataFile, run = defaultRun, mtime = mtimeOf, now = Date.now, killAfterMs = 10_000 }) {
   let state = 'idle';
   let startedAt = null;
   let startMs = 0;
@@ -80,10 +80,12 @@ export function createRefresher({ sync, dataFile, run = defaultRun, mtime = mtim
     result = { text: `Done in ${took} — ${count()} sailings · uploaded to the server ✓ · ratings copied from the server ✓`, failures, retry: null };
   }
 
+  let killTimer = null;
   let ended = false;
   async function end({ code, error }) {
     if (ended) return;
     ended = true;
+    clearTimeout(killTimer);
     child = null;
     const failures = failuresIn();
     if (error) {
@@ -134,7 +136,12 @@ export function createRefresher({ sync, dataFile, run = defaultRun, mtime = mtim
     stop() {
       if (state === 'running' && child) {
         stopping = true;
-        child.kill('SIGTERM');
+        // SIGINT, not SIGTERM: puppeteer installs a SIGTERM handler that closes Chrome but
+        // does not exit, and its presence suppresses Node's default exit, so the scrape would
+        // carry on. Its SIGINT handler kills Chrome and exits. SIGKILL if it still hasn't ended.
+        const target = child;
+        target.kill('SIGINT');
+        killTimer = setTimeout(() => target.kill('SIGKILL'), killAfterMs);
       }
       return status();
     },
