@@ -96,7 +96,7 @@ Holland America) and a destination. All but
 12 have an end port — those are long Princess itineraries whose cards stop short (see the flights
 panel below) — and every departure and end port maps to an airport. 46 ships with descriptions,
 cheapest prices $199–$30,155 USD (the top is Celebrity's 7-night Galápagos Outer Loop and Machu
-Picchu) and $395–$80,999 CAD (a 28-night Viking voyage). Alaska: 1,213 sailings. 334 tests.
+Picchu) and $395–$80,999 CAD (a 28-night Viking voyage). Alaska: 1,213 sailings. 336 tests.
 
 **Prices per cabin type.** Every sailing has `cabinPrices` — cabin type → that cabin's
 cheapest price, e.g. `{ interior: 959, oceanview: 1009, balcony: 1459, suite: 2164 }` — and
