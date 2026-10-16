@@ -44,11 +44,16 @@
   .star { background: none; border: 0; padding: 0 1px; font-size: 18px; line-height: 1; color: var(--muted); cursor: pointer; }
   .star.on { color: #e8a317; }
   .empty { padding: 40px 16px; text-align: center; color: var(--muted); }
+  .account { position: absolute; top: 14px; right: 16px; font-size: 14px; }
+  .account a { color: var(--accent); text-decoration: none; }
+  .wrap { position: relative; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>My cruises</h1>
+  <div id="account" class="account"></div>
+  <div id="mirror-note" class="sub mirror-note" hidden></div>
   <div class="sub" id="sub">Loading… · <a href="/">Back to search</a></div>
   <div class="note" id="note" role="status"></div>
   <div class="sub" id="nodata" hidden></div>

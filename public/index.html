@@ -276,12 +276,17 @@
   .more button { font: inherit; font-size: 13px; font-weight: 600; color: var(--accent); cursor: pointer;
     background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 5px 14px; }
   .empty { text-align: center; padding: 70px 20px; color: var(--muted); font-size: 17px; }
+  .account { position: absolute; top: 14px; right: 16px; font-size: 14px; }
+  .account a { color: var(--accent); text-decoration: none; }
+  header .wrap { position: relative; }
 </style>
 </head>
 <body>
 <header>
   <div class="wrap">
     <h1>Cruise search</h1>
+    <div id="account" class="account"></div>
+    <div id="mirror-note" class="sub mirror-note" hidden></div>
     <div class="sub" id="sub">Loading…</div>
     <form id="form">
       <input id="q" type="search" autocomplete="off"

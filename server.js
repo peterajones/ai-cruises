@@ -23,11 +23,24 @@ import {
   openSelections, handleSelections, selectionMap, DEFAULT_FILE as SELECTIONS_DEFAULT,
 } from './selections.js';
 import { checkRequest, readBody } from './guard.js';
+import {
+  authConfig, startupProblems, isOpenPath, verifyToken, signToken, verifyPassword, sessionCookie,
+  clearedCookie, readCookie, createLimiter, tooManyMessage, clientAddress, isLocalHost,
+} from './auth.js';
 import { securityHeaders } from './headers.js';
 
 // PORT lets a second copy run beside the usual one, e.g. to check a change.
 const PORT = Number(process.env.PORT) || 3030;
 const HOST = process.env.HOST || '127.0.0.1';
+const auth = authConfig(process.env);
+const deployed = !isLocalHost(HOST);
+const trustProxy = process.env.TRUST_PROXY === '1';
+// Wrong passwords and wrong sync keys share one count per address.
+const limiter = createLimiter();
+const addressOf = (req) => clientAddress({
+  socketAddress: req.socket.remoteAddress, forwardedFor: req.headers['x-forwarded-for'], trustProxy,
+});
+const signedIn = (req) => Boolean(verifyToken(readCookie(req.headers.cookie, 'session'), auth));
 const PUBLIC_DIR = new URL('./public/', import.meta.url).pathname;
 const DATA_FILE = new URL('./data/sailings.json', import.meta.url).pathname;
 const FLIGHTS_CACHE = new URL('./data/flights-cache.json', import.meta.url).pathname;
@@ -106,9 +119,27 @@ function dateRange(sailings) {
 const server = createServer(async (req, res) => {
   try {
     // Before any route answers: setHeader values merge into every writeHead below.
-    for (const [name, value] of Object.entries(securityHeaders({ deployed: false, host: req.headers.host, login: false }))) {
+    for (const [name, value] of Object.entries(securityHeaders({ deployed, host: req.headers.host, login: auth.on }))) {
       res.setHeader(name, value);
     }
+    const path = req.url.split('?')[0];
+
+    if (auth.on && !isOpenPath(req.method, path) && !signedIn(req)) {
+      if (path.startsWith('/api/')) return json(res, 401, { error: 'Log in first.' });
+      res.writeHead(302, { location: '/login' });
+      return res.end();
+    }
+
+    if (req.method === 'GET' && path === '/login') {
+      if (!auth.on || signedIn(req)) {
+        res.writeHead(302, { location: '/' });
+        return res.end();
+      }
+      const html = await readFile(join(PUBLIC_DIR, 'login.html'));
+      res.writeHead(200, { 'content-type': MIME['.html'] });
+      return res.end(html);
+    }
+
     if (req.method === 'GET' && (req.url === '/' || req.url === '/index.html')) {
       const html = await readFile(join(PUBLIC_DIR, 'index.html'));
       res.writeHead(200, { 'content-type': MIME['.html'] });
@@ -124,6 +155,31 @@ const server = createServer(async (req, res) => {
     if (req.url.startsWith('/api/')) {
       const refused = checkRequest({ method: req.method, headers: req.headers });
       if (refused) return json(res, refused.status, { error: refused.error });
+    }
+
+    if (req.method === 'POST' && path === '/api/login') {
+      if (!auth.on) return json(res, 404, { error: 'The login is off on this copy.' });
+      const address = addressOf(req);
+      const wait = limiter.blocked(address);
+      if (wait) return json(res, 429, { error: tooManyMessage(wait) });
+      let password;
+      try { ({ password } = JSON.parse(await readBody(req) || '{}')); } catch { password = null; }
+      if (typeof password !== 'string' || !verifyPassword(password, auth.passwordHash)) {
+        limiter.fail(address);
+        return json(res, 401, { error: 'Wrong password' });
+      }
+      limiter.succeed(address);
+      res.writeHead(204, { 'set-cookie': sessionCookie(signToken(auth)) });
+      return res.end();
+    }
+
+    if (req.method === 'POST' && path === '/api/logout') {
+      res.writeHead(204, { 'set-cookie': clearedCookie() });
+      return res.end();
+    }
+
+    if (req.method === 'GET' && path === '/api/status') {
+      return json(res, 200, { login: auth.on, mirror: false, ratingsCopiedAt: null });
     }
 
     // What the page needs on load: the facets, and the whole dataset to render.
@@ -263,6 +319,15 @@ const server = createServer(async (req, res) => {
 dataset = await loadDataset();
 const selections = await openSelections(SELECTIONS_FILE);
 
+// A server that others can reach must not start half-protected: no login, or ratings that
+// silently don't save. On this Mac (127.0.0.1) the app still runs without ratings and says why.
+const problems = startupProblems({ env: process.env, host: HOST, selections });
+if (problems.length > 0) {
+  console.error('Not starting:');
+  for (const p of problems) console.error(`  ${p}`);
+  process.exit(1);
+}
+
 // The likeliest way to fail on startup is a server you already have running.
 // Node's default is an unhandled 'error' event: a 20-line stack trace whose
 // actual meaning — "it's already up" — is on line 8.
@@ -287,5 +352,6 @@ server.listen(PORT, HOST, () => {
     console.log(`${dataset.sailings.length} sailings loaded, scraped ${dataset.scrapedAt}`);
   }
   console.log(selections.ok ? `Ratings: ${SELECTIONS_FILE}` : `Ratings unavailable: ${selections.reason}`);
+  console.log(auth.on ? 'Login: on' : 'Login: off (this Mac only)');
   console.log(`Cruise search running at http://localhost:${PORT}`);
 });

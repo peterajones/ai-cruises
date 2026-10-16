@@ -1,3 +1,4 @@
+import '/session.js';
 const $ = (q) => document.querySelector(q);
 const el = (tag, props = {}, ...kids) => {
   const n = document.createElement(tag);

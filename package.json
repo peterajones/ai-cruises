@@ -9,7 +9,9 @@
     "test": "node --test 'test/*.test.js'",
     "scrape": "node scrape.js",
     "serve": "node --env-file-if-exists=.env server.js",
-    "export-selections": "node selections.js --export"
+    "export-selections": "node selections.js --export",
+    "hash-password": "node tools/hash-password.js",
+    "make-key": "node tools/make-key.js"
   },
   "keywords": [],
   "author": "",

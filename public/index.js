@@ -1,3 +1,4 @@
+import '/session.js';
 import { priceFor } from '/search.js';
 
 const $ = (s) => document.querySelector(s);
