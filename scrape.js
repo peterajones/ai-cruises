@@ -132,8 +132,9 @@ async function main() {
   for (const adapter of adapters) {
     const page = await newPage(browser);
     report.start(adapter.name);
+    let payloads = [];
     try {
-      const payloads = await adapter.fetchListingPages(page, {
+      payloads = await adapter.fetchListingPages(page, {
         limit: flags.limit,
         onProgress: (text) => report.progress(adapter.name, text),
         log: report.log,
@@ -183,7 +184,8 @@ async function main() {
         console.error(`${adapter.name}: ${err.message}`);
         console.error(`  Keeping ${adapter.name}'s sailings from the previous run.`);
       } else if (err instanceof EmptyResultError) {
-        const path = await snapshotFailure(await page.content(), `${adapter.name}-empty`);
+        // Save what the parser received: adapters may load pages in their own tabs, so the shared page could be blank.
+        const path = await snapshotFailure(payloads.length > 0 ? payloads.join('\n\n') : await page.content(), `${adapter.name}-empty`);
         console.error(`${adapter.name}: parsed 0 sailings.`);
         console.error(`  Selectors probably broke. Page saved to ${path}`);
         console.error(`  Keeping ${adapter.name}'s sailings from the previous run.`);
