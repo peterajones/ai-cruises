@@ -54,6 +54,7 @@ npm run make-key                          # prints a 32+ character key (JWT_SECR
 npm run local:start                       # Caddy + the stand-in server at https://ai-cruises.localhost:8443; Ctrl-C stops both
 npm run local:upload                      # send data/sailings.json to the stand-in
 npm run local:stop                        # stop Caddy if it was left running
+npm run serve:local-sync                  # the Mac copy, syncing with the stand-in (Refresh button shows)
 ```
 
 Fixtures in `test/fixtures/` are real captured payloads. When a site changes shape,
