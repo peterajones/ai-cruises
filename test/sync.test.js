@@ -192,7 +192,7 @@ dbTest('pullRatings copies the server’s rows and the time; a cut-off answer ch
   const mac = await openSelections(join(scratchDir(), 'mac.db'));
   mac.setRating('cunard:9', 2, '2026-10-01T00:00:00Z', { id: 'cunard:9' });
 
-  assert.deepEqual(await pullRatings({ config, store: mac, fetchImpl: fetchVia(ctx), now: () => '2026-10-16T14:05:00Z' }), { copied: 1 });
+  assert.deepEqual(await pullRatings({ config, store: mac, fetchImpl: fetchVia(ctx), now: () => '2026-10-16T14:05:00Z', force: true }), { copied: 1 });
   assert.deepEqual(mac.all(), server.all());
   assert.equal(mac.copiedAt(), '2026-10-16T14:05:00Z');
 
@@ -200,6 +200,46 @@ dbTest('pullRatings copies the server’s rows and the time; a cut-off answer ch
   const cutOff = async () => new Response('{"selections":[{"sailingId":"x"', { status: 200 });
   await assert.rejects(pullRatings({ config, store: mac, fetchImpl: cutOff }), /cut off/);
   assert.deepEqual(mac.all(), before);
+  server.close(); mac.close();
+});
+
+dbTest('a pull never wipes ratings that exist only on this Mac', async () => {
+  const server = await openSelections(join(scratchDir(), 'server.db'));
+  const ctx = await context({ store: server });
+  const mac = await openSelections(join(scratchDir(), 'mac.db'));
+  mac.setRating('cunard:9', 4, '2026-10-01T00:00:00Z', { id: 'cunard:9' });
+  const before = mac.all();
+
+  // (a) never copied from the server: refused, nothing changed
+  await assert.rejects(pullRatings({ config, store: mac, fetchImpl: fetchVia(ctx) }),
+    (err) => /never copied/.test(err.message) && err.message.startsWith('This Mac has 1 saved cruises that were never copied from the server — nothing changed.'));
+  assert.deepEqual(mac.all(), before);
+  assert.equal(mac.copiedAt(), null);
+
+  // force replaces them
+  assert.deepEqual(await pullRatings({ config, store: mac, fetchImpl: fetchVia(ctx), force: true, now: () => '2026-10-16T14:05:00Z' }), { copied: 0 });
+  assert.deepEqual(mac.all(), []);
+  server.close(); mac.close();
+});
+
+dbTest('a pull from a server with no rows is refused when this Mac has some, even after an earlier copy', async () => {
+  const server = await openSelections(join(scratchDir(), 'server.db'));
+  const ctx = await context({ store: server });
+  const mac = await openSelections(join(scratchDir(), 'mac.db'));
+  mac.replaceAll([], { copiedAt: '2026-10-15T00:00:00Z' });
+  mac.setRating('cunard:9', 4, '2026-10-01T00:00:00Z', { id: 'cunard:9' });
+  const before = mac.all();
+  await assert.rejects(pullRatings({ config, store: mac, fetchImpl: fetchVia(ctx) }),
+    (err) => /server has no saved cruises/.test(err.message) && err.message.includes('but this Mac has 1 — nothing changed.'));
+  assert.deepEqual(mac.all(), before);
+  server.close(); mac.close();
+});
+
+dbTest('an empty Mac may pull from an empty server', async () => {
+  const server = await openSelections(join(scratchDir(), 'server.db'));
+  const ctx = await context({ store: server });
+  const mac = await openSelections(join(scratchDir(), 'mac.db'));
+  assert.deepEqual(await pullRatings({ config, store: mac, fetchImpl: fetchVia(ctx) }), { copied: 0 });
   server.close(); mac.close();
 });
 

@@ -38,9 +38,18 @@ export async function uploadSailings({ config, dataFile, force = false, fetchImp
   return call(config, `/api/sync/sailings${force ? '?force=1' : ''}`, { method: 'PUT', body, headers: GZIP_JSON, fetchImpl });
 }
 
-export async function pullRatings({ config, store, fetchImpl, now = () => new Date().toISOString() }) {
+export async function pullRatings({ config, store, fetchImpl, now = () => new Date().toISOString(), force = false }) {
   if (!store?.ok) throw new Error(store?.reason ?? 'Ratings are unavailable on this Mac.');
   const { selections } = await call(config, '/api/sync/selections', { fetchImpl });
+  const mine = store.all().length;
+  if (!force && mine > 0) {
+    if (store.copiedAt() === null) {
+      throw new Error(`This Mac has ${mine} saved cruises that were never copied from the server — nothing changed. Send them first with npm run push-ratings, or pull anyway with npm run pull-ratings -- --force.`);
+    }
+    if (selections.length === 0) {
+      throw new Error(`The server has no saved cruises but this Mac has ${mine} — nothing changed. If the server lost its data, send yours with npm run push-ratings -- --force; to empty this Mac, npm run pull-ratings -- --force.`);
+    }
+  }
   return { copied: store.replaceAll(selections, { copiedAt: now() }) };
 }
 

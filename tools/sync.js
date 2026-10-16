@@ -16,7 +16,7 @@ try {
   } else if (command === 'pull' || command === 'push') {
     const store = await openSelections(process.env.SELECTIONS_FILE || DEFAULT_FILE);
     if (command === 'pull') {
-      const { copied } = await pullRatings({ config, store });
+      const { copied } = await pullRatings({ config, store, force });
       console.log(`Copied ${copied} saved cruises from the server.`);
     } else {
       const { stored } = await pushRatings({ config, store, force });
