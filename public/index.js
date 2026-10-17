@@ -205,6 +205,12 @@ async function showFlights(s, home, body) {
     googleLink, el('span', { class: 'note', text: checkedAgo(data.fetchedAt) })), i++));
 }
 
+// The year row is pinned once the header has scrolled out of view; "stuck" gives it its shadow
+// and its ↑ Search button.
+new IntersectionObserver(([entry]) => {
+  $('#years').classList.toggle('stuck', !entry.isIntersecting);
+}).observe($('header'));
+
 $('#panel-backdrop').onclick = closePanel;
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && panelSailing) closePanel(); });
 
@@ -289,6 +295,14 @@ function buildYearChips() {
   }
   chip(null, 'All', state.all.length);
   for (const y of years) chip(y, y, counts.get(y));
+
+  // Shown only while the row is pinned (the search box has scrolled away): one click back to it.
+  const toSearch = el('button', { type: 'button', class: 'yearchip to-search', text: '↑ Search' });
+  toSearch.onclick = () => {
+    $('#q').focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  host.append(toSearch);
 
   syncYearChips = () => {
     for (const c of chips) c.el.classList.toggle('on', c.value === state.facets.year);

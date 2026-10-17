@@ -410,12 +410,13 @@ Nothing queued. Holland America's design and plan are in `docs/superpowers/specs
 
 Noted, not decided. Don't act on these without asking.
 
-**Sticky year chips.** The year row scrolls out of view and is easy to lose. `position: fixed`
-is the wrong tool — it drops the row out of flow, so it needs a hand-maintained top offset
-*and* a compensating margin below, both of which re-break whenever the header changes.
-`position: sticky` with a `--header-h` variable set from a `ResizeObserver` on the header is
-the fix, ideally paired with hiding the example chips on scroll to reclaim the height.
-Deferred because it may not be a real problem — see the viewport note below.
+**Sticky year chips — done 2026-10-17.** The header is no longer pinned; the year row is. A spike
+at 800×600 and 390×844 found the pinned header with its example chips took 37% and 34% of the
+screen, and the year row scrolled away. Pinning the years under that header would have made it
+worse (~45%), so the header scrolls away instead and the year row pins: 51px (9%) on the laptop,
+102px (12%) on the phone, where ↑ Search shares My cruises' line. Once pinned, the row shows
+"↑ Search", which scrolls to the top with the cursor in the box (an IntersectionObserver on the
+header sets `#years.stuck`).
 
 **Verify UI on a small viewport before judging it.** Peter works on a 27" Studio Display, where
 vertical space is abundant and scroll-loss is felt differently than on a laptop or phone. Any
