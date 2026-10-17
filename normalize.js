@@ -301,6 +301,10 @@ export function normalizeAll(rawRows, { source, line }) {
       sailing.destination =
         canonicalDestination(row.destination) ?? findDestination(row.destination)
         ?? (row.itinerary ? findDestination(row.itinerary) : null);
+      // Celebrity labels its Antarctica voyages "South America" (Peter, 2026-10-17: its own
+      // destination, so "Antarctica" finds them). Only this name overrides a label: letting any
+      // itinerary name win would refile hundreds ("Bahamas & Perfect Day" is labelled Caribbean).
+      if (row.itinerary && /\bantarctic/i.test(row.itinerary)) sailing.destination = 'antarctica';
       if (sailing.destination === null) miss('destination', String(row.destination));
     }
 
