@@ -287,3 +287,14 @@ test('the "Repositioning" itineraries map as Peter chose (2026-10-15)', () => {
   ]);
   assert.equal(unrecognised.filter((u) => u.field === 'destination').length, 0);
 });
+
+test('an itinerary that names Antarctica is filed under antarctica, whatever the region label', () => {
+  const rows = [
+    { destination: 'South America', itinerary: 'Antarctica' },            // Celebrity Equinox, 2027
+    { destination: 'South America', itinerary: 'Cape Horn & Antarctica' },
+    { destination: 'South America', itinerary: 'Brazil & Argentina' },    // unchanged
+    { destination: 'Caribbean', itinerary: 'Bahamas & Perfect Day Cruise' }, // label still wins
+  ].map((r, i) => ({ ...goodRow, externalId: `A${i}`, ...r }));
+  const { sailings } = normalizeAll(rows, { source: 'celebrity', line: 'Celebrity Cruises' });
+  assert.deepEqual(sailings.map((s) => s.destination), ['antarctica', 'antarctica', 'south-america', 'caribbean']);
+});

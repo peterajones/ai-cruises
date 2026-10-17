@@ -316,7 +316,10 @@ line's fresh sailings and to any carried over ("left out N sailings outside the 
 Holland America's 750 cap still applies first. "Repositioning" sailings take their destination
 from the itinerary name: a region it names, or one of the voyages Peter mapped by name (Caribbean
 crossings like "Colon To San Juan Cruise"; Iceland/Greenland → transatlantic). A new one shows up
-in the scrape's to-do list.
+in the scrape's to-do list. **Antarctica is its own destination** (2026-10-17): an itinerary
+that names Antarctica is filed under `antarctica` whatever the line's label — Celebrity labels its
+Equinox voyages "South America", so a search for Antarctica found nothing. Only that name overrides
+a label; letting any itinerary name win would refile hundreds.
 
 **Cruisetours are a trip type.** Every sailing has `tripType`: `"cruise"` or
 `"cruisetour"` (a cruise plus land days, sold as one package — only Holland America has
