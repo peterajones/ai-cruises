@@ -184,7 +184,25 @@ HSTS is sent only when `HOST` is public and the request's host isn't localhost, 
 
 **Dockerfile:** Node 24.22 (pinned), no Chromium (`PUPPETEER_SKIP_DOWNLOAD`), runs as `node`.
 Coolify's persistent storage is mounted at `/app/data` — `sailings.json`, the previous copy,
-`selections.db`, and the flights cache that protects the SerpApi quota.
+`selections.db`, and the flights cache that protects the SerpApi quota. **Not backed up** (checked
+2026-10-17): the box's nightly `backup-volumes.sh` covers a fixed list of other apps' volumes. The
+Mac's copy after each pull is the only other copy of the ratings; the sailings can be re-scraped.
+
+**Deploys** run on every push to `main` (a GitHub webhook to Coolify; set up 2026-10-17). Data never
+goes that way: it's `npm run upload-data` or a Refresh.
+
+**First-deploy pitfalls (2026-10-16), each cost a round trip:**
+
+- **peter-jones.org's DNS is at Cloudflare, not Hover.** Hover is only the registrar; a record added
+  there does nothing. The `ai-cruises` A record is in Cloudflare, **DNS only (grey cloud)**: an
+  orange-cloud proxy would put Cloudflare's address last in `X-Forwarded-For`, and the login's
+  per-address limit would then count every visitor as one. Cloudflare also has a catch-all record,
+  so a name that "resolves" may still point at the wrong place: check it gives the server's address.
+- **Coolify interpolates `$` in environment values** (it runs the app through Docker Compose).
+  `LOGIN_PASSWORD_HASH` (`scrypt$32768$…`) must be marked **Is Literal**, or the server refuses to
+  start with "not a hash from npm run hash-password".
+- **A domain changed in Coolify applies only on the next deploy.** The first deploy came up on its
+  `sslip.io` address alone, and the domain answered "no available server" until a redeploy.
 
 **Local HTTPS.** A stand-in for the server runs on the Mac: `npm run serve:server` starts a copy
 on port 3031 with the server's settings from `.env.server` (`PORT=3031`, `TRUST_PROXY=1`,
