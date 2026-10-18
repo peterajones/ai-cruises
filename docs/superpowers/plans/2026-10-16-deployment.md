@@ -1,5 +1,7 @@
 # Deployment, Login and a Refresh Button Implementation Plan
 
+**Status:** COMPLETE — 2026-10-17 (confirmed in daily review)
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** ai-cruises runs on Peter's Coolify server at ai-cruises.peter-jones.org behind a login, while a "Refresh data" button on his Mac scrapes, uploads the new `sailings.json` to the server and copies the server's ratings back.

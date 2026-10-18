@@ -1,5 +1,7 @@
 # Full Catalogues and a Rolling 12 Months Implementation Plan
 
+**Status:** COMPLETE — 2026-10-17 (confirmed in daily review)
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Royal Caribbean and Celebrity read their whole catalogues instead of the page's first 10 cruises, and every line keeps only sailings departing in the next 12 months.

@@ -1,5 +1,7 @@
 # My Cruises Implementation Plan
 
+**Status:** COMPLETE — 2026-10-17 (confirmed in daily review)
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Record which cruises Peter viewed and how he rated them (1–5 stars), show it on the cards, in a "My cruises" chip and a `/mine` table, and let search filter on it.
