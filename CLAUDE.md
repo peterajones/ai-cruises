@@ -184,9 +184,11 @@ HSTS is sent only when `HOST` is public and the request's host isn't localhost, 
 
 **Dockerfile:** Node 24.22 (pinned), no Chromium (`PUPPETEER_SKIP_DOWNLOAD`), runs as `node`.
 Coolify's persistent storage is mounted at `/app/data` — `sailings.json`, the previous copy,
-`selections.db`, and the flights cache that protects the SerpApi quota. **Not backed up** (checked
-2026-10-17): the box's nightly `backup-volumes.sh` covers a fixed list of other apps' volumes. The
-Mac's copy after each pull is the only other copy of the ratings; the sailings can be re-scraped.
+`selections.db`, and the flights cache that protects the SerpApi quota. **Only `selections.db` is
+backed up** (since 2026-10-17): the box's nightly `backup-volumes.sh` captures it as component
+`ai-cruises` at 03:52 UTC, and the weekly drill restores it and counts its rows. To put the ratings
+back, follow "Putting ai-cruises' ratings back" in the backups-dashboard README. The Mac's copy
+after each pull is the other copy; the sailings can be re-scraped, and the flights cache refills.
 
 **Deploys** run on every push to `main` (a GitHub webhook to Coolify; set up 2026-10-17). Data never
 goes that way: it's `npm run upload-data` or a Refresh.
