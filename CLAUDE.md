@@ -171,8 +171,15 @@ copied cookie stays valid for its 30 days unless one of those two changes. Five 
 (or wrong sync keys) per address per 15 minutes give a 429. An attempt is counted *before* the
 password is checked, so slow request bodies can't slip past the limit. The count is in memory; a
 restart resets it. There is deliberately no site-wide lockout — anyone could use it to lock Peter
-out. Everything is locked except `/login`, its assets, `POST /api/login`, `/healthz` and
-`/api/sync/*` (which has its own key).
+out. Everything is locked except `/login`, its assets, `POST /api/login`, `/healthz`,
+`/api/sync/*` (which has its own key), and the home-screen app's manifest and icons
+(`/manifest.webmanifest`, `/apple-touch-icon.png`, `/icon-192.png`, `/icon-512.png`) — browsers
+fetch the manifest without cookies, so behind the login the app would get no name or icon.
+
+**Home-screen app.** Safari → Share → Add to Home Screen gives a "Cruises" icon (the ship on the
+accent teal) that opens full screen. Every page carries the tags, login included. The icons were
+made once from `favicon-dark-mode.png` with PIL: opaque (iOS paints transparency black), the ship
+in the middle 60% so Android's round crop doesn't clip it.
 
 **Security headers** on every response, including a CSP that allows scripts only from this
 site's own files. **Never add an inline `<script>` or an `onclick=`** to a page: it won't run, and

@@ -129,6 +129,7 @@ test('a public server refuses to start without login, or without ratings', () =>
 test('only the login page, its files, health and the sync routes are open', () => {
   for (const [m, p] of [['GET', '/login'], ['GET', '/login.js'], ['GET', '/favicon-light-mode.png'],
     ['GET', '/favicon-dark-mode.png'], ['GET', '/healthz'], ['POST', '/api/login'], ['POST', '/api/logout'],
+    ['GET', '/manifest.webmanifest'], ['GET', '/apple-touch-icon.png'], ['GET', '/icon-192.png'], ['GET', '/icon-512.png'],
     ['PUT', '/api/sync/sailings'], ['GET', '/api/sync/selections']]) {
     assert.ok(isOpenPath(m, p), `${m} ${p}`);
   }

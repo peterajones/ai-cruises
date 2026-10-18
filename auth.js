@@ -167,7 +167,11 @@ export function startupProblems({ env, host, selections }) {
   return problems;
 }
 
+// The manifest and icons are open because browsers fetch the manifest without
+// cookies: behind the login it comes back as a redirect, and the home-screen app
+// gets no name or icon. They say nothing about the data.
 const OPEN = new Set(['GET /login', 'GET /login.js', 'GET /favicon-light-mode.png', 'GET /favicon-dark-mode.png',
+  'GET /manifest.webmanifest', 'GET /apple-touch-icon.png', 'GET /icon-192.png', 'GET /icon-512.png',
   'GET /healthz', 'POST /api/login', 'POST /api/logout']);
 
 /** Reachable without a session. The sync routes check their own key. */
