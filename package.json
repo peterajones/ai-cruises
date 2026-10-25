@@ -31,6 +31,6 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",
-    "puppeteer": "^25.4.0"
+    "puppeteer": "^25.16.0"
   }
 }
