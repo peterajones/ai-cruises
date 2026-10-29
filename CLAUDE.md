@@ -418,6 +418,8 @@ the survivors would go quiet exactly when the comparison wrongly excluded every 
 Nothing queued. Holland America's design and plan are in `docs/superpowers/specs/` and
 `docs/superpowers/plans/` (2026-10-02).
 
+Keep `TODO.md` current: remove an item when it is finished, and add any unfinished work you discover.
+
 ## Open questions
 
 Noted, not decided. Don't act on these without asking.
