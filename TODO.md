@@ -3,6 +3,7 @@
 _Single source of truth for unfinished work in this project. Tick an item when it is done; the review harness records it and removes the line._
 
 ## Next
+- [ ] Run `npm test` and `node scrape.js --limit 5 --dry-run` after the zod 3→4 and puppeteer bump, then fix anything that breaks. (from: review harness)
 
 ## Later
 - [ ] Add "More like this": suggest cruises similar to the ones rated highly (from: docs/superpowers/specs/2026-10-14-my-cruises-design.md)
