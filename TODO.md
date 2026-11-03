@@ -8,3 +8,4 @@ _Single source of truth for unfinished work in this project. Tick an item when i
 - [ ] Add "More like this": suggest cruises similar to the ones rated highly (from: docs/superpowers/specs/2026-10-14-my-cruises-design.md)
 
 ## Undecided
+- [ ] Decide whether a scrape should warn when a line loses a whole field, as Holland America's ports did with no complaint (from: scrape 2026-11-03)

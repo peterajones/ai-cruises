@@ -4,7 +4,7 @@
   "ship": "Eurodam",
   "departurePort": "Seattle, Washington, US",
   "endPort": "Seattle, Washington, US",
-  "destination": "ALASKA",
+  "destination": "ALASKA & YUKON",
   "departureDate": "2027-04-24",
   "nights": 7,
   "tripType": "cruise",
@@ -12,20 +12,19 @@
   "price": 959,
   "currency": "USD",
   "cabinPrices": {
-    "Signature Suite": 2164,
-    "Verandah": 1459,
-    "Ocean View": 1009,
     "Inside": 959,
-    "Neptune Suite": 3024
+    "Neptune Suite": 3064,
+    "Ocean View": 1009,
+    "Signature Suite": 2164,
+    "Verandah": 1459
   },
   "itinerary": "7-DAY ALASKA EXPLORER",
   "image": "https://www.hollandamerica.com/content/dam/hal/itin-destinations/alaska/c146-alaska-glacier-bay-cruise-ship-desktop.jpg?imwidth=600",
   "ports": [
-    "Puget Sound",
-    "Scenic cruising Stephens Passage",
     "Juneau",
-    "Glacier Bay",
+    "Scenic cruising Stephens Passage",
     "Icy Strait Point",
+    "Glacier Bay National Park",
     "Sitka",
     "Ketchikan",
     "Victoria"

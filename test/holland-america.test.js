@@ -217,18 +217,31 @@ test('the overview image becomes a 600px-wide absolute URL', () => {
     'https://www.hollandamerica.com/content/dam/hal/itin-destinations/alaska/c146.jpg?imwidth=600');
 });
 
-test('ports of call come from portImages, without the start and end, as short names', () => {
+test('ports of call come from portsOfCall, without the start and end, as short names', () => {
+  const port = (name) => ({ id: 'X', imageUrl: '/a.jpg', name });
   const payload = JSON.stringify({ response: { docs: [{
     cruiseId: 'D733', price_USD_IN_RESTRICTED_d: 959,
-    portImages: [
-      'Seattle, Washington, US#@#/a.jpg#@#',
-      'Juneau, Alaska, US#@#/b.jpg#@#',
-      'Glacier Bay#@#/c.jpg#@#',
-      'Victoria, British Columbia, Canada#@#/d.jpg#@#',
-      'Seattle, Washington, US#@#/e.jpg#@#',
+    embarkPortName: 'Puget Sound#@#271', disembarkPortName: 'Seattle, Washington, US',
+    portsOfCall: [
+      port('Puget Sound'),
+      port('Seattle, Washington, US'), // the real start, repeated after the listed one
+      port('Juneau, Alaska, US'),
+      port('Glacier Bay National Park'),
+      port('Victoria, British Columbia, Canada'),
+      port('Seattle, Washington, US'),
     ],
   }] } });
-  assert.deepEqual(parseListing(payload)[0].ports, ['Juneau', 'Glacier Bay', 'Victoria']);
+  assert.deepEqual(parseListing(payload)[0].ports, ['Juneau', 'Glacier Bay National Park', 'Victoria']);
+});
+
+test('a place visited twice on a cruisetour is listed once', () => {
+  const port = (name) => ({ id: 'X', imageUrl: '/a.jpg', name });
+  const payload = JSON.stringify({ response: { docs: [{
+    cruiseId: 'W728', price_USD_IN_RESTRICTED_d: 959,
+    embarkPortName: 'Vancouver, B.C., CA#@#YVR', disembarkPortName: 'Fairbanks, Alaska',
+    portsOfCall: [port('Vancouver, B.C., CA'), port('Denali National Park, Alaska'), port('Denali National Park, Alaska'), port('Fairbanks, Alaska')],
+  }] } });
+  assert.deepEqual(parseListing(payload)[0].ports, ['Denali National Park']);
 });
 
 test('a sailing without an image or ports gets none, rather than a broken URL', () => {
@@ -240,7 +253,7 @@ test('a sailing without an image or ports gets none, rather than a broken URL', 
 test('the search asks for the image and the ports', () => {
   const fl = new URL(searchUrl(0)).searchParams.get('fl').split(',');
   assert.ok(fl.includes('cruiseOverviewImage'));
-  assert.ok(fl.includes('portImages'));
+  assert.ok(fl.includes('portsOfCall'));
 });
 
 test('the search asks for where the cruise ends', () => {
@@ -258,4 +271,21 @@ test('a sailing embarking at "Puget Sound" departs from Seattle, so a search out
   const payload = (embarkPortName) => JSON.stringify({ response: { docs: [{ cruiseId: 'D733', embarkPortName }] } });
   assert.equal(parseListing(payload('Puget Sound#@#271'))[0].departurePort, 'Seattle, Washington, US');
   assert.equal(parseListing(payload('Vancouver, B.C., CA#@#YVR'))[0].departurePort, 'Vancouver, B.C., CA');
+});
+
+test('a Denali & Yukon tour whose ship leg ends in Skagway ends in Anchorage, with Skagway a stop', () => {
+  const port = (name) => ({ id: 'X', imageUrl: '/a.jpg', name });
+  const doc = {
+    cruiseId: 'X730A', tourId: 'T7AY5C', name: '10-Day Denali & Yukon Y5C',
+    embarkPortName: 'Vancouver, B.C., CA#@#YVR', disembarkPortName: 'Skagway, Alaska, US',
+    portsOfCall: [port('Vancouver, B.C., CA'), port('Juneau, Alaska, US'), port('Skagway, Alaska, US')],
+  };
+  const row = parseListing(JSON.stringify({ response: { docs: [doc] } }))[0];
+  assert.equal(row.endPort, 'Anchorage, Alaska, US');
+  assert.deepEqual(row.ports, ['Juneau', 'Skagway']);
+});
+
+test('a sailing that really ends in Skagway keeps it as its end port', () => {
+  const doc = { cruiseId: 'A1', name: '7-Day Alaskan Explorer', disembarkPortName: 'Skagway, Alaska, US' };
+  assert.equal(parseListing(JSON.stringify({ response: { docs: [doc] } }))[0].endPort, 'Skagway, Alaska, US');
 });

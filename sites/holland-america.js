@@ -36,7 +36,7 @@ const FIELDS = [
   'duration', 'name', 'cruiseType', 'destinationIds', 'contentPath', 'meta',
   // Not in the site's own search query, so easy to miss: the API returns only what
   // is asked for, and these two hold the card's picture and its ports of call.
-  'cruiseOverviewImage', 'portImages',
+  'cruiseOverviewImage', 'portsOfCall',
   // Each public USD fare by its full name. The API now ignores wildcards here (they worked on 2026-10-17, not on 2026-11-03)
   // (price_*_RESTRICTED_d returns no prices, and fl=* no prices either), so naming them is
   // the only way to get them; USD priced all 818 sailings when this was written.
@@ -129,13 +129,31 @@ function overviewImage(path) {
 }
 
 /**
- * Ports of call from portImages ("Juneau, Alaska, US#@#/image.jpg#@#"), without the
- * first and last entries — where the cruise starts and ends — and shortened to the
- * place name, as the other lines' cards show them.
+ * Denali & Yukon tours now report only their ship leg, ending in Skagway, though the package
+ * goes on by land to Anchorage (X730A's own page says so; so did all 32 on 2026-10-17). Their
+ * land stops are gone from the API, and aren't worth a request per sailing to get back.
  */
-function portsOfCall(portImages) {
-  const names = (portImages ?? []).map((entry) => unpack(entry).value?.split(',')[0].trim()).filter(Boolean);
-  return [...new Set(names.slice(1, -1))];
+function shipLegOnly(doc) {
+  return /denali & yukon/i.test(doc.name ?? '') && unpack(doc.disembarkPortName).value === 'Skagway, Alaska, US';
+}
+
+function endPort(doc) {
+  return shipLegOnly(doc) ? 'Anchorage, Alaska, US' : unpack(doc.disembarkPortName).value;
+}
+
+/**
+ * Ports of call from portsOfCall ([{ id, name, imageUrl }]), shortened to the place name, as
+ * the other lines' cards show them. Where the cruise starts and ends comes out by name as well
+ * as by position: the list can repeat them mid-way (D733: Puget Sound, Seattle, Juneau, …, Seattle).
+ */
+function portsOfCall(doc) {
+  const ends = new Set([unpack(doc.embarkPortName).value, departurePort(doc.embarkPortName), endPort(doc)]);
+  const names = (doc.portsOfCall ?? [])
+    .slice(1, shipLegOnly(doc) ? undefined : -1)
+    .map((port) => port.name)
+    .filter((name) => name && !ends.has(name))
+    .map((name) => name.split(',')[0].trim());
+  return [...new Set(names)];
 }
 
 /** "Inside#@#WE_IN" -> { IN: 'Inside' }: the site's own name for each cabin code. */
@@ -210,7 +228,7 @@ export function parseListing(payload) {
       url: doc.contentPath ? `${SITE_ORIGIN}/en/us${doc.contentPath}` : null,
       ship: unpack(doc.shipName).value,
       departurePort: departurePort(doc.embarkPortName),
-      endPort: unpack(doc.disembarkPortName).value,
+      endPort: endPort(doc),
       // A missing facets table leaves the raw code, which normalize.js reports.
       destination: destinations[destinationCode] ?? destinationCode,
       departureDate: doc.departDate ? doc.departDate.slice(0, 10) : null,
@@ -223,7 +241,7 @@ export function parseListing(payload) {
       cabinPrices,
       itinerary: doc.name ?? null,
       image: overviewImage(doc.cruiseOverviewImage),
-      ports: portsOfCall(doc.portImages),
+      ports: portsOfCall(doc),
     });
   }
 

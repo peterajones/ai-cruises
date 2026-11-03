@@ -236,7 +236,7 @@ Holland America) and a destination. All but
 12 have an end port — those are long Princess itineraries whose cards stop short (see the flights
 panel below) — and every departure and end port maps to an airport. 46 ships with descriptions,
 cheapest prices $199–$30,155 USD (the top is Celebrity's 7-night Galápagos Outer Loop and Machu
-Picchu) and $395–$80,999 CAD (a 28-night Viking voyage). Alaska: 1,213 sailings. 413 tests.
+Picchu) and $395–$80,999 CAD (a 28-night Viking voyage). Alaska: 1,213 sailings. 416 tests.
 
 **Prices per cabin type.** Every sailing has `cabinPrices` — cabin type → that cabin's
 cheapest price, e.g. `{ interior: 959, oceanview: 1009, balcony: 1459, suite: 2164 }` — and
@@ -404,6 +404,9 @@ shape, the others keep running.
   other currency if that's all a sailing has, but only USD is asked for now. The *website*
   geolocates: a Canadian visitor is redirected to `/en/ca` and sees CAD.
 - **`#@#` packs a value and a code** (`"Westerdam#@#WE"`); `unpack()` splits it.
+- **Denali & Yukon tours report only their ship leg** (32 sailings, ending in Skagway since
+  2026-11). They end in Anchorage, so `endPort()` says so, and flights price from `ANC`. Their land
+  stops (Whitehorse, Dawson, Fairbanks, Denali) are gone from the API and from their cards.
 - **"Puget Sound" as an embark port means Seattle** (22 round trips, all ending in Seattle):
   `departurePort()` files them under `Seattle, Washington, US`, because search matches a port exactly.
 - **Destination codes resolve from `facets.destinations`** in the same response.
@@ -414,7 +417,8 @@ shape, the others keep running.
   unpriced. Each fare is now named in full, USD × 8 cabin codes × 3 fare types. A new cabin
   code stays invisible until it is added to `CABIN_CODES`; `meta` lists each sailing's codes.
   Copying the site's own search query missed `cruiseOverviewImage` (the card photo,
-  requested `?imwidth=600`: 43 KB instead of 190 KB) and `portImages` (the ports of call).
+  requested `?imwidth=600`: 43 KB instead of 190 KB) and `portsOfCall` (the ports of call,
+  `portImages` until 2026-11, when that came back empty and no scrape complained).
   `fl=*` no longer shows every field, so a missing field may exist under an exact name.
 
 **Cross-currency price searches get a notice, not a refusal.** `search.js` compares bare
