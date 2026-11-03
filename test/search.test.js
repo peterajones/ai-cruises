@@ -324,9 +324,10 @@ test('the rating fields count as constraints and are described', () => {
   assert.equal(usesSelections({ destination: 'alaska' }), false);
 });
 
-// More like this. Same line, ports and date unless a test says otherwise.
+// More like this. Same line, ports and date unless a test says otherwise; each its own ship,
+// so each is its own voyage.
 const s = (over) => ({
-  id: 'a', line: 'L', ship: 'S', departureDate: '2027-05-15', nights: 7, price: 1000, currency: 'USD',
+  id: 'a', line: 'L', ship: over.id ?? 'S', departureDate: '2027-05-15', nights: 7, price: 1000, currency: 'USD',
   departurePort: 'Vancouver', endPort: 'Vancouver', ports: ['Juneau', 'Skagway'], ...over,
 });
 
@@ -392,4 +393,23 @@ test('a source with no usable price or nights still ranks by what it has', () =>
     const ids = moreLikeThis(source, [source, s({ id: 'near' }), s({ id: 'far', ports: ['Sitka'] })]).matches.map((m) => m.sailing.id);
     assert.deepEqual(ids, ['near', 'far']);
   }
+});
+
+test('one voyage appears once, as its closest sailing, and its other dates still count', () => {
+  const source = s({ id: 'src' });
+  const packageOf = (id, price, departureDate = '2027-05-20') => s({ id, ship: 'Westerdam', price, departureDate });
+  const ids = moreLikeThis(source, [source,
+    packageOf('dearer', 1800), packageOf('closest', 1000), packageOf('dearest', 2500),
+    packageOf('laterDate', 1000, '2027-05-22'),
+    s({ id: 'sameDayOtherShip', ship: 'Noordam', departureDate: '2027-05-20', price: 1500 }),
+  ]).matches.map((m) => m.sailing.id);
+  assert.deepEqual(ids, ['closest', 'laterDate', 'sameDayOtherShip']);
+});
+
+test('the source can match another sailing of its own ship and date, once', () => {
+  const source = s({ id: 'src', ship: 'Coral Princess', nights: 6 });
+  const ids = moreLikeThis(source, [source,
+    s({ id: 'long', ship: 'Coral Princess', nights: 11 }), s({ id: 'longer', ship: 'Coral Princess', nights: 14 }),
+  ]).matches.map((m) => m.sailing.id);
+  assert.deepEqual(ids, ['long']);
 });

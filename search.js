@@ -93,7 +93,7 @@ function gap(value, sourceValue) {
 
 /**
  * The cruises most like this one, closest first: a plain rule, so no model. The date decides
- * who is in the running and plays no part in the order. Other lines are not forced in: a
+ * who is in the running and plays no part in the order. A voyage appears once. Other lines are not forced in: a
  * cruise whose stops only one line visits gets that line's sailings, which is the honest answer.
  *
  * @param {object} source
@@ -118,7 +118,16 @@ export function moreLikeThis(source, sailings) {
     scored.push({ sailing, shared, score, days });
   }
   scored.sort((a, b) => b.score - a.score || a.days - b.days || a.sailing.id.localeCompare(b.sailing.id));
-  const matches = scored.slice(0, MORE_LIKE_COUNT).map(({ sailing, shared }) => ({ sailing, shared }));
+  // One cruise can be sold as up to 8 land packages, each its own sailing: which package is a
+  // booking-time choice, so a voyage takes one place. Its other dates are still other trips.
+  const voyages = new Set();
+  const closest = scored.filter(({ sailing }) => {
+    const voyage = `${sailing.ship}|${sailing.departureDate}`;
+    if (voyages.has(voyage)) return false;
+    voyages.add(voyage);
+    return true;
+  });
+  const matches = closest.slice(0, MORE_LIKE_COUNT).map(({ sailing, shared }) => ({ sailing, shared }));
   return {
     matches,
     stops: stops.size,

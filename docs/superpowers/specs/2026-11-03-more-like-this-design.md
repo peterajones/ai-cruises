@@ -44,6 +44,10 @@ side, inclusive. The date decides who is in the running and plays no part in the
 - **length gap:** |difference in nights| ÷ the source's nights, capped at 1.
 
 **Order:** score, then closest date, then `id`, so the same click always gives the same order.
+**One sailing per voyage** (Peter, 2026-11-03, after review): a ship and departure date appears once,
+as its closest sailing, because one cruise can be sold as up to 8 land packages and which package
+is a booking-time choice. The same trip on other dates stays, and so can one other sailing of the
+source's own ship and date, such as Coral Princess's 11-day version of its 6-day trip.
 **Show the top 12**, fewer if fewer exist. Nothing forces another line into the list: Oasis of
 the Seas' stops are Nassau and Royal Caribbean's private island, so its closest 12 are all Royal
 Caribbean, and that is the honest answer.
