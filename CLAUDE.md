@@ -74,6 +74,10 @@ A scrape that yields zero parsed rows is treated as a failure and exits with cod
 leaving the previous `data/sailings.json` untouched — a broken selector cannot overwrite
 a good dataset.
 
+A line whose rows are all dropped in normalize (`requireSomeNormalized`) is a failed line too:
+exit 1, and it keeps its previous sailings. Before 2026-11-03 that was a success with none, and
+an upload would have taken a whole line off the site.
+
 ## Environment
 
 - Node 24.15+ (`.nvmrc`; `nvm use` in this folder — the nvm default on this machine is still 22).
@@ -232,7 +236,7 @@ Holland America) and a destination. All but
 12 have an end port — those are long Princess itineraries whose cards stop short (see the flights
 panel below) — and every departure and end port maps to an airport. 46 ships with descriptions,
 cheapest prices $199–$30,155 USD (the top is Celebrity's 7-night Galápagos Outer Loop and Machu
-Picchu) and $395–$80,999 CAD (a 28-night Viking voyage). Alaska: 1,213 sailings. 409 tests.
+Picchu) and $395–$80,999 CAD (a 28-night Viking voyage). Alaska: 1,213 sailings. 413 tests.
 
 **Prices per cabin type.** Every sailing has `cabinPrices` — cabin type → that cabin's
 cheapest price, e.g. `{ interior: 959, oceanview: 1009, balcony: 1459, suite: 2164 }` — and
@@ -396,17 +400,22 @@ shape, the others keep running.
   price the site shows. Checked live: D733 Inside reads CA$1,323 on the site, the API's
   RESTRICTED fare. Promo-code fares (`HEP26…`) and `launch_price_*` (the "was" price) are
   never read; the request's `fl` leaves them out.
-- **Every response carries every currency** (USD, CAD, AUD, GBP, EUR) whatever `country`
-  says. USD is used when present, any other currency otherwise. The *website* geolocates:
-  a Canadian visitor is redirected to `/en/ca` and sees CAD.
+- **Prices are requested in USD, whatever `country` says.** `cheapestFare` still takes any
+  other currency if that's all a sailing has, but only USD is asked for now. The *website*
+  geolocates: a Canadian visitor is redirected to `/en/ca` and sees CAD.
 - **`#@#` packs a value and a code** (`"Westerdam#@#WE"`); `unpack()` splits it.
+- **"Puget Sound" as an embark port means Seattle** (22 round trips, all ending in Seattle):
+  `departurePort()` files them under `Seattle, Washington, US`, because search matches a port exactly.
 - **Destination codes resolve from `facets.destinations`** in the same response.
 - **No ship descriptions** (`shipDescriptions = false`): ship pages are client-rendered
   shells.
-- **The API returns only the fields you ask for** (`fl`), and has ~5,500 per sailing.
+- **The API returns only the fields you ask for** (`fl`), and **ignores wildcards** (they worked
+  on 2026-10-17, not on 2026-11-03): `price_*_RESTRICTED_d` and `fl=*` return no prices, so each sailing dropped as
+  unpriced. Each fare is now named in full, USD × 8 cabin codes × 3 fare types. A new cabin
+  code stays invisible until it is added to `CABIN_CODES`; `meta` lists each sailing's codes.
   Copying the site's own search query missed `cruiseOverviewImage` (the card photo,
   requested `?imwidth=600`: 43 KB instead of 190 KB) and `portImages` (the ports of call).
-  Before concluding a field doesn't exist, ask for `fl=*` on one sailing.
+  `fl=*` no longer shows every field, so a missing field may exist under an exact name.
 
 **Cross-currency price searches get a notice, not a refusal.** `search.js` compares bare
 numbers, so "under $800" across USD and CAD is approximate. `currencyNote()` returns the

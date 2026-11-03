@@ -10,6 +10,9 @@ const PORTS = {
   'Fairbanks, Alaska': 'FAI', 'Miami': 'MIA', 'Miami, Florida': 'MIA',
   'Anchorage, Alaska, US': 'ANC', 'Whittier, Alaska, US': 'ANC',
   'Seattle': 'SEA', 'Seattle, Washington': 'SEA', 'Seattle, Washington, US': 'SEA',
+  // Holland America's embark name for some Seattle round trips (2026-11-03).
+  'Puget Sound': 'SEA',
+  'Skagway, Alaska, US': 'SGY',
   'Los Angeles, California': 'LAX', 'Tokyo, Japan': 'HND', 'Tokyo (Yokohama), Japan': 'HND',
   'Sydney, Australia': 'SYD', 'Port Canaveral (Orlando), Florida': 'MCO', 'Orlando (Port Canaveral)': 'MCO',
   'Barcelona': 'BCN', 'Barcelona, Spain': 'BCN', 'San Juan, Puerto Rico': 'SJU',

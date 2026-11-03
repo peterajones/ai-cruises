@@ -138,10 +138,18 @@ test('the search URL asks for Alaska, in USD, unsold, earliest first, 20 at a ti
   assert.deepEqual(p.getAll('fq'), [
     'departDate:[NOW/DAY+1DAY TO *]', 'destinationIds:A', 'soldOut:false',
   ]);
-  // Every currency's public fares, and nothing else priced: promo-code keys end in _d
-  // but not in a fare type, so these three patterns leave them out.
-  assert.match(p.get('fl'), /price_\*_RESTRICTED_d,price_\*_FLEXIBLE_d,price_\*_anonymous_d/);
   assert.doesNotMatch(p.get('fl'), /launch_price/);
+});
+
+test('the search URL names every public USD fare, because the API ignores wildcards in fl', () => {
+  const fl = new URL(searchUrl(0)).searchParams.get('fl');
+  assert.doesNotMatch(fl, /\*/);
+  const fields = fl.split(',');
+  for (const cabin of ['IN', 'OV', 'VN', 'VS', 'NS', 'SS', 'PH', 'LA']) {
+    for (const fare of ['RESTRICTED', 'FLEXIBLE', 'anonymous']) {
+      assert.ok(fields.includes(`price_USD_${cabin}_${fare}_d`), `${cabin} ${fare}`);
+    }
+  }
 });
 
 const usPayload = await readFile(
@@ -244,4 +252,10 @@ test('the fetch reports each page as it goes', async () => {
   const body = pad({ response: { docs: [] } });   // a short page ends the loop
   await fetchListingPages(fakePage(200, body), { limit: 750, onProgress: (text) => seen.push(text) });
   assert.deepEqual(seen, ['page 1/38']);
+});
+
+test('a sailing embarking at "Puget Sound" departs from Seattle, so a search out of Seattle finds it', () => {
+  const payload = (embarkPortName) => JSON.stringify({ response: { docs: [{ cruiseId: 'D733', embarkPortName }] } });
+  assert.equal(parseListing(payload('Puget Sound#@#271'))[0].departurePort, 'Seattle, Washington, US');
+  assert.equal(parseListing(payload('Vancouver, B.C., CA#@#YVR'))[0].departurePort, 'Vancouver, B.C., CA');
 });

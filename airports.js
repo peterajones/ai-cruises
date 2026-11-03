@@ -8,10 +8,12 @@
 const AIRPORTS = {
   YYZ: ['Toronto', 'toronto'],
   YVR: ['Vancouver', 'vancouver'],
-  SEA: ['Seattle', 'seattle'],
+  // Holland America names Puget Sound as the embark port of some Seattle round trips.
+  SEA: ['Seattle', 'seattle', 'puget sound'],
   // Whittier and Seward are Anchorage's cruise ports.
   ANC: ['Anchorage', 'anchorage', 'whittier', 'seward'],
   FAI: ['Fairbanks', 'fairbanks'],
+  SGY: ['Skagway', 'skagway'],
   FLL: ['Fort Lauderdale', 'fort lauderdale', 'ft lauderdale'],
   MIA: ['Miami', 'miami'],
   MCO: ['Orlando', 'orlando', 'port canaveral'],

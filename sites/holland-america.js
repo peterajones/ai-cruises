@@ -28,15 +28,19 @@ const CAP = 750;
 // request and a page boundary never repeats or skips a sailing.
 const SORT = 'departDate asc,cruiseId asc,tourId asc';
 const FILTERS = ['departDate:[NOW/DAY+1DAY TO *]', 'destinationIds:A', 'soldOut:false'];
+// The cabin codes seen in `meta` and in the fares. PH and LA are priced -1 on every sailing so far.
+const CABIN_CODES = ['IN', 'OV', 'VN', 'VS', 'NS', 'SS', 'PH', 'LA'];
+const FARE_TYPES = ['RESTRICTED', 'FLEXIBLE', 'anonymous'];
 const FIELDS = [
   'cruiseId', 'tourId', 'itineraryId', 'shipName', 'embarkPortName', 'disembarkPortName', 'departDate',
   'duration', 'name', 'cruiseType', 'destinationIds', 'contentPath', 'meta',
   // Not in the site's own search query, so easy to miss: the API returns only what
   // is asked for, and these two hold the card's picture and its ports of call.
   'cruiseOverviewImage', 'portImages',
-  // Every currency's public fares. Promo-code keys (price_USD_HEP2614AK_d) end in _d
-  // but not in a fare type, so these leave out ~600 of them per sailing.
-  'price_*_RESTRICTED_d', 'price_*_FLEXIBLE_d', 'price_*_anonymous_d',
+  // Each public USD fare by its full name. The API now ignores wildcards here (they worked on 2026-10-17, not on 2026-11-03)
+  // (price_*_RESTRICTED_d returns no prices, and fl=* no prices either), so naming them is
+  // the only way to get them; USD priced all 818 sailings when this was written.
+  ...CABIN_CODES.flatMap((cabin) => FARE_TYPES.map((fare) => `price_USD_${cabin}_${fare}_d`)),
 ].join(',');
 
 /**
@@ -145,6 +149,16 @@ function cabinLabels(meta) {
   return labels;
 }
 
+/**
+ * Where a sailing leaves from. Some Seattle round trips now name "Puget Sound" (2026-11-03:
+ * 22, all ending in Seattle); search matches a port exactly, so "out of Seattle" needs the
+ * name the other Seattle sailings carry.
+ */
+function departurePort(embarkPortName) {
+  const port = unpack(embarkPortName).value;
+  return port === 'Puget Sound' ? 'Seattle, Washington, US' : port;
+}
+
 /** "ALASKA#@#A" -> { A: 'ALASKA' }, from the facets in the same response. */
 function destinationNames(facets) {
   const names = {};
@@ -195,7 +209,7 @@ export function parseListing(payload) {
       externalId: `${doc.cruiseId}_${doc.tourId || 'cruise'}`,
       url: doc.contentPath ? `${SITE_ORIGIN}/en/us${doc.contentPath}` : null,
       ship: unpack(doc.shipName).value,
-      departurePort: unpack(doc.embarkPortName).value,
+      departurePort: departurePort(doc.embarkPortName),
       endPort: unpack(doc.disembarkPortName).value,
       // A missing facets table leaves the raw code, which normalize.js reports.
       destination: destinations[destinationCode] ?? destinationCode,

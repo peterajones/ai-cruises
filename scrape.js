@@ -72,6 +72,18 @@ export function requireSomeInYear(name, before, after) {
 }
 
 /**
+ * The zero-row guard runs before normalize, so a line whose every row is dropped there (a
+ * price field the site stopped sending, say) would pass, then write nothing and replace its
+ * good data. Throwing makes it a failed line instead, which keeps its previous sailings.
+ */
+export function requireSomeNormalized(name, before, after, misses) {
+  if (before > 0 && after === 0) {
+    const example = misses.find((m) => m.field === 'row')?.raw ?? 'no reason recorded';
+    throw new Error(`${name}: all ${before} sailings were dropped — e.g. ${example}`);
+  }
+}
+
+/**
  * The end-of-run to-do list, by what fixes each kind. A skipped sailing is not a missing
  * alias: Princess drops a few unpriced sailings every run, and "add aliases to
  * normalize.js" above them sent you looking for a fix that doesn't exist.
@@ -149,6 +161,7 @@ async function main() {
         source: adapter.name,
         line: adapter.line,
       });
+      requireSomeNormalized(adapter.name, rows.length, normalized.length, unrecognised);
       // Several GraphQL operations hit the same endpoint on one page load and
       // more than one can carry the same sailings. Dedupe before the limit, or
       // --limit N would spend its budget on repeats.

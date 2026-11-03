@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseFlags, describeMisses, linesToKeep, withinNextYear, requireSomeInYear } from '../scrape.js';
+import { parseFlags, describeMisses, linesToKeep, withinNextYear, requireSomeInYear, requireSomeNormalized } from '../scrape.js';
 import { ADAPTERS, adaptersFor } from '../sites/index.js';
 
 test('the registered adapter is royal-caribbean', () => {
@@ -133,4 +133,20 @@ test('a line whose every sailing falls outside the window fails, rather than wri
   assert.throws(() => requireSomeInYear('princess', 195, 0), /princess: all 195 sailings fall outside the next 12 months/);
   assert.doesNotThrow(() => requireSomeInYear('princess', 195, 98));
   assert.doesNotThrow(() => requireSomeInYear('princess', 0, 0)); // the zero-row guard owns this case
+});
+
+test('a line whose rows are all dropped in normalize fails, naming why', () => {
+  const misses = [
+    { field: 'airport', raw: 'Nowhere', count: 1 },
+    { field: 'row', raw: 'holland-america:D733_cruise missing price', count: 1 },
+  ];
+  assert.throws(
+    () => requireSomeNormalized('holland-america', 20, 0, misses),
+    /holland-america: all 20 sailings were dropped — e\.g\. holland-america:D733_cruise missing price/,
+  );
+});
+
+test('a line keeping any of its rows passes the normalize guard', () => {
+  assert.doesNotThrow(() => requireSomeNormalized('princess', 100, 91, []));
+  assert.doesNotThrow(() => requireSomeNormalized('princess', 0, 0, [])); // the zero-row guard owns this case
 });
