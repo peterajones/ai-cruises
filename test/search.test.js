@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  searchSailings, hasNoConstraints, applyPriceDirection, currencyNote, describeFilter, emptyMessage, upcoming, localDate, priceFor, usesSelections, stopsOf, moreLikeThis,
+  searchSailings, hasNoConstraints, applyPriceDirection, currencyNote, describeFilter, emptyMessage, upcoming, localDate, priceFor, usesSelections, stopsOf, moreLikeThis, yearHidesAll,
 } from '../search.js';
 
 const sailings = [
@@ -412,4 +412,13 @@ test('the source can match another sailing of its own ship and date, once', () =
     s({ id: 'long', ship: 'Coral Princess', nights: 11 }), s({ id: 'longer', ship: 'Coral Princess', nights: 14 }),
   ]).matches.map((m) => m.sailing.id);
   assert.deepEqual(ids, ['long']);
+});
+
+test('yearHidesAll: results exist, and none in the chosen year', () => {
+  const in2027 = [{ departureDate: '2027-05-01' }, { departureDate: '2027-06-01' }];
+  assert.equal(yearHidesAll(in2027, '2026'), true);
+  assert.equal(yearHidesAll([...in2027, { departureDate: '2026-12-01' }], '2026'), false);
+  assert.equal(yearHidesAll(in2027, '2027'), false);
+  assert.equal(yearHidesAll([], '2026'), false, 'nothing found: the chip is not the reason');
+  assert.equal(yearHidesAll(in2027, null), false, 'no year chosen');
 });

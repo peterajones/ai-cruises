@@ -1,6 +1,6 @@
 import '/session.js';
 import '/refresh-panel.js';
-import { priceFor, stopsOf, moreLikeThis } from '/search.js';
+import { priceFor, stopsOf, moreLikeThis, yearHidesAll } from '/search.js';
 
 const $ = (s) => document.querySelector(s);
 
@@ -388,8 +388,7 @@ function buildFacets() {
   host.append(sortWrap);
 }
 
-function applyFacets(list) {
-  const f = state.facets;
+function applyFacets(list, f = state.facets) {
   let out = list.filter(s =>
     (!f.destination || s.destination === f.destination) &&
     (!f.cabin || priceFor(s, f.cabin) !== null) &&
@@ -796,6 +795,13 @@ $('#form').addEventListener('submit', async (e) => {
     // Results replace the view, so a search run from My cruises shows what it found
     // (the chip would otherwise keep showing My cruises over them). Review finding.
     if (state.facets.year === 'mine') {
+      state.facets.year = null;
+      syncYearChips();
+    }
+
+    // Nor may the chip hide everything a search found: the page opens on this year, and "a
+    // balcony to Alaska" in November found 1,046 and showed none. Other filters still apply.
+    if (yearHidesAll(applyFacets(data.results, { ...state.facets, year: null }), state.facets.year)) {
       state.facets.year = null;
       syncYearChips();
     }

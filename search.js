@@ -54,6 +54,18 @@ export function searchSailings(sailings, filter = {}, selections = {}) {
   });
 }
 
+/**
+ * True when there are results and the chosen year leaves none of them. A search shouldn't say
+ * "nothing matches" because the page happens to open on this year's chip.
+ *
+ * @param {object[]} results
+ * @param {string|null} year - a year chip's value, e.g. "2026"
+ * @returns {boolean}
+ */
+export function yearHidesAll(results, year) {
+  return Boolean(year) && results.length > 0 && !results.some((s) => s.departureDate.startsWith(year));
+}
+
 const MORE_LIKE_DAYS = 14;
 const MORE_LIKE_COUNT = 12;
 const MORE_LIKE_WEIGHTS = { ports: 0.6, price: 0.3, nights: 0.1 };
