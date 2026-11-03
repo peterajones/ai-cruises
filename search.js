@@ -54,6 +54,78 @@ export function searchSailings(sailings, filter = {}, selections = {}) {
   });
 }
 
+const MORE_LIKE_DAYS = 14;
+const MORE_LIKE_COUNT = 12;
+const MORE_LIKE_WEIGHTS = { ports: 0.6, price: 0.3, nights: 0.1 };
+/** Rough and fixed, for ranking only: prices still display as listed. */
+const CAD_TO_USD = 0.72;
+
+/** Folded as airports.js folds port text. This file reaches the browser, so it can't import that one. */
+const foldPort = (text) => String(text ?? '').toLowerCase()
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .replace(/ø/g, 'o').replace(/æ/g, 'ae').replace(/ß/g, 'ss')
+  .replace(/\(.*?\)/g, '')
+  .split(',')[0]
+  .replace(/^(scenic sailing:|scenic cruising|cruising)\s*/, '')
+  .replace(/ national park\s*$/, '')
+  .trim();
+
+/**
+ * Where a cruise stops, in names tidied for comparing: "Juneau, Alaska" is "juneau". Its
+ * start and end come out, because lines disagree about listing them in `ports`.
+ *
+ * @param {object} sailing
+ * @returns {Set<string>}
+ */
+export function stopsOf(sailing) {
+  const ends = new Set([foldPort(sailing.departurePort), foldPort(sailing.endPort)]);
+  return new Set((sailing.ports ?? []).map(foldPort).filter((port) => port && !ends.has(port)));
+}
+
+const dayOf = (iso) => Date.parse(`${iso.slice(0, 10)}T00:00:00Z`) / 86_400_000;
+const inUsd = (sailing) => (sailing.currency === 'CAD' ? sailing.price * CAD_TO_USD : sailing.price);
+
+/** |difference| as a share of the source's own value, 0 when that value is no use, capped at 1. */
+function gap(value, sourceValue) {
+  if (!(sourceValue > 0) || !(value > 0)) return 0;
+  return Math.min(Math.abs(value - sourceValue) / sourceValue, 1);
+}
+
+/**
+ * The cruises most like this one, closest first: a plain rule, so no model. The date decides
+ * who is in the running and plays no part in the order. Other lines are not forced in: a
+ * cruise whose stops only one line visits gets that line's sailings, which is the honest answer.
+ *
+ * @param {object} source
+ * @param {object[]} sailings
+ * @returns {{matches: {sailing: object, shared: number}[], stops: number, mixedCurrency: boolean}}
+ */
+export function moreLikeThis(source, sailings) {
+  const stops = stopsOf(source);
+  const day = dayOf(source.departureDate);
+  const scored = [];
+  for (const sailing of sailings) {
+    if (sailing.id === source.id) continue;
+    const days = Math.abs(dayOf(sailing.departureDate) - day);
+    if (days > MORE_LIKE_DAYS) continue;
+    const theirs = stopsOf(sailing);
+    if (theirs.size === 0) continue;
+    const shared = [...theirs].filter((port) => stops.has(port)).length;
+    const all = stops.size + theirs.size - shared;
+    const score = MORE_LIKE_WEIGHTS.ports * (all ? shared / all : 0)
+      + MORE_LIKE_WEIGHTS.price * (1 - gap(inUsd(sailing), inUsd(source)))
+      + MORE_LIKE_WEIGHTS.nights * (1 - gap(sailing.nights, source.nights));
+    scored.push({ sailing, shared, score, days });
+  }
+  scored.sort((a, b) => b.score - a.score || a.days - b.days || a.sailing.id.localeCompare(b.sailing.id));
+  const matches = scored.slice(0, MORE_LIKE_COUNT).map(({ sailing, shared }) => ({ sailing, shared }));
+  return {
+    matches,
+    stops: stops.size,
+    mixedCurrency: matches.some((m) => m.sailing.currency !== source.currency),
+  };
+}
+
 /**
  * Which price counts for this sailing when a cabin is asked for — and whether the
  * sailing qualifies at all. One rule, used by searchSailings and by the page.

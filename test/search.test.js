@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  searchSailings, hasNoConstraints, applyPriceDirection, currencyNote, describeFilter, emptyMessage, upcoming, localDate, priceFor, usesSelections,
+  searchSailings, hasNoConstraints, applyPriceDirection, currencyNote, describeFilter, emptyMessage, upcoming, localDate, priceFor, usesSelections, stopsOf, moreLikeThis,
 } from '../search.js';
 
 const sailings = [
@@ -322,4 +322,74 @@ test('the rating fields count as constraints and are described', () => {
   assert.equal(describeFilter({ viewed: true }), 'viewed');
   assert.equal(usesSelections({ viewed: false }), true);
   assert.equal(usesSelections({ destination: 'alaska' }), false);
+});
+
+// More like this. Same line, ports and date unless a test says otherwise.
+const s = (over) => ({
+  id: 'a', line: 'L', ship: 'S', departureDate: '2027-05-15', nights: 7, price: 1000, currency: 'USD',
+  departurePort: 'Vancouver', endPort: 'Vancouver', ports: ['Juneau', 'Skagway'], ...over,
+});
+
+test('stopsOf tidies names so lines can be compared', () => {
+  assert.deepEqual([...stopsOf(s({ ports: [
+    'Juneau, Alaska', 'Glacier Bay National Park (Scenic Cruising), Alaska', 'Scenic Sailing: Hubbard Glacier, Alaska',
+    'Scenic Cruising The Inside Passage', 'Tromsø', 'Reykjavík, Iceland', 'Cruising Hubbard Glacier',
+  ] }))], ['juneau', 'glacier bay', 'hubbard glacier', 'the inside passage', 'tromso', 'reykjavik']);
+});
+
+test('stopsOf leaves out where the cruise starts and ends', () => {
+  assert.deepEqual([...stopsOf(s({ departurePort: 'Vancouver, Canada', endPort: 'Seattle, Washington', ports: ['Vancouver, Canada', 'Juneau, Alaska', 'Seattle'] }))], ['juneau']);
+});
+
+test('moreLikeThis keeps candidates within 14 days either side, and never the source', () => {
+  const source = s({ id: 'src' });
+  const ids = moreLikeThis(source, [source,
+    s({ id: 'early', departureDate: '2027-05-01' }), s({ id: 'tooEarly', departureDate: '2027-04-30' }),
+    s({ id: 'late', departureDate: '2027-05-29' }), s({ id: 'tooLate', departureDate: '2027-05-30' }),
+  ]).matches.map((m) => m.sailing.id);
+  assert.deepEqual(ids.sort(), ['early', 'late']);
+});
+
+test('sailings with no stops are not candidates', () => {
+  const source = s({ id: 'src' });
+  assert.deepEqual(moreLikeThis(source, [source, s({ id: 'none', ports: [] }), s({ id: 'endsOnly', ports: ['Vancouver'] })]).matches, []);
+});
+
+test('ports outweigh price, and price outweighs length', () => {
+  const source = s({ id: 'src' });
+  const order = (...rest) => moreLikeThis(source, [source, ...rest]).matches.map((m) => m.sailing.id);
+  assert.deepEqual(order(s({ id: 'cheap', ports: ['Sitka'] }), s({ id: 'samePorts', price: 1500 })), ['samePorts', 'cheap']);
+  assert.deepEqual(order(s({ id: 'sameLength', price: 1500 }), s({ id: 'samePrice', nights: 10 })), ['samePrice', 'sameLength']);
+});
+
+test('CAD is compared at 0.72, and a mix of currencies is flagged', () => {
+  const source = s({ id: 'src', price: 720 });
+  const result = moreLikeThis(source, [source, s({ id: 'cad', price: 1000, currency: 'CAD' }), s({ id: 'usd', price: 900 })]);
+  assert.deepEqual(result.matches.map((m) => m.sailing.id), ['cad', 'usd']);
+  assert.equal(result.mixedCurrency, true);
+  assert.equal(moreLikeThis(source, [source, s({ id: 'usd', price: 900 })]).mixedCurrency, false);
+});
+
+test('moreLikeThis shows the top 12, and counts the stops shared', () => {
+  const source = s({ id: 'src' });
+  const others = Array.from({ length: 20 }, (_, i) => s({ id: `o${i}`, ports: ['Juneau', 'Sitka'] }));
+  const { matches, stops } = moreLikeThis(source, [source, ...others]);
+  assert.equal(matches.length, 12);
+  assert.equal(stops, 2);
+  assert.equal(matches[0].shared, 1);
+});
+
+test('ties go to the closest date, then the id, so the order is repeatable', () => {
+  const source = s({ id: 'src' });
+  const rest = [s({ id: 'b', departureDate: '2027-05-20' }), s({ id: 'a', departureDate: '2027-05-10' }), s({ id: 'c', departureDate: '2027-05-16' })];
+  const ids = (list) => moreLikeThis(source, [source, ...list]).matches.map((m) => m.sailing.id);
+  assert.deepEqual(ids(rest), ['c', 'a', 'b']);
+  assert.deepEqual(ids([...rest].reverse()), ['c', 'a', 'b']);
+});
+
+test('a source with no usable price or nights still ranks by what it has', () => {
+  for (const source of [s({ id: 'src', price: 0 }), s({ id: 'src', price: null }), s({ id: 'src', nights: 0 })]) {
+    const ids = moreLikeThis(source, [source, s({ id: 'near' }), s({ id: 'far', ports: ['Sitka'] })]).matches.map((m) => m.sailing.id);
+    assert.deepEqual(ids, ['near', 'far']);
+  }
 });
