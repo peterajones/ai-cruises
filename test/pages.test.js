@@ -17,6 +17,10 @@ test('pages load every script from a file (the content policy allows no inline s
   }
 });
 
+test('the main page has a place for the More like this banner', () => {
+  assert.match(read('index.html'), /id="more-like"/);
+});
+
 test('scripts never write inline event handlers into markup', () => {
   for (const f of files.filter((n) => n.endsWith('.js'))) {
     assert.doesNotMatch(read(f), /\son[a-z]+=\\?["']/, `${f} writes an inline handler`);

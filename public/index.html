@@ -296,6 +296,18 @@
   .more[hidden] { display: none; }
   .more button { font: inherit; font-size: 13px; font-weight: 600; color: var(--accent); cursor: pointer;
     background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 5px 14px; }
+  /* The year row pins at up to 102px on a phone; the banner must not scroll in under it. */
+  .more-like { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px;
+    margin-bottom: 14px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start;
+    gap: 8px 16px; scroll-margin-top: 110px; }
+  .more-like[hidden] { display: none; }
+  .more-like h2 { margin: 0 0 2px; font-size: 16px; font-weight: 650; }
+  .more-like p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+  .more-like button { font: inherit; font-size: 13px; font-weight: 600; color: var(--accent); cursor: pointer;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 5px 14px; white-space: nowrap; }
+  .more-like-link { align-self: flex-start; font: inherit; font-size: 13px; font-weight: 600; color: var(--accent);
+    cursor: pointer; background: none; border: 0; padding: 4px 0 0; }
+  .shares { font-size: 12.5px; font-weight: 600; color: var(--accent); }
   .empty { text-align: center; padding: 70px 20px; color: var(--muted); font-size: 17px; }
   .account { position: absolute; top: 14px; right: 16px; font-size: 14px; }
   .account a { color: var(--accent); text-decoration: none; }
@@ -335,6 +347,7 @@
 
   <div class="facets" id="facets"></div>
 
+  <div id="more-like" class="more-like" hidden></div>
   <div id="results-bar" class="results-bar"><button id="refresh" type="button" class="refresh" hidden>Refresh data</button><span id="results-note"></span><span id="count" class="count"></span></div>
   <section id="refresh-panel" class="refresh-panel" hidden aria-live="polite">
     <pre id="refresh-lines" class="refresh-lines"></pre>

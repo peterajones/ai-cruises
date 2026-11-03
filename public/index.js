@@ -1,6 +1,6 @@
 import '/session.js';
 import '/refresh-panel.js';
-import { priceFor } from '/search.js';
+import { priceFor, stopsOf, moreLikeThis } from '/search.js';
 
 const $ = (s) => document.querySelector(s);
 
@@ -24,7 +24,7 @@ const el = (tag, props = {}, ...kids) => {
 /** Only http(s) may reach an href or src — blocks javascript: and data: URLs. */
 const safeUrl = (u) => (typeof u === 'string' && /^https?:\/\//i.test(u) ? u : null);
 const state = { all: [], subset: null, message: null, values: {}, facets: {}, searchCabin: null,
-  selections: {}, selectionsOk: true, selectionsWhy: null };
+  selections: {}, selectionsOk: true, selectionsWhy: null, moreLike: null };
 
 const EXAMPLES = [
   'a 4-night Bahamas cruise with a balcony under $700',
@@ -42,8 +42,8 @@ const titleCase = (s) => String(s).split('-').map(w => w[0].toUpperCase() + w.sl
 const CABIN_NAMES = { interior: 'Interior', oceanview: 'Ocean view', balcony: 'Balcony', suite: 'Suite' };
 const cabinName = (c) => CABIN_NAMES[c] ?? titleCase(c ?? 'cabin');
 
-/** The dropdown wins over the search: it is the more recent, more specific choice. */
-const chosenCabin = () => state.facets.cabin || state.searchCabin || null;
+/** The dropdown wins over the search: it is the more recent, more specific choice. Matches rank on the cheapest cabin, and show it. */
+const chosenCabin = () => (state.moreLike ? null : state.facets.cabin || state.searchCabin || null);
 
 /** The price a card shows and the slider and sort use — the shared rule. */
 const shownPrice = (s) => priceFor(s, chosenCabin()) ?? priceFor(s, null);
@@ -277,6 +277,7 @@ function buildYearChips() {
     const b = el('button', { type: 'button', class: 'yearchip', text: `${label} ` });
     b.append(el('span', { class: 'yearcount', text: String(count) }));
     b.onclick = () => {
+      state.moreLike = null;
       state.facets.year = value;
       syncYearChips();
       render();
@@ -353,7 +354,7 @@ function buildFacets() {
     sel.id = 'f-' + key;
     sel.append(el('option', { value: '', text: 'Any' }));
     for (const [val, text] of opts) sel.append(el('option', { value: val, text }));
-    sel.onchange = () => { state.facets[key] = sel.value || null; render(); };
+    sel.onchange = () => { state.moreLike = null; state.facets[key] = sel.value || null; render(); };
     wrap.append(sel);
     host.append(wrap);
   }
@@ -366,6 +367,7 @@ function buildFacets() {
   range.min = 0; range.max = maxPrice; range.step = 25; range.value = maxPrice;
   range.oninput = () => {
     $('#priceOut').textContent = money(+range.value);
+    state.moreLike = null;
     state.facets.maxPrice = +range.value >= maxPrice ? null : +range.value;
     render();
   };
@@ -381,7 +383,7 @@ function buildFacets() {
                     <option value="price" selected>Cheapest first</option>
                     <option value="date">Soonest first</option>
                     <option value="nights">Longest first</option>`;
-  sort.onchange = () => { state.facets.sort = sort.value; render(); };
+  sort.onchange = () => { state.moreLike = null; state.facets.sort = sort.value; render(); };
   sortWrap.append(sort);
   host.append(sortWrap);
 }
@@ -539,7 +541,62 @@ function markViewed(s) {
   }
 }
 
+/**
+ * Shows the cruises most like this one in place of the results. Asking again from a match
+ * keeps the first `back`, so ✕ always returns to the results the shopper started from.
+ */
+function showMoreLike(s) {
+  const { matches, stops, mixedCurrency } = moreLikeThis(s, state.all);
+  state.moreLike = {
+    source: s, matches, stops, mixedCurrency,
+    shared: new Map(matches.map((m) => [m.sailing.id, m.shared])),
+    back: state.moreLike?.back ?? { scrollY: window.scrollY, built },
+  };
+  render();
+  $('#more-like').scrollIntoView();
+}
+
+/** Cards build in batches, so the cards that were showing come back before the scroll position. */
+function leaveMoreLike() {
+  const { back } = state.moreLike;
+  state.moreLike = null;
+  render();
+  if (back.built > built) appendCards(back.built - built);
+  window.scrollTo(0, back.scrollY);
+}
+
+function renderMoreLike() {
+  const { source, matches, mixedCurrency } = state.moreLike;
+  const back = el('button', { type: 'button', text: '✕ Back to results' });
+  back.onclick = leaveMoreLike;
+  const banner = $('#more-like');
+  banner.replaceChildren(
+    el('div', {},
+      el('h2', { text: `More like ${source.ship} · ${prettyDate(source.departureDate)}` }),
+      el('p', { text: `${source.itinerary ?? titleCase(source.destination ?? 'Cruise')} · ${money(source.price)} · closest first, within 2 weeks of its date` }),
+      mixedCurrency ? el('p', { text: 'Prices are in different currencies, so the price comparison is approximate.' }) : null),
+    back);
+  banner.hidden = false;
+  $('#results-note').replaceChildren();
+  $('#count').textContent = `${matches.length} closest`;
+
+  const host = $('#results');
+  host.textContent = '';
+  if (matches.length === 0) {
+    const box = el('div', { class: 'empty', text: 'No other cruises leave within two weeks of this one.' });
+    box.style.gridColumn = '1/-1';
+    host.append(box);
+    $('#more').hidden = true;
+    return;
+  }
+  renderList = matches.map((m) => m.sailing);
+  built = 0;
+  appendCards(BATCH);
+}
+
 function render() {
+  if (state.moreLike) { renderMoreLike(); return; }
+  $('#more-like').hidden = true;
   const mine = state.facets.year === 'mine';
   const base = mine ? mineList() : (state.subset ?? state.all);
   const list = applyFacets(base);
@@ -650,9 +707,26 @@ function cardFor(s) {
       el('div', { class: 'meta', text: `${s.ship} · ${s.line}` }),
       el('div', { class: 'meta', text: `${prettyDate(s.departureDate)} · from ${s.departurePort}` }),
       s.ports?.length ? el('div', { class: 'ports', text: `Calls at ${s.ports.join(' · ')}` }) : null,
+      sharesLine(s),
       cabinRow,
       foot,
-      starsFor(s)));
+      starsFor(s),
+      moreLikeLink(s)));
+}
+
+/** "Shares 4 of its 5 stops", on a card shown as a match. */
+function sharesLine(s) {
+  const shared = state.moreLike?.shared.get(s.id);
+  if (shared === undefined) return null;
+  return el('div', { class: 'shares', text: shared ? `Shares ${shared} of its ${state.moreLike.stops} stops` : 'Shares no stops' });
+}
+
+/** Nothing to compare on a cruise with no stops, and one no longer listed has no date to search around. */
+function moreLikeLink(s) {
+  if (s.unlisted || stopsOf(s).size === 0) return null;
+  const b = el('button', { type: 'button', class: 'more-like-link', text: 'More like this' });
+  b.onclick = () => showMoreLike(s);
+  return b;
 }
 
 $('#form').addEventListener('submit', async (e) => {
@@ -726,6 +800,7 @@ $('#form').addEventListener('submit', async (e) => {
       syncYearChips();
     }
 
+    state.moreLike = null;
     state.subset = data.results;
     state.searchCabin = data.filter.cabin ?? null;
     state.message = data.message;

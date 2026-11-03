@@ -236,7 +236,7 @@ Holland America) and a destination. All but
 12 have an end port — those are long Princess itineraries whose cards stop short (see the flights
 panel below) — and every departure and end port maps to an airport. 46 ships with descriptions,
 cheapest prices $199–$30,155 USD (the top is Celebrity's 7-night Galápagos Outer Loop and Machu
-Picchu) and $395–$80,999 CAD (a 28-night Viking voyage). Alaska: 1,213 sailings. 416 tests.
+Picchu) and $395–$80,999 CAD (a 28-night Viking voyage). Alaska: 1,213 sailings. 428 tests.
 
 **Prices per cabin type.** Every sailing has `cabinPrices` — cabin type → that cabin's
 cheapest price, e.g. `{ interior: 959, oceanview: 1009, balcony: 1459, suite: 2164 }` — and
@@ -354,6 +354,15 @@ haven't seen"); "best-rated" is not the shopper's own rating and stays null. Rat
 in `data/selections.db` (gitignored) — `npm run export-selections` for a backup. If the database
 can't open (Node < 24.15, a bad path), the app runs without ratings and says why.
 `SELECTIONS_FILE=…` points a second copy at a scratch database; checks always use one.
+
+**More like this** (spec: `docs/superpowers/specs/2026-11-03-more-like-this-design.md`). Each card's
+link replaces the results with the 12 cruises closest to it, and ✕ puts the results back, filters
+and scroll included. `moreLikeThis` in `search.js` is a plain rule, no model: sailings within 14 days
+either side, scored 0.6 ports, 0.3 price, 0.1 length, closest sailing per ship and date, because one
+cruise can be sold as up to 8 land packages. Other lines are not forced in. Filters and the
+searched cabin are set aside while the matches show. `stopsOf` tidies port names for comparing only
+and leaves out a cruise's start and end; CAD counts as 0.72 USD for ranking only, with a note when
+currencies mix. A card with no stops, or no longer listed, has no link.
 
 **Departed sailings are hidden.** `upcoming()` in `search.js` drops anything that left
 before today (local time). The server applies it per request, not at load, so a running
