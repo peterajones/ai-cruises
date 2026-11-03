@@ -1,5 +1,7 @@
 # More Like This Implementation Plan
 
+**Status:** COMPLETE — 2026-11-03
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** A "More like this" link on each cruise card replaces the results with the 12 closest cruises by ports, price and length, within two weeks of its date, and ✕ restores the previous results.

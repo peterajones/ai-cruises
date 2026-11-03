@@ -85,10 +85,11 @@ comparison is approximate.
 - **Clicking "More like this" on a match** moves to that cruise's matches. ✕ still returns to the
   original results, not to the previous match list.
 - **Weights 0.6 / 0.3 / 0.1, and 12 matches,** were chosen by trying them on real data
-  (2026-11-03): Discovery Princess's first match is Star Princess, then Holland America and
-  Celebrity sailings sharing 4 of its 5 stops; Coral Princess, which matched nothing under strict
-  cut-offs, gets 12 matches from 4 lines. In a sample of 209 sailings, 5 had no shared stop among
-  their 12 and 105 had another line among them. They are constants, easily changed.
+  (2026-11-03): Discovery Princess's first match is Holland America's Westerdam, sharing all 5 of its
+  stops, with Star Princess third; Coral Princess, which matched nothing under strict cut-offs, gets
+  12 matches from 4 lines. In a sample of 209 sailings, 5 had no shared stop among their 12 and 105
+  had another line among them, before Holland America's ports came back. They are constants, easily
+  changed.
 - **Browser Back** is not handled: ✕ is the way back.
 
 ## Out of scope
