@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseFlags, describeMisses, linesToKeep, withinNextYear, requireSomeInYear, requireSomeNormalized } from '../scrape.js';
+import { parseFlags, describeMisses, linesToKeep, withinNextYear, requireSomeInYear, requireSomeNormalized, lostFields, describeLostFields } from '../scrape.js';
 import { ADAPTERS, adaptersFor } from '../sites/index.js';
 
 test('the registered adapter is royal-caribbean', () => {
@@ -149,4 +149,62 @@ test('a line whose rows are all dropped in normalize fails, naming why', () => {
 test('a line keeping any of its rows passes the normalize guard', () => {
   assert.doesNotThrow(() => requireSomeNormalized('princess', 100, 91, []));
   assert.doesNotThrow(() => requireSomeNormalized('princess', 0, 0, [])); // the zero-row guard owns this case
+});
+
+const hal = (fields) => ({ source: 'holland-america', ...fields });
+const princess = (fields) => ({ source: 'princess', ...fields });
+
+test('lostFields: a line whose sailings all lose a field its last run had (Holland America ports, 2026-11)', () => {
+  const previous = [hal({ ports: ['Juneau'] }), hal({ ports: ['Sitka'] }), hal({ ports: [] })];
+  const fresh = [hal({ ports: [] }), hal({ ports: [] })];
+  assert.deepEqual(lostFields(previous, fresh), [
+    { source: 'holland-america', field: 'ports', had: 2, of: 2 },
+  ]);
+});
+
+test('lostFields: a field that was always empty on a line is not lost (Princess cabinPrices)', () => {
+  const previous = [princess({ cabinPrices: null, price: 900 })];
+  const fresh = [princess({ cabinPrices: null, price: 950 })];
+  assert.deepEqual(lostFields(previous, fresh), []);
+});
+
+test('lostFields: one fresh sailing with the field is enough', () => {
+  const previous = [hal({ image: 'a.jpg' }), hal({ image: 'b.jpg' })];
+  const fresh = [hal({ image: null }), hal({ image: 'c.jpg' })];
+  assert.deepEqual(lostFields(previous, fresh), []);
+});
+
+test('lostFields: null, a blank, an empty list or object, and a renamed-away field all count as empty', () => {
+  const previous = [hal({ a: 'x', b: 'x', c: ['x'], d: { x: 1 }, e: 'x' })];
+  const fresh = [hal({ a: null, b: '', c: [], d: {} })];
+  assert.deepEqual(lostFields(previous, fresh).map((l) => l.field), ['a', 'b', 'c', 'd', 'e']);
+});
+
+test('lostFields: zero is a value, not an empty field', () => {
+  assert.deepEqual(lostFields([hal({ nights: 7 })], [hal({ nights: 0 })]), []);
+});
+
+test('lostFields: only lines in this run are checked, so a carried-over line is never compared', () => {
+  const previous = [hal({ ports: ['Juneau'] }), princess({ ports: ['Kotor'] })];
+  const fresh = [hal({ ports: ['Sitka'] })];
+  assert.deepEqual(lostFields(previous, fresh), []);
+});
+
+test('lostFields: each line is judged alone', () => {
+  const previous = [hal({ ports: ['Juneau'] }), princess({ ports: ['Kotor'] })];
+  const fresh = [hal({ ports: [] }), princess({ ports: ['Kotor'] })];
+  assert.deepEqual(lostFields(previous, fresh).map((l) => l.source), ['holland-america']);
+});
+
+test('lostFields: no previous run, nothing to compare', () => {
+  assert.deepEqual(lostFields(undefined, [hal({ ports: [] })]), []);
+});
+
+test('describeLostFields names the line, the field and the counts, and says nothing when nothing is lost', () => {
+  assert.deepEqual(describeLostFields([]), []);
+  const lines = describeLostFields([{ source: 'holland-america', field: 'ports', had: 682, of: 675 }]);
+  assert.match(lines[0], /may need investigating/i);
+  assert.match(lines[1], /holland-america: ports/);
+  assert.match(lines[1], /682/);
+  assert.match(lines[1], /675/);
 });

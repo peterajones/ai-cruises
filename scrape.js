@@ -121,6 +121,40 @@ export function linesToKeep(registered, ran, failed) {
   });
 }
 
+const isEmptyField = (v) => v == null || v === ''
+  || (typeof v === 'object' && Object.keys(v).length === 0);
+
+/**
+ * Fields a line's sailings had last run and none of them has now: what a silently renamed API
+ * field looks like. Holland America's ports went this way in 2026-11, and no scrape complained.
+ * Comparing with the last run keeps quiet about fields a line never fills (Princess's
+ * cabinPrices). Pass this run's sailings only: a carried-over line hasn't changed.
+ *
+ * @returns {{source: string, field: string, had: number, of: number}[]} `had` of last run's
+ *   sailings carried the field; none of this run's `of` do.
+ */
+export function lostFields(previous, fresh) {
+  const lost = [];
+  for (const source of new Set(fresh.map((s) => s.source))) {
+    const before = (previous ?? []).filter((s) => s.source === source);
+    const now = fresh.filter((s) => s.source === source);
+    for (const field of new Set(before.flatMap((s) => Object.keys(s)))) {
+      if (now.some((s) => !isEmptyField(s[field]))) continue;
+      const had = before.filter((s) => !isEmptyField(s[field])).length;
+      if (had > 0) lost.push({ source, field, had, of: now.length });
+    }
+  }
+  return lost;
+}
+
+export function describeLostFields(lost) {
+  if (lost.length === 0) return [];
+  return [
+    `${plural(lost.length, 'field', 'fields')} came back empty — may need investigating (a renamed API field?):`,
+    ...lost.map((l) => `  ${l.source}: ${l.field} — ${plural(l.had, 'sailing', 'sailings')} had it last run, none of ${l.of} now`),
+  ];
+}
+
 async function snapshotFailure(body, label) {
   await mkdir(join(DATA_DIR, 'debug'), { recursive: true });
   const stamp = new Date().toISOString().replace(/:/g, '-');
@@ -214,6 +248,10 @@ async function main() {
   }
 
   const existing = (await loadExisting(DATA_DIR)) ?? { ships: {} };
+
+  // Before the carried-over lines join allSailings. Not under --limit: a handful of sailings
+  // can lack a field by chance.
+  const lost = Number.isFinite(flags.limit) ? [] : lostFields(existing.sailings, allSailings);
 
   // A line that failed keeps its sailings from the previous run (the exit code still says
   // it failed), rather than vanishing from the file until its next good scrape; so does a
@@ -310,6 +348,10 @@ async function main() {
 
   const misses = describeMisses(result.unrecognised);
   if (misses.length > 0) console.log(`\n${misses.join('\n')}`);
+
+  // A warning, not a failure: the data is still written, and exit 1 still means a line failed.
+  const lostLines = describeLostFields(lost);
+  if (lostLines.length > 0) console.log(`\n${lostLines.join('\n')}`);
 
   if (failures.length > 0) {
     console.error(`\n${failures.length} failure(s):`);

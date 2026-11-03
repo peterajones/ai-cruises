@@ -78,6 +78,13 @@ A line whose rows are all dropped in normalize (`requireSomeNormalized`) is a fa
 exit 1, and it keeps its previous sailings. Before 2026-11-03 that was a success with none, and
 an upload would have taken a whole line off the site.
 
+**A field a whole line loses gets a warning, not a failure.** `lostFields` in `scrape.js` compares
+each line scraped with its sailings in the previous run; a field some had and none has now prints
+"came back empty — may need investigating" at the end of the run, naming the line and field. The
+data is still written and the exit code doesn't change, so read the end of a scrape before
+uploading. Skipped under `--limit`. Replayed over the 35 saved runs it flags Holland America's ports
+(2026-11-03), which no scrape had complained about, and one early run from 2026-08-04.
+
 ## Environment
 
 - Node 24.15+ (`.nvmrc`; `nvm use` in this folder — the nvm default on this machine is still 22).
@@ -236,7 +243,7 @@ Holland America) and a destination. All but
 12 have an end port — those are long Princess itineraries whose cards stop short (see the flights
 panel below) — and every departure and end port maps to an airport. 46 ships with descriptions,
 cheapest prices $199–$30,155 USD (the top is Celebrity's 7-night Galápagos Outer Loop and Machu
-Picchu) and $395–$80,999 CAD (a 28-night Viking voyage). Alaska: 1,213 sailings. 429 tests.
+Picchu) and $395–$80,999 CAD (a 28-night Viking voyage). Alaska: 1,213 sailings. 438 tests.
 
 **Prices per cabin type.** Every sailing has `cabinPrices` — cabin type → that cabin's
 cheapest price, e.g. `{ interior: 959, oceanview: 1009, balcony: 1459, suite: 2164 }` — and
